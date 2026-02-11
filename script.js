@@ -33,13 +33,15 @@ function getBaseUrl() {
 
 function fileNameFromPath(pathValue) {
   if (!pathValue) return "Not uploaded";
-  const parts = pathValue.split(/[\\/]/);
+  const cleanValue = pathValue.split("?")[0];
+  const parts = cleanValue.split(/[\\/]/);
   return parts[parts.length - 1];
 }
 
 function documentLink(pathValue) {
   if (!pathValue) return "Not uploaded";
-  const href = `${getBaseUrl()}/${pathValue.replace(/^\/+/, "")}`;
+  const isAbsoluteUrl = /^https?:\/\//i.test(pathValue);
+  const href = isAbsoluteUrl ? pathValue : `${getBaseUrl()}/${pathValue.replace(/^\/+/, "")}`;
   const text = fileNameFromPath(pathValue);
   return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
 }

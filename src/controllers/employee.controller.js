@@ -1,4 +1,43 @@
 import Employee from "../models/employee.model.js";
+import cloudinary from "../config/cloudinary.js";
+
+const fieldToFolder = {
+  tenth: "10th",
+  twelfth: "12th",
+  degree: "degree",
+  offerletter: "offerletter",
+  joiningletter: "joiningletter",
+  resume: "resume",
+};
+
+function uploadBufferToCloudinary(file, folder) {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: `employee-documents/${folder}`,
+        resource_type: "auto",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+
+    uploadStream.end(file.buffer);
+  });
+}
+
+async function buildCloudinaryDocumentMap(files = {}, existingDocuments = {}) {
+  const documents = { ...existingDocuments };
+
+  for (const [fieldName, folder] of Object.entries(fieldToFolder)) {
+    const file = files?.[fieldName]?.[0];
+    if (!file) continue;
+    documents[fieldName] = await uploadBufferToCloudinary(file, folder);
+  }
+
+  return documents;
+}
 
 export const getEmployees = async (req, res) => {
   try {
@@ -21,9 +60,14 @@ export const getEmployeeById = async (req, res) => {
 
 export const addEmployee = async (req, res) => {
   try {
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return res.status(500).json({ error: "Cloudinary environment variables are missing." });
+    }
+
     const { name, email, phone, address, qualification } = req.body;
 
     console.log('Creating employee', { name, email, phone, address, qualification });
+    const documents = await buildCloudinaryDocumentMap(req.files);
 
     const employee = await Employee.create({
       name,
@@ -31,14 +75,7 @@ export const addEmployee = async (req, res) => {
       phone,
       address,
       qualification,
-      documents: {
-        tenth: req.files?.tenth?.[0]?.path,
-        twelfth: req.files?.twelfth?.[0]?.path,
-        degree: req.files?.degree?.[0]?.path,
-        offerletter: req.files?.offerletter?.[0]?.path,
-        joiningletter: req.files?.joiningletter?.[0]?.path,
-        resume: req.files?.resume?.[0]?.path
-      }
+      documents
     });
 
     console.log('Employee created', employee);
@@ -54,6 +91,10 @@ export const addEmployee = async (req, res) => {
 };
 export const updateEmployee = async (req, res) => {
   try {
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return res.status(500).json({ error: "Cloudinary environment variables are missing." });
+    }
+
     const { id } = req.params;
     const employee = await Employee.findById(id);
 
@@ -65,16 +106,9 @@ export const updateEmployee = async (req, res) => {
       ...req.body
     };
 
-    // Keep existing documents and update only the new ones
+    // Keep existing documents and update only files sent in this request.
     if (req.files && Object.keys(req.files).length > 0) {
-      updatedData.documents = { ...employee.documents,
-        tenth: req.files?.tenth?.[0]?.path || employee.documents.tenth,
-        twelfth: req.files?.twelfth?.[0]?.path || employee.documents.twelfth,
-        degree: req.files?.degree?.[0]?.path || employee.documents.degree,
-        offerletter: req.files?.offerletter?.[0]?.path || employee.documents.offerletter,
-        joiningletter: req.files?.joiningletter?.[0]?.path || employee.documents.joiningletter,
-        resume: req.files?.resume?.[0]?.path || employee.documents.resume
-      };
+      updatedData.documents = await buildCloudinaryDocumentMap(req.files, employee.documents || {});
     }
 
     const updatedEmployee = await Employee.findByIdAndUpdate(
@@ -100,7 +134,6 @@ export const deleteEmployee = async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
-
     res.json({ message: "Employee removed successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
