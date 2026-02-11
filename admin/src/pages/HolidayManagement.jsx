@@ -140,6 +140,9 @@ const HolidayManagement = () => {
                                     className="input-field bg-slate-50 text-slate-500 border-none"
                                     value={selectedDate.toDateString()}
                                 />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Will be saved as: {new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </p>
                             </div>
 
                             <div>

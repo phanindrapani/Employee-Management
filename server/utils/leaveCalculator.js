@@ -1,4 +1,4 @@
-import { eachDayOfInterval, isSunday, format } from 'date-fns';
+import { isSunday } from 'date-fns';
 import Holiday from '../models/holiday.model.js';
 
 /**
@@ -10,27 +10,47 @@ import Holiday from '../models/holiday.model.js';
  * @param {string} session - 'full-day', 'half-morning', 'half-afternoon'
  * @returns {Promise<number>} totalDays
  */
+const parseDateOnly = (value) => {
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [y, m, d] = value.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
+    return new Date(value);
+};
+
+const normalizeToLocalDate = (value) => {
+    const d = parseDateOnly(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+};
+
+const getLocalDateKey = (value) => {
+    const d = normalizeToLocalDate(value);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
+
 export const calculateWorkingDays = async (fromDate, toDate, session = 'full-day') => {
-    const startDate = new Date(fromDate);
-    const endDate = new Date(toDate);
+    const startDate = normalizeToLocalDate(fromDate);
+    const endDate = normalizeToLocalDate(toDate);
 
     if (endDate < startDate) return 0;
 
-    // Get all days in the range
-    const days = eachDayOfInterval({ start: startDate, end: endDate });
-
     // Get holidays from DB
+    const endExclusive = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() + 1);
     const holidays = await Holiday.find({
-        date: { $gte: startDate, $lte: endDate }
+        date: { $gte: startDate, $lt: endExclusive }
     });
 
-    const holidayStrings = holidays.map(h => format(h.date, 'yyyy-MM-dd'));
+    const holidayStrings = holidays.map(h => getLocalDateKey(h.date));
 
     let workingDays = 0;
 
-    for (const day of days) {
+    for (let day = new Date(startDate); day <= endDate; day = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1)) {
         const isSun = isSunday(day);
-        const isHol = holidayStrings.includes(format(day, 'yyyy-MM-dd'));
+        const isHol = holidayStrings.includes(getLocalDateKey(day));
 
         if (!isSun && !isHol) {
             workingDays++;
