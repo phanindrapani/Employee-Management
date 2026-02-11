@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Employee Management System</h1>
+        
+        <div class="form-container">
+            <form id="employeeForm">
+                <input type="hidden" id="employeeId">
+                <div class="form-group">
+                    <input type="text" id="firstName" placeholder="First Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="lastName" placeholder="Last Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="phone" placeholder="Phone">
+                    
+                </div>
+                 <div class="form-group">
+                    <input type="text" id="adress" placeholder="adress">
+                    
+                </div>
+                 <div class="form-group">
+                    <input type="text" id="qualification" placeholder="qualification">
+                    
+                </div>
+                 <div class="form-group">
+                    <input type="text" id="" placeholder="adress">
+                    
+                </div>
+                
+
+                <button type="submit" id="submitBtn">Add Employee</button>
+                <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
+            </form>
+        </div>
+
+        <div class="list-container">
+            <table id="employeeTable">
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
