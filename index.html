@@ -9,10 +9,11 @@
 <body>
     <div class="container">
         <h1>Employee Management System</h1>
-        
+
         <div class="form-container">
             <form id="employeeForm">
                 <input type="hidden" id="employeeId">
+
                 <div class="form-group">
                     <input type="text" id="firstName" placeholder="First Name" required>
                 </div>
@@ -23,25 +24,76 @@
                     <input type="email" id="email" placeholder="Email" required>
                 </div>
                 <div class="form-group">
-                    <input type="text" id="phone" placeholder="Phone">
-                    
+                    <input type="text" id="phone" placeholder="Phone" required>
                 </div>
-                 <div class="form-group">
-                    <input type="text" id="adress" placeholder="adress">
-                    
+                <div class="form-group">
+                    <input type="text" id="address" placeholder="Address" required>
                 </div>
-                 <div class="form-group">
-                    <input type="text" id="qualification" placeholder="qualification">
-                    
+                <div class="form-group">
+                    <input type="text" id="qualification" placeholder="Qualification" required>
                 </div>
-                 <div class="form-group">
-                    <input type="text" id="" placeholder="adress">
-                    
+
+                <h3>Required Documents</h3>
+
+                <div class="form-group">
+                    <label for="doc10Type">10th Document Type</label>
+                    <select id="doc10Type" required>
+                        <option value="">Select format</option>
+                        <option value="jpg">JPG</option>
+                        <option value="pdf">PDF</option>
+                        <option value="docx">DOCX</option>
+                    </select>
+                    <input type="file" id="doc10File" accept=".jpg,.jpeg,.pdf,.docx" required>
                 </div>
-                
+
+                <div class="form-group">
+                    <label for="doc12Type">12th Document Type</label>
+                    <select id="doc12Type" required>
+                        <option value="">Select format</option>
+                        <option value="jpg">JPG</option>
+                        <option value="pdf">PDF</option>
+                        <option value="docx">DOCX</option>
+                    </select>
+                    <input type="file" id="doc12File" accept=".jpg,.jpeg,.pdf,.docx" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="degreeType">Degree Document Type</label>
+                    <select id="degreeType" required>
+                        <option value="">Select format</option>
+                        <option value="jpg">JPG</option>
+                        <option value="pdf">PDF</option>
+                        <option value="docx">DOCX</option>
+                    </select>
+                    <input type="file" id="degreeFile" accept=".jpg,.jpeg,.pdf,.docx" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="offerType">Offer Letter Type</label>
+                    <select id="offerType" required>
+                        <option value="">Select format</option>
+                        <option value="jpg">JPG</option>
+                        <option value="pdf">PDF</option>
+                        <option value="docx">DOCX</option>
+                    </select>
+                    <input type="file" id="offerFile" accept=".jpg,.jpeg,.pdf,.docx" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="joiningType">Joining Letter Type</label>
+                    <select id="joiningType" required>
+                        <option value="">Select format</option>
+                        <option value="jpg">JPG</option>
+                        <option value="pdf">PDF</option>
+                        <option value="docx">DOCX</option>
+                    </select>
+                    <input type="file" id="joiningFile" accept=".jpg,.jpeg,.pdf,.docx" required>
+                </div>
+
+                <p id="formMessage" class="form-message"></p>
 
                 <button type="submit" id="submitBtn">Add Employee</button>
-                <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
+                <button type="button" id="cancelBtn" class="secondary" style="display:none;">Cancel</button>
             </form>
         </div>
 
@@ -53,6 +105,8 @@
                         <th>Last Name</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Qualification</th>
+                        <th>Documents</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
