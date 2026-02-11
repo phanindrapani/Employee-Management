@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
+import ChangePassword from './pages/ChangePassword';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -27,6 +28,7 @@ function App() {
             </PrivateRoute>
           }>
             <Route index element={<EmployeeDashboard />} />
+            <Route path="change-password" element={<ChangePassword />} />
           </Route>
         </Routes>
       </Router>

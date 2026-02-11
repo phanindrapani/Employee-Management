@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     Home,
+    KeyRound,
     LogOut
 } from 'lucide-react';
 
@@ -11,6 +12,7 @@ const Sidebar = () => {
 
     const navItems = [
         { name: 'Dashboard', path: '/', icon: Home },
+        { name: 'Change Password', path: '/change-password', icon: KeyRound },
     ];
 
     return (

@@ -1,9 +1,15 @@
 import Employee from "../models/employee.model.js";
 import User from "../../models/user.model.js";
+import path from "path";
 
 const buildDefaultPassword = (name) => {
   const firstName = (name || "").trim().split(/\s+/)[0] || "Employee";
   return `${firstName}123`;
+};
+
+const buildDocPath = (file, folder) => {
+  if (!file) return undefined;
+  return path.posix.join("uploads", folder, file.filename);
 };
 
 export const getEmployees = async (req, res) => {
@@ -58,12 +64,12 @@ export const addEmployee = async (req, res) => {
         address,
         qualification,
         documents: {
-          tenth: req.files?.tenth?.[0]?.path,
-          twelfth: req.files?.twelfth?.[0]?.path,
-          degree: req.files?.degree?.[0]?.path,
-          offerletter: req.files?.offerletter?.[0]?.path,
-          joiningletter: req.files?.joiningletter?.[0]?.path,
-          resume: req.files?.resume?.[0]?.path    
+          tenth: buildDocPath(req.files?.tenth?.[0], "10th"),
+          twelfth: buildDocPath(req.files?.twelfth?.[0], "12th"),
+          degree: buildDocPath(req.files?.degree?.[0], "degree"),
+          offerletter: buildDocPath(req.files?.offerletter?.[0], "offerletter"),
+          joiningletter: buildDocPath(req.files?.joiningletter?.[0], "joiningletter"),
+          resume: buildDocPath(req.files?.resume?.[0], "resume")
         }
       });
     } catch (error) {
@@ -95,13 +101,14 @@ export const updateEmployee = async (req, res) => {
 
     // Keep existing documents and update only the new ones
     if (req.files && Object.keys(req.files).length > 0) {
-      updatedData.documents = { ...employee.documents,
-        tenth: req.files?.tenth?.[0]?.path || employee.documents.tenth,
-        twelfth: req.files?.twelfth?.[0]?.path || employee.documents.twelfth,
-        degree: req.files?.degree?.[0]?.path || employee.documents.degree,
-        offerletter: req.files?.offerletter?.[0]?.path || employee.documents.offerletter,
-        joiningletter: req.files?.joiningletter?.[0]?.path || employee.documents.joiningletter,
-        resume: req.files?.resume?.[0]?.path || employee.documents.resume
+      updatedData.documents = {
+        ...employee.documents,
+        tenth: buildDocPath(req.files?.tenth?.[0], "10th") || employee.documents.tenth,
+        twelfth: buildDocPath(req.files?.twelfth?.[0], "12th") || employee.documents.twelfth,
+        degree: buildDocPath(req.files?.degree?.[0], "degree") || employee.documents.degree,
+        offerletter: buildDocPath(req.files?.offerletter?.[0], "offerletter") || employee.documents.offerletter,
+        joiningletter: buildDocPath(req.files?.joiningletter?.[0], "joiningletter") || employee.documents.joiningletter,
+        resume: buildDocPath(req.files?.resume?.[0], "resume") || employee.documents.resume
       };
     }
 

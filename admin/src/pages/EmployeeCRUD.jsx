@@ -104,6 +104,16 @@ const EmployeeCRUD = () => {
         emp.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const buildFileUrl = (filePath) => {
+        if (!filePath) return '';
+        if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
+        const baseUrl = (API?.defaults?.baseURL || '').replace(/\/api\/?$/, '');
+        const normalized = filePath.replace(/\\/g, '/');
+        const uploadsIndex = normalized.indexOf('uploads/');
+        const relativePath = uploadsIndex >= 0 ? normalized.slice(uploadsIndex) : normalized.replace(/^\/+/, '');
+        return `${baseUrl}/${relativePath}`;
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -316,6 +326,16 @@ const EmployeeCRUD = () => {
                                                 onChange={(e) => setFiles({ ...files, [doc.key]: e.target.files[0] })}
                                                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                             />
+                                            {editingEmployee?.documents?.[doc.key] && (
+                                                <a
+                                                    href={buildFileUrl(editingEmployee.documents[doc.key])}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-sm text-primary-600 mt-1 inline-block"
+                                                >
+                                                    View existing
+                                                </a>
+                                            )}
                                             {files[doc.key] && (
                                                 <p className="text-sm text-primary-600 mt-1">
                                                     Selected: {files[doc.key].name}
