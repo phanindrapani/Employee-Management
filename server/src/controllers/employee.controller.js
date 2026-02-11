@@ -1,4 +1,10 @@
 import Employee from "../models/employee.model.js";
+import User from "../../models/user.model.js";
+
+const buildDefaultPassword = (name) => {
+  const firstName = (name || "").trim().split(/\s+/)[0] || "Employee";
+  return `${firstName}123`;
+};
 
 export const getEmployees = async (req, res) => {
   try {
@@ -23,25 +29,52 @@ export const addEmployee = async (req, res) => {
   try {
     const { name, email, phone, address, qualification } = req.body;
 
-    const employee = await Employee.create({
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists for this email" });
+    }
+
+    const existingEmployee = await Employee.findOne({ email });
+    if (existingEmployee) {
+      return res.status(400).json({ message: "Employee already exists for this email" });
+    }
+
+    const defaultPassword = buildDefaultPassword(name);
+
+    const user = await User.create({
       name,
       email,
-      phone,
-      address,
-      qualification,
-      documents: {
-        tenth: req.files?.tenth?.[0]?.path,
-        twelfth: req.files?.twelfth?.[0]?.path,
-        degree: req.files?.degree?.[0]?.path,
-        offerletter: req.files?.offerletter?.[0]?.path,
-        joiningletter: req.files?.joiningletter?.[0]?.path,
-        resume: req.files?.resume?.[0]?.path    
-      }
+      password: defaultPassword,
+      role: "employee",
+      phone
     });
+
+    let employee;
+    try {
+      employee = await Employee.create({
+        name,
+        email,
+        phone,
+        address,
+        qualification,
+        documents: {
+          tenth: req.files?.tenth?.[0]?.path,
+          twelfth: req.files?.twelfth?.[0]?.path,
+          degree: req.files?.degree?.[0]?.path,
+          offerletter: req.files?.offerletter?.[0]?.path,
+          joiningletter: req.files?.joiningletter?.[0]?.path,
+          resume: req.files?.resume?.[0]?.path    
+        }
+      });
+    } catch (error) {
+      await User.findByIdAndDelete(user._id);
+      throw error;
+    }
 
     res.status(201).json({
       message: "Employee added successfully",
-      employee
+      employee,
+      defaultPassword
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

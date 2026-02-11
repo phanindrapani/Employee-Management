@@ -11,7 +11,8 @@ import {
     Edit2,
     FileText,
     X,
-    Plus
+    Plus,
+    File
 } from 'lucide-react';
 
 const EmployeeCRUD = () => {
@@ -26,8 +27,16 @@ const EmployeeCRUD = () => {
         email: '',
         phone: '',
         qualification: '',
-        address: '',
-        password: ''
+        address: ''
+    });
+
+    const [files, setFiles] = useState({
+        tenth: null,
+        twelfth: null,
+        degree: null,
+        offerletter: null,
+        joiningletter: null,
+        resume: null
     });
 
     const fetchEmployees = async () => {
@@ -48,14 +57,31 @@ const EmployeeCRUD = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const formDataToSend = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (formData[key]) {
+                    formDataToSend.append(key, formData[key]);
+                }
+            });
+            Object.keys(files).forEach(key => {
+                if (files[key]) {
+                    formDataToSend.append(key, files[key]);
+                }
+            });
+
             if (editingEmployee) {
-                await API.put(`/employees/${editingEmployee._id}`, formData);
+                await API.put(`/employees/${editingEmployee._id}`, formDataToSend, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
             } else {
-                await API.post('/auth/register', { ...formData, role: 'employee' });
+                await API.post('/employees', formDataToSend, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
             }
             setShowModal(false);
             setEditingEmployee(null);
-            setFormData({ name: '', email: '', phone: '', qualification: '', address: '', password: '' });
+            setFormData({ name: '', email: '', phone: '', qualification: '', address: '' });
+            setFiles({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null });
             fetchEmployees();
         } catch (err) {
             alert(err.response?.data?.message || 'Action failed');
@@ -67,7 +93,8 @@ const EmployeeCRUD = () => {
         try {
             await API.delete(`/employees/${id}`);
             fetchEmployees();
-        } catch (err) {
+        } catch (err) {Files({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null });
+                        set
             alert('Delete failed');
         }
     };
@@ -90,7 +117,7 @@ const EmployeeCRUD = () => {
                 <button
                     onClick={() => {
                         setEditingEmployee(null);
-                        setFormData({ name: '', email: '', phone: '', qualification: '', address: '', password: 'password123' });
+                        setFormData({ name: '', email: '', phone: '', qualification: '', address: '' });
                         setShowModal(true);
                     }}
                     className="btn-primary flex items-center gap-2"
@@ -166,8 +193,7 @@ const EmployeeCRUD = () => {
                                                             email: emp.email,
                                                             phone: emp.phone,
                                                             qualification: emp.qualification,
-                                                            address: emp.address || '',
-                                                            password: ''
+                                                            address: emp.address || ''
                                                         });
                                                         setShowModal(true);
                                                     }}
@@ -192,9 +218,9 @@ const EmployeeCRUD = () => {
             </div>
 
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-8 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                             <h2 className="text-xl font-bold text-slate-900">
                                 {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
                             </h2>
@@ -206,7 +232,7 @@ const EmployeeCRUD = () => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="label">Full Name</label>
@@ -228,6 +254,11 @@ const EmployeeCRUD = () => {
                                         required
                                         disabled={!!editingEmployee}
                                     />
+                                    {!editingEmployee && (
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            Default login password will be FirstName+123
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -254,19 +285,6 @@ const EmployeeCRUD = () => {
                                 </div>
                             </div>
 
-                            {!editingEmployee && (
-                                <div>
-                                    <label className="label">Default Password</label>
-                                    <input
-                                        type="text"
-                                        className="input-field"
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                            )}
-
                             <div>
                                 <label className="label">Address</label>
                                 <textarea
@@ -276,7 +294,39 @@ const EmployeeCRUD = () => {
                                 ></textarea>
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                            <div className="border-t border-slate-200 pt-4 mt-4">
+                                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                    <File size={18} className="text-primary-600" />
+                                    Documents
+                                </h3>
+                                <div className="space-y-3">
+                                    {[
+                                        { key: 'tenth', label: '10th Certificate' },
+                                        { key: 'twelfth', label: '12th Certificate' },
+                                        { key: 'degree', label: 'Degree Certificate' },
+                                        { key: 'offerletter', label: 'Offer Letter' },
+                                        { key: 'joiningletter', label: 'Joining Letter' },
+                                        { key: 'resume', label: 'Resume' }
+                                    ].map((doc) => (
+                                        <div key={doc.key}>
+                                            <label className="label">{doc.label}</label>
+                                            <input
+                                                type="file"
+                                                className="input-field cursor-pointer"
+                                                onChange={(e) => setFiles({ ...files, [doc.key]: e.target.files[0] })}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            />
+                                            {files[doc.key] && (
+                                                <p className="text-sm text-primary-600 mt-1">
+                                                    Selected: {files[doc.key].name}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-4 border-t border-slate-200 flex-shrink-0 sticky bottom-0 bg-white">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
