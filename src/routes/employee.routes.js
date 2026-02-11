@@ -7,7 +7,6 @@ import {
   deleteEmployee,
 } from '../controllers/employee.controller.js';
 import upload from '../middlewares/upload.middleware.js';
-
 const router = express.Router();
 
 // Middleware to handle multipart/form-data

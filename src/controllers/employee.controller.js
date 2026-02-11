@@ -23,6 +23,8 @@ export const addEmployee = async (req, res) => {
   try {
     const { name, email, phone, address, qualification } = req.body;
 
+    console.log('Creating employee', { name, email, phone, address, qualification });
+
     const employee = await Employee.create({
       name,
       email,
@@ -35,15 +37,18 @@ export const addEmployee = async (req, res) => {
         degree: req.files?.degree?.[0]?.path,
         offerletter: req.files?.offerletter?.[0]?.path,
         joiningletter: req.files?.joiningletter?.[0]?.path,
-        resume: req.files?.resume?.[0]?.path    
+        resume: req.files?.resume?.[0]?.path
       }
     });
+
+    console.log('Employee created', employee);
 
     res.status(201).json({
       message: "Employee added successfully",
       employee
     });
   } catch (error) {
+    console.error('Error creating employee', error);
     res.status(500).json({ error: error.message });
   }
 };

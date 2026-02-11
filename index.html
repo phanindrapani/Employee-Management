@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<script>
+      fetch("/api/employees")
+  .then(res => res.json())
+  .then(data => {
+    console.log(data);
+  })
+  .catch(err => console.error(err));
+
+</script>
     <div class="container">
         <h1>Employee Management System</h1>
 

@@ -5,21 +5,20 @@ const cancelBtn = document.getElementById("cancelBtn");
 const tableBody = document.querySelector("#employeeTable tbody");
 const formMessage = document.getElementById("formMessage");
 
+const apiBaseUrl = "/api/employees";
+
 const docFields = [
-  { key: "doc10", label: "10th", typeId: "doc10Type", fileId: "doc10File" },
-  { key: "doc12", label: "12th", typeId: "doc12Type", fileId: "doc12File" },
-  { key: "degree", label: "Degree", typeId: "degreeType", fileId: "degreeFile" },
-  { key: "offer", label: "Offer Letter", typeId: "offerType", fileId: "offerFile" },
-  { key: "joining", label: "Joining Letter", typeId: "joiningType", fileId: "joiningFile" },
+  { label: "10th", typeId: "doc10Type", fileId: "doc10File", apiField: "tenth", dbField: "tenth" },
+  { label: "12th", typeId: "doc12Type", fileId: "doc12File", apiField: "twelfth", dbField: "twelfth" },
+  { label: "Degree", typeId: "degreeType", fileId: "degreeFile", apiField: "degree", dbField: "degree" },
+  { label: "Offer Letter", typeId: "offerType", fileId: "offerFile", apiField: "offerletter", dbField: "offerletter" },
+  { label: "Joining Letter", typeId: "joiningType", fileId: "joiningFile", apiField: "joiningletter", dbField: "joiningletter" },
 ];
 
 const allowedExtensions = ["jpg", "jpeg", "pdf", "docx"];
-let employees = [];
 
 function normalizeType(value) {
-  if (value === "jpg" || value === "jpeg") {
-    return "jpg";
-  }
+  if (value === "jpg" || value === "jpeg") return "jpg";
   return value;
 }
 
@@ -28,71 +27,97 @@ function getFileExtension(fileName) {
   return parts.length > 1 ? parts.pop().toLowerCase() : "";
 }
 
-function validateAndCollectDocuments() {
-  const documents = {};
+function getBaseUrl() {
+  return window.location.origin;
+}
 
-  for (const doc of docFields) {
-    const typeSelect = document.getElementById(doc.typeId);
-    const fileInput = document.getElementById(doc.fileId);
-    const selectedType = normalizeType(typeSelect.value.trim().toLowerCase());
-    const selectedFile = fileInput.files[0];
+function fileNameFromPath(pathValue) {
+  if (!pathValue) return "Not uploaded";
+  const parts = pathValue.split(/[\\/]/);
+  return parts[parts.length - 1];
+}
 
-    if (!selectedType) {
-      throw new Error(`Please select ${doc.label} document format.`);
-    }
+function documentLink(pathValue) {
+  if (!pathValue) return "Not uploaded";
+  const href = `${getBaseUrl()}/${pathValue.replace(/^\/+/, "")}`;
+  const text = fileNameFromPath(pathValue);
+  return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+}
 
-    if (!selectedFile) {
-      throw new Error(`Please upload ${doc.label} document.`);
-    }
+function validateDocSelection(typeSelect, fileInput, label, requireFile) {
+  const selectedType = normalizeType(typeSelect.value.trim().toLowerCase());
+  const selectedFile = fileInput.files[0];
 
+  if (!selectedType) {
+    throw new Error(`Please select ${label} document format.`);
+  }
+
+  if (requireFile && !selectedFile) {
+    throw new Error(`Please upload ${label} document.`);
+  }
+
+  if (selectedFile) {
     const fileExt = normalizeType(getFileExtension(selectedFile.name));
 
     if (!allowedExtensions.includes(fileExt)) {
-      throw new Error(`${doc.label} supports only JPG, PDF, or DOCX.`);
+      throw new Error(`${label} supports only JPG, PDF, or DOCX.`);
     }
 
     if (fileExt !== selectedType) {
-      throw new Error(`${doc.label} format dropdown and file extension must match.`);
+      throw new Error(`${label} format dropdown and file extension must match.`);
     }
-
-    documents[doc.key] = {
-      fileName: selectedFile.name,
-      format: selectedType,
-    };
   }
-
-  return documents;
 }
 
-function renderEmployees() {
+async function fetchEmployees() {
+  const response = await fetch(apiBaseUrl);
+  if (!response.ok) {
+    throw new Error("Failed to fetch employees.");
+  }
+  return response.json();
+}
+
+function renderEmployees(employees) {
   tableBody.innerHTML = "";
 
-  employees.forEach((employee, index) => {
+  employees.forEach((employee) => {
     const row = document.createElement("tr");
+    const nameParts = (employee.name || "").trim().split(/\s+/);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ");
 
     row.innerHTML = `
-      <td>${employee.firstName}</td>
-      <td>${employee.lastName}</td>
-      <td>${employee.email}</td>
-      <td>${employee.phone}</td>
-      <td>${employee.qualification}</td>
+      <td>${firstName}</td>
+      <td>${lastName}</td>
+      <td>${employee.email || ""}</td>
+      <td>${employee.phone || ""}</td>
+      <td>${employee.qualification || ""}</td>
       <td>
         <ul class="doc-list">
-          <li>10th: ${employee.documents.doc10.fileName}</li>
-          <li>12th: ${employee.documents.doc12.fileName}</li>
-          <li>Degree: ${employee.documents.degree.fileName}</li>
-          <li>Offer: ${employee.documents.offer.fileName}</li>
-          <li>Joining: ${employee.documents.joining.fileName}</li>
+          <li>10th: ${documentLink(employee.documents?.tenth)}</li>
+          <li>12th: ${documentLink(employee.documents?.twelfth)}</li>
+          <li>Degree: ${documentLink(employee.documents?.degree)}</li>
+          <li>Offer: ${documentLink(employee.documents?.offerletter)}</li>
+          <li>Joining: ${documentLink(employee.documents?.joiningletter)}</li>
         </ul>
       </td>
       <td>
-        <button type="button" class="action-btn" onclick="editEmployee(${index})">Edit</button>
-        <button type="button" class="danger action-btn" onclick="removeEmployee(${index})">Remove</button>
+        <button type="button" class="action-btn" data-action="edit" data-id="${employee._id}">Edit</button>
+        <button type="button" class="danger action-btn" data-action="delete" data-id="${employee._id}">Remove</button>
       </td>
     `;
 
     tableBody.appendChild(row);
   });
+}
+
+async function loadEmployees() {
+  try {
+    const employees = await fetchEmployees();
+    renderEmployees(employees);
+  } catch (error) {
+    formMessage.textContent = error.message;
+  }
 }
 
 function resetFormState() {
@@ -102,90 +127,101 @@ function resetFormState() {
   cancelBtn.style.display = "none";
   formMessage.textContent = "";
 
-  docFields.forEach((doc) => {
-    const fileInput = document.getElementById(doc.fileId);
-    fileInput.required = true;
-  });
+  for (const doc of docFields) {
+    document.getElementById(doc.fileId).required = true;
+  }
 }
 
-function fillFormForEdit(employee) {
-  document.getElementById("firstName").value = employee.firstName;
-  document.getElementById("lastName").value = employee.lastName;
-  document.getElementById("email").value = employee.email;
-  document.getElementById("phone").value = employee.phone;
-  document.getElementById("address").value = employee.address;
-  document.getElementById("qualification").value = employee.qualification;
+async function populateFormForEdit(employeeId) {
+  const response = await fetch(`${apiBaseUrl}/${employeeId}`);
+  if (!response.ok) {
+    throw new Error("Failed to load employee for edit.");
+  }
 
-  docFields.forEach((doc) => {
-    document.getElementById(doc.typeId).value = employee.documents[doc.key].format;
+  const employee = await response.json();
+  const nameParts = (employee.name || "").trim().split(/\s+/);
 
-    // File inputs cannot be prefilled by browser security rules.
-    const fileInput = document.getElementById(doc.fileId);
-    fileInput.required = false;
-  });
+  document.getElementById("firstName").value = nameParts[0] || "";
+  document.getElementById("lastName").value = nameParts.slice(1).join(" ");
+  document.getElementById("email").value = employee.email || "";
+  document.getElementById("phone").value = employee.phone || "";
+  document.getElementById("address").value = employee.address || "";
+  document.getElementById("qualification").value = employee.qualification || "";
 
-  formMessage.textContent = "Editing employee: upload new files only if you want to replace existing ones.";
+  for (const doc of docFields) {
+    const pathValue = employee.documents?.[doc.dbField] || "";
+    const ext = normalizeType(getFileExtension(pathValue));
+    document.getElementById(doc.typeId).value = ext && ["jpg", "pdf", "docx"].includes(ext) ? ext : "";
+    document.getElementById(doc.fileId).required = false;
+  }
+
+  employeeIdInput.value = employee._id;
+  submitBtn.textContent = "Update Employee";
+  cancelBtn.style.display = "inline-block";
+  formMessage.textContent = "Editing employee: upload new files only to replace existing documents.";
 }
 
-form.addEventListener("submit", (event) => {
+function buildEmployeeFormData(isEdit) {
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const qualification = document.getElementById("qualification").value.trim();
+
+  const formData = new FormData();
+  formData.append("name", `${firstName} ${lastName}`.trim());
+  formData.append("email", email);
+  formData.append("phone", phone);
+  formData.append("address", address);
+  formData.append("qualification", qualification);
+
+  for (const doc of docFields) {
+    const typeSelect = document.getElementById(doc.typeId);
+    const fileInput = document.getElementById(doc.fileId);
+    const isRequired = !isEdit;
+
+    validateDocSelection(typeSelect, fileInput, doc.label, isRequired);
+
+    const selectedFile = fileInput.files[0];
+    if (selectedFile) {
+      formData.append(doc.apiField, selectedFile);
+    }
+  }
+
+  return formData;
+}
+
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   formMessage.textContent = "";
 
-  const employeeIndex = employeeIdInput.value;
-
-  const baseData = {
-    firstName: document.getElementById("firstName").value.trim(),
-    lastName: document.getElementById("lastName").value.trim(),
-    email: document.getElementById("email").value.trim(),
-    phone: document.getElementById("phone").value.trim(),
-    address: document.getElementById("address").value.trim(),
-    qualification: document.getElementById("qualification").value.trim(),
-  };
+  const employeeId = employeeIdInput.value;
+  const isEdit = employeeId !== "";
 
   try {
-    if (employeeIndex === "") {
-      const documents = validateAndCollectDocuments();
-      employees.push({ ...baseData, documents });
-    } else {
-      const existingEmployee = employees[Number(employeeIndex)];
-      const updatedDocuments = { ...existingEmployee.documents };
+    const formData = buildEmployeeFormData(isEdit);
+    const endpoint = isEdit ? `${apiBaseUrl}/${employeeId}` : apiBaseUrl;
+    const method = isEdit ? "PUT" : "POST";
 
-      for (const doc of docFields) {
-        const typeSelect = document.getElementById(doc.typeId);
-        const fileInput = document.getElementById(doc.fileId);
-        const selectedType = normalizeType(typeSelect.value.trim().toLowerCase());
-        const selectedFile = fileInput.files[0];
+    const response = await fetch(endpoint, { method, body: formData });
 
-        if (!selectedType) {
-          throw new Error(`Please select ${doc.label} document format.`);
-        }
-
-        if (selectedFile) {
-          const fileExt = normalizeType(getFileExtension(selectedFile.name));
-          if (!allowedExtensions.includes(fileExt)) {
-            throw new Error(`${doc.label} supports only JPG, PDF, or DOCX.`);
-          }
-          if (fileExt !== selectedType) {
-            throw new Error(`${doc.label} format dropdown and file extension must match.`);
-          }
-
-          updatedDocuments[doc.key] = {
-            fileName: selectedFile.name,
-            format: selectedType,
-          };
-        } else {
-          updatedDocuments[doc.key] = {
-            ...updatedDocuments[doc.key],
-            format: selectedType,
-          };
-        }
+    if (!response.ok) {
+      let errorMessage = "Failed to save employee.";
+      try {
+        const result = await response.json();
+        errorMessage = result.message || result.error || errorMessage;
+      } catch {
+        const errorText = await response.text();
+        errorMessage = errorText || errorMessage;
       }
-
-      employees[Number(employeeIndex)] = { ...baseData, documents: updatedDocuments };
+      throw new Error(errorMessage);
     }
 
-    renderEmployees();
+    const result = await response.json();
+
     resetFormState();
+    await loadEmployees();
   } catch (error) {
     formMessage.textContent = error.message;
   }
@@ -195,16 +231,40 @@ cancelBtn.addEventListener("click", () => {
   resetFormState();
 });
 
-window.editEmployee = function editEmployee(index) {
-  employeeIdInput.value = String(index);
-  submitBtn.textContent = "Update Employee";
-  cancelBtn.style.display = "inline-block";
+tableBody.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) return;
 
-  fillFormForEdit(employees[index]);
-};
+  const action = button.dataset.action;
+  const employeeId = button.dataset.id;
 
-window.removeEmployee = function removeEmployee(index) {
-  employees.splice(index, 1);
-  renderEmployees();
-  resetFormState();
-};
+  try {
+    if (action === "edit") {
+      await populateFormForEdit(employeeId);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (action === "delete") {
+      const confirmed = window.confirm("Are you sure you want to remove this employee?");
+      if (!confirmed) return;
+
+      const response = await fetch(`${apiBaseUrl}/${employeeId}`, { method: "DELETE" });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || result.error || "Failed to delete employee.");
+      }
+
+      if (employeeIdInput.value === employeeId) {
+        resetFormState();
+      }
+
+      await loadEmployees();
+    }
+  } catch (error) {
+    formMessage.textContent = error.message;
+  }
+});
+
+loadEmployees();
