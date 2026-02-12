@@ -70,14 +70,14 @@ const HolidayManagement = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary-100 text-primary-600 rounded-lg">
-                    <CalendarIcon size={24} />
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
+            <div className="flex items-center gap-4">
+                <div className="p-3 bg-[#F0F7FF] rounded-xl text-[#0B3C5D]">
+                    <CalendarIcon size={32} />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Holiday Management</h1>
-                    <p className="text-slate-500 text-sm">Manage company-wide holidays and festivals</p>
+                    <h1 className="text-3xl font-extrabold tracking-tight">Holidays</h1>
+                    <p className="text-slate-500 font-medium">Manage company holidays</p>
                 </div>
             </div>
 
@@ -127,13 +127,13 @@ const HolidayManagement = () => {
                 <div className="lg:col-span-1">
                     <div className="card sticky top-24">
                         <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                            <Plus size={20} className="text-primary-600" />
-                            Mark Holiday
+                            <Plus size={20} className="text-[#63C132]" />
+                            Add Holiday
                         </h3>
 
                         <form onSubmit={handleAddHoliday} className="space-y-4">
                             <div>
-                                <label className="label">Selected Date</label>
+                                <label className="label">Date</label>
                                 <input
                                     type="text"
                                     disabled
@@ -141,7 +141,7 @@ const HolidayManagement = () => {
                                     value={selectedDate.toDateString()}
                                 />
                                 <p className="text-xs text-slate-500 mt-1">
-                                    Will be saved as: {new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                    {new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                                 </p>
                             </div>
 
@@ -164,7 +164,7 @@ const HolidayManagement = () => {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, type: 'public' })}
                                         className={`py-2 text-sm rounded-lg border transition-all ${formData.type === 'public'
-                                            ? 'bg-primary-50 border-primary-500 text-primary-700 font-medium'
+                                            ? 'bg-primary-50 border-[#0B3C5D] text-[#0B3C5D] font-medium'
                                             : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                                             }`}
                                     >
@@ -187,7 +187,7 @@ const HolidayManagement = () => {
                                 <label className="label">Description (Optional)</label>
                                 <textarea
                                     className="input-field h-24 resize-none"
-                                    placeholder="Additional details..."
+                                    placeholder="Details..."
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 ></textarea>
@@ -196,16 +196,16 @@ const HolidayManagement = () => {
                             <button
                                 type="submit"
                                 disabled={loading || isHoliday(selectedDate)}
-                                className="btn-primary w-full py-3 mt-4 disabled:bg-slate-300"
+                                className="w-full py-4 bg-[#0B3C5D] text-white rounded-xl font-bold hover:bg-[#1A4B6D] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                             >
-                                {loading ? 'Saving...' : isHoliday(selectedDate) ? 'Holiday Already Marked' : 'Mark as Holiday'}
+                                {loading ? 'Saving...' : isHoliday(selectedDate) ? 'Already Added' : 'Add Holiday'}
                             </button>
                         </form>
 
                         <div className="mt-6 p-4 bg-primary-50 rounded-lg flex gap-3">
-                            <AlertCircle size={20} className="text-primary-600 shrink-0" />
-                            <p className="text-xs text-primary-700 leading-relaxed">
-                                Marking a day as a holiday will automatically exclude it from leave duration calculations for all employees.
+                            <AlertCircle size={20} className="text-[#0B3C5D] shrink-0" />
+                            <p className="text-xs text-[#0B3C5D] leading-relaxed">
+                                This will exclude the date from leave calculations for all employees.
                             </p>
                         </div>
                     </div>
