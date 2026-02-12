@@ -6,7 +6,7 @@ import { Calendar, Clock, AlertCircle, CheckCircle, FilePlus2 } from 'lucide-rea
 const ApplyLeave = () => {
     const { user, setUser } = useAuth();
     const [formData, setFormData] = useState({
-        leaveType: 'cl',
+        leaveType: 'CL',
         fromDate: '',
         toDate: '',
         session: 'full-day',
@@ -74,7 +74,7 @@ const ApplyLeave = () => {
             });
             setSuccess('Leave application submitted successfully!');
             setFormData({
-                leaveType: 'cl',
+                leaveType: 'CL',
                 fromDate: '',
                 toDate: '',
                 session: 'full-day',
@@ -120,10 +120,10 @@ const ApplyLeave = () => {
                                 onChange={(e) => setFormData({ ...formData, leaveType: e.target.value })}
                                 required
                             >
-                                <option value="cl">Casual Leave (CL)</option>
-                                <option value="sl">Sick Leave (SL)</option>
-                                <option value="el">Earned Leave (EL)</option>
-                                <option value="lop">Loss of Pay (LOP)</option>
+                                <option value="CL">Casual Leave (CL)</option>
+                                <option value="SL">Sick Leave (SL)</option>
+                                <option value="EL">Earned Leave (EL)</option>
+                                <option value="LOP">Loss of Pay (LOP)</option>
                             </select>
                         </div>
                         <div>

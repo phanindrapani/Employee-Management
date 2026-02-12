@@ -57,7 +57,6 @@ export const loginUser = async (req, res) => {
 };
 
 export const getUserProfile = async (req, res) => {
-    console.log('getUserProfile called for:', req.user?._id);
     const user = await User.findById(req.user._id);
 
     if (user) {

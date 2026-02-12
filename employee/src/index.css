@@ -125,3 +125,11 @@ h6 {
 .sunday-tile {
   @apply !text-red-400/80;
 }
+
+.leave-tile {
+  @apply !bg-[#F0FFF4] !text-[#166534] !font-black !relative;
+}
+
+.leave-indicator {
+  @apply absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#16A34A];
+}
