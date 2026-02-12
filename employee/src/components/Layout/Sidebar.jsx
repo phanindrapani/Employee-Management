@@ -4,7 +4,11 @@ import { useAuth } from '../../context/AuthContext';
 import {
     Home,
     KeyRound,
-    LogOut
+    LogOut,
+    FilePlus2,
+    History,
+    Calendar,
+    Bell
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -12,18 +16,17 @@ const Sidebar = () => {
 
     const navItems = [
         { name: 'Dashboard', path: '/', icon: Home },
-        { name: 'Change Password', path: '/change-password', icon: KeyRound },
+        { name: 'Apply for Leave', path: '/apply-leave', icon: FilePlus2 },
+        { name: 'History', path: '/leave-history', icon: History },
+        { name: 'Holidays', path: '/holidays', icon: Calendar },
+        { name: 'Notifications', path: '/notifications', icon: Bell },
+        { name: 'Security', path: '/change-password', icon: KeyRound },
     ];
 
     return (
-        <div className="w-64 bg-white border-r border-slate-200 h-screen flex flex-col sticky top-0">
-            <div className="p-6">
-                <div className="flex items-center gap-2 font-bold text-xl text-primary-600">
-                    <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white">
-                        L
-                    </div>
-                    LeaveFlow
-                </div>
+        <div className="w-64 bg-[#0B3C5D] text-white h-screen flex flex-col sticky top-0 shadow-2xl">
+            <div className="p-8 border-b border-[#1A4B6D]/50 flex justify-center">
+                <span className="text-xl font-black tracking-tighter text-[#63C132]">EMPLOYEE</span>
             </div>
 
             <nav className="flex-1 px-4 py-4 space-y-1">
@@ -32,10 +35,10 @@ const Sidebar = () => {
                         key={item.name}
                         to={item.path}
                         className={({ isActive }) => `
-              flex items-center justify-between px-3 py-2 rounded-lg transition-colors
+              flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors
               ${isActive
-                                ? 'bg-primary-50 text-primary-600 font-medium'
-                                : 'text-slate-600 hover:bg-slate-50'}
+                                ? 'bg-[#1A4B6D] text-white font-medium border-l-4 border-[#63C132]'
+                                : 'text-gray-300 hover:bg-[#1A4B6D] hover:text-white'}
             `}
                     >
                         <div className="flex items-center gap-3">
@@ -46,10 +49,10 @@ const Sidebar = () => {
                 ))}
             </nav>
 
-            <div className="p-4 border-t border-slate-200">
+            <div className="p-4 border-t border-[#1A4B6D]">
                 <button
                     onClick={logout}
-                    className="flex items-center gap-3 px-3 py-2 w-full text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 w-full text-gray-300 hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors"
                 >
                     <LogOut size={20} />
                     Logout
