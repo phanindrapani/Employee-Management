@@ -95,3 +95,18 @@ export const updateLeaveStatus = async (req, res) => {
 
     res.json(leave);
 };
+
+export const calculateLeave = async (req, res) => {
+    const { fromDate, toDate, session } = req.body;
+
+    if (!fromDate || !toDate) {
+        return res.status(400).json({ message: 'From date and To date are required' });
+    }
+
+    if (new Date(toDate) < new Date(fromDate)) {
+        return res.status(400).json({ message: 'To date cannot be before From date' });
+    }
+
+    const totalDays = await calculateWorkingDays(fromDate, toDate, session);
+    res.json({ totalDays });
+};
