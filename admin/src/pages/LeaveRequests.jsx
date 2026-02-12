@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 
 const LeaveRequests = () => {
-    const [requests, setRequests] = useState([]);
+    const [leaves, setLeaves] = useState([]);
+    const [filteredLeaves, setFilteredLeaves] = useState([]);
     const [loading, setLoading] = useState(true);
     const [rejectionReason, setRejectionReason] = useState('');
     const [selectedId, setSelectedId] = useState(null);
@@ -20,8 +21,8 @@ const LeaveRequests = () => {
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const { data } = await API.get(`/leaves/all?status=${statusFilter}`);
-            setRequests(data);
+            const { data } = await API.get('/leaves/all');
+            setLeaves(data);
         } catch (err) {
             console.error('Failed to fetch requests');
         } finally {
@@ -31,7 +32,22 @@ const LeaveRequests = () => {
 
     useEffect(() => {
         fetchRequests();
-    }, [statusFilter]);
+    }, []);
+
+    useEffect(() => {
+        if (statusFilter === '') {
+            setFilteredLeaves(leaves);
+        } else {
+            setFilteredLeaves(leaves.filter(l => l.status === statusFilter));
+        }
+    }, [leaves, statusFilter]);
+
+    const stats = {
+        pending: leaves.filter(l => l.status === 'pending').length,
+        approved: leaves.filter(l => l.status === 'approved').length,
+        rejected: leaves.filter(l => l.status === 'rejected').length,
+        total: leaves.length
+    };
 
     const handleAction = async (id, status) => {
         if (status === 'rejected' && !rejectionReason) {
@@ -51,17 +67,57 @@ const LeaveRequests = () => {
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-5">
-                    <div className="p-4 bg-[#F0F7FF] text-[#0B3C5D] rounded-2xl shadow-inner">
-                        <ClipboardList size={32} />
-                    </div>
+            <div className="flex items-center gap-5">
+                <div className="p-4 bg-[#F0F7FF] text-[#0B3C5D] rounded-2xl shadow-inner">
+                    <ClipboardList size={32} />
+                </div>
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight">Leave Requests</h1>
+                    <p className="text-slate-500 font-medium italic">Check and manage employee leaves</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-[#FFFBEB] p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight">Leave Requests</h1>
-                        <p className="text-slate-500 font-medium italic">Check and manage employee leaves</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Pending Requests</p>
+                        <h3 className="text-3xl font-black text-[#0B3C5D]">{stats.pending}</h3>
+                    </div>
+                    <div className="p-3 bg-white/50 rounded-xl">
+                        <Filter className="text-amber-500" />
                     </div>
                 </div>
+                <div className="bg-[#F0FFF4] p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#63C132] mb-1">Approved Leaves</p>
+                        <h3 className="text-3xl font-black text-[#0B3C5D]">{stats.approved}</h3>
+                    </div>
+                    <div className="p-3 bg-white/50 rounded-xl">
+                        <CheckCircle className="text-[#63C132]" />
+                    </div>
+                </div>
+                <div className="bg-[#FEF2F2] p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">Rejected Leaves</p>
+                        <h3 className="text-3xl font-black text-[#0B3C5D]">{stats.rejected}</h3>
+                    </div>
+                    <div className="p-3 bg-white/50 rounded-xl">
+                        <XCircle className="text-red-500" />
+                    </div>
+                </div>
+                <div className="bg-[#F0F7FF] p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#0B3C5D] mb-1">Total Requests</p>
+                        <h3 className="text-3xl font-black text-[#0B3C5D]">{stats.total}</h3>
+                    </div>
+                    <div className="p-3 bg-white/50 rounded-xl">
+                        <ClipboardList className="text-[#0B3C5D]" />
+                    </div>
+                </div>
+            </div>
 
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <h2 className="text-xl font-black text-[#0B3C5D]">Request List</h2>
                 <div className="flex items-center gap-4">
                     <div className="relative group">
                         <Filter size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-[#0B3C5D] transition-colors" />
@@ -70,10 +126,10 @@ const LeaveRequests = () => {
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="">All Requests</option>
+                            <option value="pending">Pending Only</option>
+                            <option value="approved">Approved Only</option>
+                            <option value="rejected">Rejected Only</option>
+                            <option value="">Show All</option>
                         </select>
                     </div>
                 </div>
@@ -94,19 +150,19 @@ const LeaveRequests = () => {
                         <tbody className="divide-y divide-slate-50">
                             {loading ? (
                                 <tr><td colSpan="5" className="py-12 text-center text-slate-400">Loading requests...</td></tr>
-                            ) : requests.length === 0 ? (
-                                <tr><td colSpan="5" className="py-12 text-center text-slate-400">No {statusFilter} requests found</td></tr>
+                            ) : filteredLeaves.length === 0 ? (
+                                <tr><td colSpan="5" className="py-12 text-center text-slate-400">No requests found</td></tr>
                             ) : (
-                                requests.map((leave) => (
+                                filteredLeaves.map((leave) => (
                                     <tr key={leave._id} className="group hover:bg-slate-50/50 transition-all duration-300">
                                         <td className="py-6 px-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 bg-[#0B3C5D] text-white rounded-full flex items-center justify-center font-black text-sm shadow-lg shadow-[#0B3C5D]/10">
-                                                    {leave.user.name.charAt(0)}
+                                                    {leave.user?.name?.charAt(0) || '?'}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-[#0B3C5D] text-sm tracking-tight">{leave.user.name}</p>
-                                                    <p className="text-[10px] text-slate-400 font-extrabold uppercase">{leave.user.email.split('@')[0]}</p>
+                                                    <p className="font-bold text-[#0B3C5D] text-sm tracking-tight">{leave.user?.name || 'Unknown'}</p>
+                                                    <p className="text-[10px] text-slate-400 font-extrabold uppercase">{leave.user?.email ? leave.user.email.split('@')[0] : ''}</p>
                                                 </div>
                                             </div>
                                         </td>

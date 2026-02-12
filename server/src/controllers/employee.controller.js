@@ -61,7 +61,7 @@ export const getEmployeeById = async (req, res) => {
 
 export const addEmployee = async (req, res) => {
   try {
-    const { name, email, phone, address, qualification } = req.body;
+    const { name, email, phone, address, qualification, cl, sl, el } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -84,7 +84,12 @@ export const addEmployee = async (req, res) => {
       password: defaultPassword,
       role: "employee",
       phone,
-      profilePicture: profilePictureUrl
+      profilePicture: profilePictureUrl,
+      leaveBalance: {
+        cl: parseInt(cl) || 12,
+        sl: parseInt(sl) || 10,
+        el: parseInt(el) || 15
+      }
     });
 
     let employee;
@@ -97,7 +102,12 @@ export const addEmployee = async (req, res) => {
         address,
         qualification,
         documents,
-        profilePicture: profilePictureUrl
+        profilePicture: profilePictureUrl,
+        leaveBalance: {
+          cl: parseInt(cl) || 12,
+          sl: parseInt(sl) || 10,
+          el: parseInt(el) || 15
+        }
       });
     } catch (error) {
       await User.findByIdAndDelete(user._id);
@@ -138,6 +148,18 @@ export const updateEmployee = async (req, res) => {
           profilePicture: profilePictureUrl
         });
       }
+    }
+
+    // Handle leave balance updates
+    if (req.body.cl !== undefined || req.body.sl !== undefined || req.body.el !== undefined) {
+      updatedData.leaveBalance = {
+        cl: parseInt(req.body.cl) || 0,
+        sl: parseInt(req.body.sl) || 0,
+        el: parseInt(req.body.el) || 0
+      };
+      await User.findOneAndUpdate({ email: employee.email }, {
+        leaveBalance: updatedData.leaveBalance
+      });
     }
 
     const updatedEmployee = await Employee.findByIdAndUpdate(

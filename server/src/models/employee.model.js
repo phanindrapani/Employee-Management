@@ -15,6 +15,11 @@ const employeeSchema = new mongoose.Schema({
     resume: { type: String },
   },
   profilePicture: { type: String },
+  leaveBalance: {
+    cl: { type: Number, default: 12 },
+    sl: { type: Number, default: 10 },
+    el: { type: Number, default: 15 }
+  }
 }, {
   timestamps: true,
 });

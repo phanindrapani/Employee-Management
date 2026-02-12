@@ -9,27 +9,54 @@ import {
     History,
     Clock,
     CheckCircle2,
-    XCircle
+    XCircle,
+    Bell
 } from 'lucide-react';
 
 const EmployeeDashboard = () => {
     const { user } = useAuth();
     const [leaves, setLeaves] = useState([]);
+    const [balance, setBalance] = useState({ cl: 0, sl: 0, el: 0 });
+    const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchLeaves = async () => {
+    const fetchDashboardData = async () => {
         try {
-            const { data } = await API.get('/leaves');
-            setLeaves(data);
+            const [leavesResult, notifResult, userResult] = await Promise.allSettled([
+                API.get('/leaves'),
+                API.get('/notifications'),
+                API.get('/auth/profile')
+            ]);
+
+            if (leavesResult.status === 'fulfilled') {
+                setLeaves(leavesResult.value.data);
+            } else {
+                console.error('Failed to fetch leaves:', leavesResult.reason);
+            }
+
+            if (notifResult.status === 'fulfilled') {
+                setNotifications(notifResult.value.data);
+            } else {
+                console.error('Failed to fetch notifications:', notifResult.reason);
+            }
+
+            if (userResult.status === 'fulfilled') {
+                const userData = userResult.value.data;
+                if (userData && userData.leaveBalance) {
+                    setBalance(userData.leaveBalance);
+                }
+            } else {
+                console.error('Failed to fetch profile:', userResult.reason);
+            }
         } catch (err) {
-            console.error('Failed to fetch leaves');
+            console.error('Unexpected error in dashboard fetch:', err);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchLeaves();
+        fetchDashboardData();
     }, []);
 
     const getStatusBadge = (status) => {
@@ -43,7 +70,8 @@ const EmployeeDashboard = () => {
         }
     };
 
-    const leaveBalance = user?.leaveBalance || { casual: 0, sick: 0, earned: 0 };
+    const leaveBalance = balance;
+    const unreadNotifications = notifications.filter(n => !n.isRead).length;
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
@@ -65,30 +93,52 @@ const EmployeeDashboard = () => {
                     Employee Account
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
                     title="Casual Leave"
-                    value={leaveBalance.casual}
+                    value={leaveBalance.cl}
                     icon={CalendarClock}
                     colorClass="bg-[#F0F7FF] text-[#0B3C5D]"
                 />
                 <StatCard
                     title="Sick Leave"
-                    value={leaveBalance.sick}
+                    value={leaveBalance.sl}
                     icon={Stethoscope}
                     colorClass="bg-[#FFF5F5] text-[#E53E3E]"
                 />
                 <StatCard
                     title="Earned Leave"
-                    value={leaveBalance.earned}
+                    value={leaveBalance.el}
                     icon={Plane}
                     colorClass="bg-[#F0FFF4] text-[#63C132]"
                 />
+            </div>
+
+            <h3 className="text-xl font-bold text-[#0B3C5D]">Request Overview</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
-                    title="Pending Requests"
+                    title="Pending"
                     value={leaves.filter(l => l.status === 'pending').length}
                     icon={Clock}
                     colorClass="bg-[#FFFBEB] text-[#D97706]"
+                />
+                <StatCard
+                    title="Approved"
+                    value={leaves.filter(l => l.status === 'approved').length}
+                    icon={CheckCircle2}
+                    colorClass="bg-[#F0FFF4] text-[#16A34A]"
+                />
+                <StatCard
+                    title="Rejected"
+                    value={leaves.filter(l => l.status === 'rejected').length}
+                    icon={XCircle}
+                    colorClass="bg-[#FEF2F2] text-[#DC2626]"
+                />
+                <StatCard
+                    title="Notifications"
+                    value={unreadNotifications}
+                    icon={Bell}
+                    colorClass="bg-[#EFF6FF] text-[#2563EB]"
                 />
             </div>
 

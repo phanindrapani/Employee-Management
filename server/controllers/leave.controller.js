@@ -88,10 +88,23 @@ export const updateLeaveStatus = async (req, res) => {
     // Deduct balance if approved
     if (status === 'approved') {
         const user = await User.findById(leave.user._id);
-        const type = leave.leaveType.toLowerCase();
+        const type = leave.leaveType.toLowerCase(); // cl, sl, el, lop
+
         if (type !== 'lop') {
-            user.leaveBalance[type] -= leave.totalDays;
-            await user.save();
+            const currentBalance = user.leaveBalance[type] || 0;
+            if (currentBalance >= leave.totalDays) {
+                user.leaveBalance[type] = currentBalance - leave.totalDays;
+                await user.save();
+
+                // Also update Employee model for consistency in Admin view
+                await (await import('../src/models/employee.model.js')).default.findOneAndUpdate(
+                    { email: user.email },
+                    { [`leaveBalance.${type}`]: user.leaveBalance[type] }
+                );
+            } else {
+                // This shouldn't happen due to frontend validation, but stay safe
+                return res.status(400).json({ message: `Insufficient ${leave.leaveType} balance for deduction` });
+            }
         }
     }
 

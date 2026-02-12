@@ -6,7 +6,7 @@ import { Calendar, Clock, AlertCircle, CheckCircle, FilePlus2 } from 'lucide-rea
 const ApplyLeave = () => {
     const { user, setUser } = useAuth();
     const [formData, setFormData] = useState({
-        leaveType: 'CL',
+        leaveType: 'cl',
         fromDate: '',
         toDate: '',
         session: 'full-day',
@@ -17,6 +17,23 @@ const ApplyLeave = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [fetchingBalances, setFetchingBalances] = useState(false);
+
+    const fetchLatestBalance = async () => {
+        setFetchingBalances(true);
+        try {
+            const { data } = await API.get('/auth/profile');
+            setUser(data);
+        } catch (err) {
+            console.error('Failed to sync balances:', err.response?.data || err.message);
+        } finally {
+            setFetchingBalances(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchLatestBalance();
+    }, []);
 
     const calculatePreview = async () => {
         if (!formData.fromDate || !formData.toDate) return;
@@ -57,7 +74,7 @@ const ApplyLeave = () => {
             });
             setSuccess('Leave application submitted successfully!');
             setFormData({
-                leaveType: 'CL',
+                leaveType: 'cl',
                 fromDate: '',
                 toDate: '',
                 session: 'full-day',
@@ -74,16 +91,22 @@ const ApplyLeave = () => {
 
     return (
         <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                    <div className="p-4 bg-[#F0F7FF] text-[#0B3C5D] rounded-2xl shadow-inner">
-                        <FilePlus2 size={32} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                    { label: 'Casual Leave', value: user?.leaveBalance?.cl || 0, icon: <Calendar className="text-blue-500" />, color: 'bg-blue-50' },
+                    { label: 'Sick Leave', value: user?.leaveBalance?.sl || 0, icon: <AlertCircle className="text-amber-500" />, color: 'bg-amber-50' },
+                    { label: 'Earned Leave', value: user?.leaveBalance?.el || 0, icon: <CheckCircle className="text-green-500" />, color: 'bg-green-50' }
+                ].map((stat, idx) => (
+                    <div key={idx} className={`${stat.color} p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between`}>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
+                            <h3 className="text-2xl font-black text-[#0B3C5D]">{stat.value} <span className="text-[10px] uppercase ml-1">Days</span></h3>
+                        </div>
+                        <div className="p-3 bg-white/50 rounded-xl">
+                            {stat.icon}
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-3xl font-black tracking-tight">Apply for Leave</h1>
-                        <p className="text-slate-500 font-medium italic">Create a new leave application</p>
-                    </div>
-                </div>
+                ))}
             </div>
 
             <div className="bg-white rounded-[32px] shadow-sm border border-slate-50 p-10">
@@ -97,10 +120,10 @@ const ApplyLeave = () => {
                                 onChange={(e) => setFormData({ ...formData, leaveType: e.target.value })}
                                 required
                             >
-                                <option value="CL">Casual Leave (CL)</option>
-                                <option value="SL">Sick Leave (SL)</option>
-                                <option value="EL">Earned Leave (EL)</option>
-                                <option value="LOP">Loss of Pay (LOP)</option>
+                                <option value="cl">Casual Leave (CL)</option>
+                                <option value="sl">Sick Leave (SL)</option>
+                                <option value="el">Earned Leave (EL)</option>
+                                <option value="lop">Loss of Pay (LOP)</option>
                             </select>
                         </div>
                         <div>

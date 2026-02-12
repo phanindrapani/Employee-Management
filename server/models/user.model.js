@@ -8,7 +8,9 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ['employee', 'admin'], default: 'employee' },
     phone: { type: String },
     leaveBalance: {
-        earned: { type: Number, default: 15 }
+        cl: { type: Number, default: 12 },
+        sl: { type: Number, default: 10 },
+        el: { type: Number, default: 15 }
     },
     profilePicture: { type: String }
 }, { timestamps: true });

@@ -12,7 +12,8 @@ import {
     FileText,
     X,
     Plus,
-    File
+    File,
+    ClipboardList
 } from 'lucide-react';
 
 const EmployeeCRUD = () => {
@@ -27,7 +28,10 @@ const EmployeeCRUD = () => {
         email: '',
         phone: '',
         qualification: '',
-        address: ''
+        address: '',
+        cl: 12,
+        sl: 10,
+        el: 15
     });
 
     const [files, setFiles] = useState({
@@ -81,7 +85,7 @@ const EmployeeCRUD = () => {
             }
             setShowModal(false);
             setEditingEmployee(null);
-            setFormData({ name: '', email: '', phone: '', qualification: '', address: '' });
+            setFormData({ name: '', email: '', phone: '', qualification: '', address: '', cl: 12, sl: 10, el: 15 });
             setFiles({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null, profilePicture: null });
             fetchEmployees();
         } catch (err) {
@@ -108,8 +112,8 @@ const EmployeeCRUD = () => {
         if (!filePath) return '#';
         if (typeof filePath === 'string' && filePath.startsWith('http')) return filePath;
 
-        // For local files, fallback to port 5001 if API base URL is not available
-        const rawBaseUrl = API?.defaults?.baseURL || 'http://localhost:5001/api';
+        // For local files, fallback to port 5000 if API base URL is not available
+        const rawBaseUrl = API?.defaults?.baseURL || 'http://localhost:5000/api';
         const baseUrl = rawBaseUrl.replace(/\/api\/?$/, '');
 
         const normalized = String(filePath).replace(/\\/g, '/');
@@ -134,7 +138,7 @@ const EmployeeCRUD = () => {
                 <button
                     onClick={() => {
                         setEditingEmployee(null);
-                        setFormData({ name: '', email: '', phone: '', qualification: '', address: '' });
+                        setFormData({ name: '', email: '', phone: '', qualification: '', address: '', cl: 12, sl: 10, el: 15 });
                         setShowModal(true);
                     }}
                     className="px-6 py-3 bg-[#63C132] text-white rounded-xl font-bold hover:bg-[#52A428] transition-all flex items-center gap-2 shadow-lg shadow-[#63C132]/20"
@@ -214,7 +218,10 @@ const EmployeeCRUD = () => {
                                                             email: emp.email,
                                                             phone: emp.phone,
                                                             qualification: emp.qualification,
-                                                            address: emp.address || ''
+                                                            address: emp.address || '',
+                                                            cl: emp.leaveBalance?.cl || 0,
+                                                            sl: emp.leaveBalance?.sl || 0,
+                                                            el: emp.leaveBalance?.el || 0
                                                         });
                                                         setShowModal(true);
                                                     }}
@@ -318,6 +325,42 @@ const EmployeeCRUD = () => {
                                     value={formData.address}
                                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                 ></textarea>
+                            </div>
+
+                            <div className="border-t border-slate-200 pt-4">
+                                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                    <ClipboardList size={18} className="text-primary-600" />
+                                    Leave Balances
+                                </h3>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="label text-[10px]">Casual (CL)</label>
+                                        <input
+                                            type="number"
+                                            className="input-field py-2"
+                                            value={formData.cl}
+                                            onChange={(e) => setFormData({ ...formData, cl: parseInt(e.target.value) || 0 })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="label text-[10px]">Sick (SL)</label>
+                                        <input
+                                            type="number"
+                                            className="input-field py-2"
+                                            value={formData.sl}
+                                            onChange={(e) => setFormData({ ...formData, sl: parseInt(e.target.value) || 0 })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="label text-[10px]">Earned (EL)</label>
+                                        <input
+                                            type="number"
+                                            className="input-field py-2"
+                                            value={formData.el}
+                                            onChange={(e) => setFormData({ ...formData, el: parseInt(e.target.value) || 0 })}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="border-t border-slate-200 pt-4 mt-4">
