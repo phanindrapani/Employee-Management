@@ -2,11 +2,16 @@
 @reference "tailwindcss";
 
 @theme {
+  --color-primary-50: #F0F7FF;
+  --color-primary-500: #1A4B6D;
+  --color-primary-600: #0B3C5D;
+  --color-primary-700: #062C45;
   --color-primary: #0B3C5D;
   --color-accent: #63C132;
   --color-bg: #F4F6F9;
   --color-sidebar: #0B3C5D;
   --color-card: #FFFFFF;
+  --shadow-premium: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 :root {
@@ -28,15 +33,15 @@ h3,
 h4,
 h5,
 h6 {
-  @apply font-semibold tracking-tight text-slate-900;
+  @apply font-black tracking-tight text-[#0B3C5D];
 }
 
 .card {
-  @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6;
+  @apply bg-white rounded-[24px] shadow-premium p-8 border border-slate-50;
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50;
+  @apply bg-[#0B3C5D] text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-[#1A4B6D] active:scale-95 transition-all shadow-xl shadow-[#0B3C5D]/10 disabled:opacity-50;
 }
 
 .btn-secondary {
