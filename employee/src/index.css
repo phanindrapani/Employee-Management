@@ -2,24 +2,19 @@
 @reference "tailwindcss";
 
 @theme {
-  --color-primary-50: #f0f9ff;
-  --color-primary-100: #e0f2fe;
-  --color-primary-200: #bae6fd;
-  --color-primary-300: #7dd3fc;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-primary-800: #075985;
-  --color-primary-900: #0c4a6e;
-  --color-primary-950: #082f49;
+  --color-primary: #0B3C5D;
+  --color-accent: #63C132;
+  --color-bg: #F4F6F9;
+  --color-sidebar: #0B3C5D;
+  --color-card: #FFFFFF;
 }
 
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   background-color: #f8fafc;
+  color: #1A202C;
 }
 
 body {
@@ -34,15 +29,15 @@ h3,
 h4,
 h5,
 h6 {
-  @apply font-semibold tracking-tight text-slate-900;
+  @apply font-black tracking-tight text-[#0B3C5D];
 }
 
 .card {
-  @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6;
+  @apply bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0, 0, 0, 0.04)] p-8 border border-slate-50;
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50;
+  @apply bg-[#0B3C5D] text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-[#1A4B6D] active:scale-95 transition-all shadow-xl shadow-[#0B3C5D]/10 disabled:opacity-50;
 }
 
 .btn-secondary {
