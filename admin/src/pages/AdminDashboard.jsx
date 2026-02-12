@@ -41,56 +41,66 @@ const AdminDashboard = () => {
     }, []);
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight">Admin Dashboard</h1>
+                    <p className="text-slate-500 font-medium italic">Summary of all activity</p>
+                </div>
+                <div className="px-4 py-2 bg-[#F0F7FF] rounded-xl text-[#0B3C5D] font-bold text-xs uppercase tracking-widest border border-[#0B3C5D]/10">
+                    System: Active
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
                 <StatCard
                     title="Total Employees"
                     value={stats.totalEmployees}
                     icon={Users}
-                    colorClass="bg-blue-100 text-blue-600"
+                    colorClass="bg-[#F0F7FF] text-[#0B3C5D]"
                 />
                 <StatCard
-                    title="Pending Requests"
+                    title="Pending Leaves"
                     value={stats.pendingLeaves}
                     icon={AlertTriangle}
-                    colorClass="bg-amber-100 text-amber-600"
+                    colorClass="bg-[#FFFBEB] text-[#D97706]"
                 />
                 <StatCard
                     title="Approved Leaves"
                     value={stats.approvedLeaves}
                     icon={CalendarCheck}
-                    colorClass="bg-green-100 text-green-600"
+                    colorClass="bg-[#F0FFF4] text-[#63C132]"
                 />
                 <StatCard
                     title="Today's Holidays"
                     value={stats.todaysHolidays}
                     icon={CalendarDays}
-                    colorClass="bg-purple-100 text-purple-600"
+                    colorClass="bg-[#F5F3FF] text-[#7C3AED]"
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="card">
+                <div className="card shadow-sm border-none bg-white p-6">
                     <div className="flex items-center justify-between mb-8">
                         <h3 className="text-lg font-bold flex items-center gap-2">
-                            <BarChart3 className="text-primary-600" />
-                            Monthly Leave Summary
+                            <BarChart3 size={20} className="text-[#63C132]" />
+                            Monthly Leave Trend
                         </h3>
-                        <span className="text-xs text-slate-400">Current Year</span>
+                        <span className="text-xs text-slate-400 font-medium">FY 2024-25</span>
                     </div>
 
-                    <div className="h-64 flex items-end gap-2">
+                    <div className="h-64 flex items-end gap-3 px-2">
                         {[4, 7, 3, 8, 12, 6, 9, 5, 2, 8, 4, 7].map((val, i) => (
                             <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
                                 <div
-                                    className="w-full bg-primary-100 rounded-t-lg group-hover:bg-primary-500 transition-all duration-300 relative"
-                                    style={{ height: `${val * 15}px` }}
+                                    className="w-full bg-[#E0E7FF] rounded-t-lg group-hover:bg-[#0B3C5D] transition-all duration-300 relative"
+                                    style={{ height: `${val * 12}px` }}
                                 >
-                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block transition-all">
+                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#0B3C5D] text-white text-[10px] px-2 py-1 rounded hidden group-hover:block transition-all shadow-lg font-bold">
                                         {val}
                                     </span>
                                 </div>
-                                <span className="text-[10px] text-slate-400 font-medium">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
                                     {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]}
                                 </span>
                             </div>
@@ -98,26 +108,26 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="card">
-                    <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <TrendingUp className="text-primary-600" />
-                        Most Leave Types
+                <div className="card shadow-sm border-none bg-white p-6">
+                    <h3 className="text-lg font-bold mb-8 flex items-center gap-2">
+                        <TrendingUp size={20} className="text-[#63C132]" />
+                        Leave Type Distribution
                     </h3>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {[
-                            { label: 'Casual Leave', count: 45, color: 'bg-blue-500' },
-                            { label: 'Sick Leave', count: 28, color: 'bg-red-500' },
-                            { label: 'Earned Leave', count: 12, color: 'bg-green-500' },
-                            { label: 'Loss of Pay', count: 15, color: 'bg-slate-500' },
+                            { label: 'Casual Leave', count: 45, color: 'bg-[#0B3C5D]' },
+                            { label: 'Sick Leave', count: 28, color: 'bg-[#E53E3E]' },
+                            { label: 'Earned Leave', count: 12, color: 'bg-[#63C132]' },
+                            { label: 'Loss of Pay', count: 15, color: 'bg-[#A0AEC0]' },
                         ].map((item, i) => (
                             <div key={i} className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-slate-600">{item.label}</span>
-                                    <span className="font-bold text-slate-900">{item.count}%</span>
+                                    <span className="font-medium text-slate-600">{item.label}</span>
+                                    <span className="font-bold text-[#0B3C5D]">{item.count}%</span>
                                 </div>
-                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.count}%` }}></div>
+                                <div className="h-3 bg-[#F4F6F9] rounded-full overflow-hidden">
+                                    <div className={`h-full ${item.color} rounded-full transition-all duration-1000`} style={{ width: `${item.count}%` }}></div>
                                 </div>
                             </div>
                         ))}
