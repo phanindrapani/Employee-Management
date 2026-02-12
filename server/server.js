@@ -12,6 +12,7 @@ import leaveRoutes from "./routes/leave.routes.js";
 import holidayRoutes from "./routes/holiday.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import employeeRoutes from "./src/routes/employee.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -36,6 +37,7 @@ app.use('/api/leaves', leaveRoutes);
 app.use('/api/holidays', holidayRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

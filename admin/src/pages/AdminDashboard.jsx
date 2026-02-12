@@ -17,22 +17,16 @@ const AdminDashboard = () => {
         approvedLeaves: 0,
         todaysHolidays: 0
     });
+    const [monthlyTrend, setMonthlyTrend] = useState([]);
+    const [leaveDistribution, setLeaveDistribution] = useState([]);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const { data: employees } = await API.get('/employees');
-                const { data: leaves } = await API.get('/leaves/all');
-                const { data: holidays } = await API.get('/holidays');
-
-                const today = new Date().toDateString();
-
-                setStats({
-                    totalEmployees: employees.length,
-                    pendingLeaves: leaves.filter(l => l.status === 'pending').length,
-                    approvedLeaves: leaves.filter(l => l.status === 'approved').length,
-                    todaysHolidays: holidays.filter(h => new Date(h.date).toDateString() === today).length
-                });
+                const { data } = await API.get('/admin/stats');
+                setStats(data.stats);
+                setMonthlyTrend(data.monthlyTrend);
+                setLeaveDistribution(data.distribution);
             } catch (err) {
                 console.error('Failed to fetch dashboard stats');
             }
@@ -86,15 +80,15 @@ const AdminDashboard = () => {
                             <BarChart3 size={20} className="text-[#63C132]" />
                             Monthly Leave Trend
                         </h3>
-                        <span className="text-xs text-slate-400 font-medium">FY 2024-25</span>
+                        <span className="text-xs text-slate-400 font-medium">Current Year</span>
                     </div>
 
                     <div className="h-64 flex items-end gap-3 px-2">
-                        {[4, 7, 3, 8, 12, 6, 9, 5, 2, 8, 4, 7].map((val, i) => (
+                        {monthlyTrend.map((val, i) => (
                             <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
                                 <div
                                     className="w-full bg-[#E0E7FF] rounded-t-lg group-hover:bg-[#0B3C5D] transition-all duration-300 relative"
-                                    style={{ height: `${val * 12}px` }}
+                                    style={{ height: `${val > 0 ? (val * 20) : 4}px`, minHeight: '4px', maxHeight: '100%' }}
                                 >
                                     <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#0B3C5D] text-white text-[10px] px-2 py-1 rounded hidden group-hover:block transition-all shadow-lg font-bold">
                                         {val}
@@ -115,22 +109,24 @@ const AdminDashboard = () => {
                     </h3>
 
                     <div className="space-y-6">
-                        {[
-                            { label: 'Casual Leave', count: 45, color: 'bg-[#0B3C5D]' },
-                            { label: 'Sick Leave', count: 28, color: 'bg-[#E53E3E]' },
-                            { label: 'Earned Leave', count: 12, color: 'bg-[#63C132]' },
-                            { label: 'Loss of Pay', count: 15, color: 'bg-[#A0AEC0]' },
-                        ].map((item, i) => (
-                            <div key={i} className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="font-medium text-slate-600">{item.label}</span>
-                                    <span className="font-bold text-[#0B3C5D]">{item.count}%</span>
+                        {leaveDistribution.length === 0 ? (
+                            <p className="text-center text-slate-400 text-sm italic">No leave data available</p>
+                        ) : (
+                            leaveDistribution.map((item, i) => (
+                                <div key={i} className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="font-medium text-slate-600 uppercase">{item.label}</span>
+                                        <span className="font-bold text-[#0B3C5D]">{item.count}% ({item.value})</span>
+                                    </div>
+                                    <div className="h-3 bg-[#F4F6F9] rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-[#0B3C5D] rounded-full transition-all duration-1000"
+                                            style={{ width: `${item.count}%` }}
+                                        ></div>
+                                    </div>
                                 </div>
-                                <div className="h-3 bg-[#F4F6F9] rounded-full overflow-hidden">
-                                    <div className={`h-full ${item.color} rounded-full transition-all duration-1000`} style={{ width: `${item.count}%` }}></div>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

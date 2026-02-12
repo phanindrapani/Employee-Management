@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import {
     BarChart3,
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 
 const Reports = () => {
+    const navigate = useNavigate();
     const [reportData, setReportData] = useState({
         summary: {
             totalLeaves: 0,
@@ -27,27 +29,8 @@ const Reports = () => {
     useEffect(() => {
         const fetchReports = async () => {
             try {
-                // In a real app, these would be dedicated reporting endpoints
-                const { data: leaves } = await API.get('/leaves/all');
-                const { data: employees } = await API.get('/employees');
-
-                // Mocking some reporting logic based on available data
-                const summary = {
-                    totalLeaves: leaves.length,
-                    avgDuration: (leaves.reduce((acc, l) => acc + l.totalDays, 0) / (leaves.length || 1)).toFixed(1),
-                    mostCommonType: 'Casual Leave',
-                    utilizationRate: 15.4
-                };
-
-                setReportData({
-                    summary,
-                    monthlyData: [4, 7, 3, 8, 12, 6, 9, 5, 2, 8, 4, 7],
-                    employeeStats: employees.map(emp => ({
-                        name: emp.name,
-                        leaves: leaves.filter(l => l.user === emp._id).length,
-                        days: leaves.filter(l => l.user === emp._id).reduce((acc, l) => acc + l.totalDays, 0)
-                    })).sort((a, b) => b.days - a.days).slice(0, 5)
-                });
+                const { data } = await API.get('/admin/reports');
+                setReportData(data);
             } catch (err) {
                 console.error('Failed to fetch reports');
             } finally {
@@ -57,6 +40,33 @@ const Reports = () => {
         fetchReports();
     }, []);
 
+    const handleDownload = () => {
+        const { summary, employeeStats } = reportData;
+
+        // CSV Header
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Report Summary\n";
+        csvContent += `Total Leaves,${summary.totalLeaves}\n`;
+        csvContent += `Average Duration,${summary.avgDuration} Days\n`;
+        csvContent += `Most Common Type,${summary.mostCommonType}\n`;
+        csvContent += `Utilization Rate,${summary.utilizationRate}%\n\n`;
+
+        csvContent += "Top Employees by Leave Usage\n";
+        csvContent += "Name,Leaves Requested,Total Days\n";
+
+        employeeStats.forEach(emp => {
+            csvContent += `${emp.name},${emp.leaves},${emp.days}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "leave_report.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -64,7 +74,10 @@ const Reports = () => {
                     <h1 className="text-3xl font-black tracking-tight">Reports</h1>
                     <p className="text-slate-500 font-medium italic">Summary of leave data</p>
                 </div>
-                <button className="flex items-center gap-3 px-6 py-4 bg-[#0B3C5D] text-white rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-[#1A4B6D] transition-all shadow-xl shadow-[#0B3C5D]/20 active:scale-95">
+                <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-3 px-6 py-4 bg-[#0B3C5D] text-white rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-[#1A4B6D] transition-all shadow-xl shadow-[#0B3C5D]/20 active:scale-95"
+                >
                     <Download size={20} />
                     Download Report
                 </button>
@@ -78,8 +91,8 @@ const Reports = () => {
                             <ArrowUpRight size={18} />
                         </div>
                     </div>
-                    <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.totalLeaves * 2}</div>
-                    <div className="text-[10px] text-[#63C132] font-black uppercase tracking-tighter italic">+12% vs last month</div>
+                    <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.totalLeaves}</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter italic">Approved this year</div>
                 </div>
 
                 <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-50">
@@ -90,7 +103,7 @@ const Reports = () => {
                         </div>
                     </div>
                     <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.avgDuration} Days</div>
-                    <div className="text-[10px] text-red-500 font-black uppercase tracking-tighter italic">-2% from last month</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter italic">Per approved request</div>
                 </div>
 
                 <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-50">
@@ -100,7 +113,7 @@ const Reports = () => {
                             <TrendingUp size={18} />
                         </div>
                     </div>
-                    <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.mostCommonType.split(' ')[0]}</div>
+                    <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.mostCommonType}</div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter italic">Most frequent type</div>
                 </div>
 
@@ -112,7 +125,7 @@ const Reports = () => {
                         </div>
                     </div>
                     <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.utilizationRate}%</div>
-                    <div className="text-[10px] text-[#7C3AED] font-black uppercase tracking-tighter italic">Average usage</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter italic">Total capacity used</div>
                 </div>
             </div>
 
@@ -134,7 +147,7 @@ const Reports = () => {
                             <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
                                 <div
                                     className="w-full bg-[#E0E7FF] rounded-t-lg group-hover:bg-[#0B3C5D] transition-all duration-300 relative"
-                                    style={{ height: `${val * 12}px` }}
+                                    style={{ height: `${val > 0 ? val * 12 : 4}px`, minHeight: '4px' }}
                                 >
                                     <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#0B3C5D] text-white text-[10px] px-2 py-1 rounded hidden group-hover:block transition-all shadow-lg font-bold">
                                         {val}
@@ -174,7 +187,10 @@ const Reports = () => {
                         ))}
                     </div>
 
-                    <button className="w-full mt-10 py-5 text-[10px] font-black text-[#0B3C5D] hover:bg-[#F0F7FF] flex items-center justify-center gap-3 border border-dashed border-slate-200 rounded-2xl transition-all uppercase tracking-[0.2em]">
+                    <button
+                        onClick={() => navigate('/employees')}
+                        className="w-full mt-10 py-5 text-[10px] font-black text-[#0B3C5D] hover:bg-[#F0F7FF] flex items-center justify-center gap-3 border border-dashed border-slate-200 rounded-2xl transition-all uppercase tracking-[0.2em]"
+                    >
                         View Comprehensive List
                         <ArrowUpRight size={14} className="animate-bounce" />
                     </button>
