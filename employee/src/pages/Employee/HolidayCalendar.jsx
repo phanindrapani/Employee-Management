@@ -24,8 +24,9 @@ const HolidayCalendar = () => {
 
     const tileClassName = ({ date, view }) => {
         if (view === 'month') {
+            const classes = [];
             // Check for Sundays
-            if (date.getDay() === 0) return 'text-red-400 font-bold';
+            if (date.getDay() === 0) classes.push('sunday-tile');
 
             // Check for holidays
             const dateStr = date.toISOString().split('T')[0];
@@ -34,7 +35,8 @@ const HolidayCalendar = () => {
                 return hDate === dateStr;
             });
 
-            if (isHoliday) return 'holiday-date';
+            if (isHoliday) classes.push('holiday-tile');
+            return classes.join(' ');
         }
         return null;
     };
@@ -48,11 +50,7 @@ const HolidayCalendar = () => {
             });
 
             if (holiday) {
-                return (
-                    <div className="text-[8px] mt-1 text-amber-800 font-black truncate px-1 uppercase tracking-tighter" title={holiday.name}>
-                        {holiday.name}
-                    </div>
-                );
+                return <div className="holiday-indicator" title={holiday.name} />;
             }
         }
         return null;
