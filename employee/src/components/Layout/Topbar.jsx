@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, User, Check, Trash2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api';
+import manuenLogo from '../../assets/manuen_logo.png';
+import manuenSquare from '../../assets/manuen_square.png';
 
 const Topbar = () => {
     const { user } = useAuth();
+    const location = useLocation();
     const [notifications, setNotifications] = useState([]);
     const [showNotifications, setShowNotifications] = useState(false);
 
@@ -35,9 +39,15 @@ const Topbar = () => {
 
     return (
         <div className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10">
-            <h2 className="text-lg font-medium text-slate-700">
-                {location.pathname === '/' ? `Welcome back, ${user.name}` : ''}
-            </h2>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center mr-6 py-2 border-r border-slate-100 pr-6">
+                    <img src={manuenSquare} alt="Logo" className="h-8 w-8 relative z-10" />
+                    <img src={manuenLogo} alt="Manuen" className="h-10 -ml-5" />
+                </div>
+                <h2 className="text-lg font-medium text-slate-700">
+                    {location.pathname === '/' ? `Welcome back, ${user.name}` : ''}
+                </h2>
+            </div>
 
             <div className="flex items-center gap-6">
                 <div className="relative">
