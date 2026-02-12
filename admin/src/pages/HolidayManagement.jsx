@@ -87,16 +87,15 @@ const HolidayManagement = () => {
                         <Calendar
                             onChange={setSelectedDate}
                             value={selectedDate}
-                            tileClassName={({ date }) => isHoliday(date) ? 'holiday-date' : ''}
+                            tileClassName={({ date }) => {
+                                const classes = [];
+                                if (date.getDay() === 0) classes.push('sunday-tile');
+                                if (isHoliday(date)) classes.push('holiday-tile');
+                                return classes.join(' ');
+                            }}
                             tileContent={({ date }) => {
                                 const h = getHolidayDetails(date);
-                                return h ? (
-                                    <div className="group relative">
-                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block z-50 whitespace-nowrap">
-                                            {h.name}
-                                        </div>
-                                    </div>
-                                ) : null;
+                                return h ? <div className="holiday-indicator" title={h.name} /> : null;
                             }}
                         />
                     </div>
