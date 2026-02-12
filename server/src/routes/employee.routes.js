@@ -18,6 +18,7 @@ const fileUploads = upload.fields([
   { name: 'offerletter', maxCount: 1 },
   { name: 'joiningletter', maxCount: 1 },
   { name: 'resume', maxCount: 1 },
+  { name: 'profilePicture', maxCount: 1 },
 ]);
 router.route('/')
   .get(getEmployees)

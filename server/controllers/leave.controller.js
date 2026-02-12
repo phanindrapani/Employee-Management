@@ -2,6 +2,7 @@ import Leave from '../models/leave.model.js';
 import User from '../models/user.model.js';
 import Notification from '../models/notification.model.js';
 import { calculateWorkingDays } from '../utils/leaveCalculator.js';
+import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 export const applyLeave = async (req, res) => {
     const { leaveType, fromDate, toDate, session } = req.body;
@@ -31,7 +32,13 @@ export const applyLeave = async (req, res) => {
         return res.status(400).json({ message: `Insufficient ${leaveType} balance` });
     }
 
-    // 4. Create leave request
+    // 4. Handle attachment
+    let attachmentUrl = undefined;
+    if (req.file) {
+        attachmentUrl = await uploadBufferToCloudinary(req.file, 'leave_attachments');
+    }
+
+    // 5. Create leave request
     const leave = await Leave.create({
         user: userId,
         leaveType,
@@ -39,7 +46,8 @@ export const applyLeave = async (req, res) => {
         toDate,
         session,
         totalDays,
-        status: 'pending'
+        status: 'pending',
+        attachment: attachmentUrl
     });
 
     res.status(201).json(leave);

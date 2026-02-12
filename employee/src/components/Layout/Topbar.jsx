@@ -92,8 +92,12 @@ const Topbar = () => {
                         <p className="text-sm font-medium text-slate-900">{user.name}</p>
                         <p className="text-xs text-slate-500 capitalize">{user.role}</p>
                     </div>
-                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600">
-                        <User size={20} />
+                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 overflow-hidden border border-slate-200">
+                        {user?.profilePicture ? (
+                            <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <User size={20} />
+                        )}
                     </div>
                 </div>
             </div>

@@ -12,6 +12,7 @@ const ApplyLeave = () => {
         session: 'full-day',
         reason: ''
     });
+    const [attachment, setAttachment] = useState(null);
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -43,7 +44,17 @@ const ApplyLeave = () => {
         setSuccess('');
 
         try {
-            await API.post('/leaves', formData);
+            const formDataToSend = new FormData();
+            Object.keys(formData).forEach(key => {
+                formDataToSend.append(key, formData[key]);
+            });
+            if (attachment) {
+                formDataToSend.append('attachment', attachment);
+            }
+
+            await API.post('/leaves', formDataToSend, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             setSuccess('Leave application submitted successfully!');
             setFormData({
                 leaveType: 'CL',
@@ -52,6 +63,7 @@ const ApplyLeave = () => {
                 session: 'full-day',
                 reason: ''
             });
+            setAttachment(null);
             setPreview(null);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to submit application');
@@ -140,6 +152,19 @@ const ApplyLeave = () => {
                             placeholder="Please provide a reason for your leave..."
                             required
                         ></textarea>
+                    </div>
+
+                    <div>
+                        <label className="label">Attachment (Optional)</label>
+                        <input
+                            type="file"
+                            className="input-field cursor-pointer"
+                            onChange={(e) => setAttachment(e.target.files[0])}
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        />
+                        <p className="text-[10px] text-slate-400 mt-1 italic">
+                            Accepted: PDF, DOC, JPG, PNG (Max 5MB)
+                        </p>
                     </div>
 
                     {preview !== null && !error && (

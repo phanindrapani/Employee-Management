@@ -14,6 +14,7 @@ const employeeSchema = new mongoose.Schema({
     joiningletter: { type: String },
     resume: { type: String },
   },
+  profilePicture: { type: String },
 }, {
   timestamps: true,
 });

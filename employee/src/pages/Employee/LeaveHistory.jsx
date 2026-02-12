@@ -6,7 +6,8 @@ import {
     Filter,
     CheckCircle2,
     XCircle,
-    Clock
+    Clock,
+    FileCheck
 } from 'lucide-react';
 
 const LeaveHistory = () => {
@@ -97,6 +98,16 @@ const LeaveHistory = () => {
                                         <td className="py-6 px-4">
                                             <span className="font-bold text-[#0B3C5D] text-sm tracking-tight">{leave.leaveType}</span>
                                             <p className="text-[10px] text-slate-400 font-extrabold uppercase mt-0.5">{leave.session.replace('-', ' ')}</p>
+                                            {leave.attachment && (
+                                                <a
+                                                    href={leave.attachment}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1.5 mt-2 text-[10px] text-primary-600 font-bold hover:underline"
+                                                >
+                                                    <FileCheck size={12} /> View Attachment
+                                                </a>
+                                            )}
                                         </td>
                                         <td className="py-6 px-4 text-xs font-bold text-slate-500 font-mono">
                                             {new Date(leave.fromDate).toLocaleDateString('en-GB')} <span className="text-slate-300 mx-1">→</span> {new Date(leave.toDate).toLocaleDateString('en-GB')}

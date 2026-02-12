@@ -21,6 +21,7 @@ const leaveSchema = new mongoose.Schema({
         default: 'pending'
     },
     rejectionReason: { type: String },
+    attachment: { type: String },
     appliedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

@@ -8,10 +8,9 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ['employee', 'admin'], default: 'employee' },
     phone: { type: String },
     leaveBalance: {
-        casual: { type: Number, default: 12 },
-        sick: { type: Number, default: 10 },
         earned: { type: Number, default: 15 }
-    }
+    },
+    profilePicture: { type: String }
 }, { timestamps: true });
 
 // Hash password before saving

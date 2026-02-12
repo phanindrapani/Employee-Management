@@ -1,11 +1,12 @@
 import express from 'express';
 import { applyLeave, getMyLeaves, getAllLeaves, updateLeaveStatus, calculateLeave } from '../controllers/leave.controller.js';
 import { protect, admin } from '../middlewares/auth.middleware.js';
+import upload from '../src/middlewares/upload.middleware.js';
 
 const router = express.Router();
 
 router.route('/')
-    .post(protect, applyLeave)
+    .post(protect, upload.single('attachment'), applyLeave)
     .get(protect, getMyLeaves);
 
 router.get('/all', protect, admin, getAllLeaves);

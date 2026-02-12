@@ -36,7 +36,8 @@ const EmployeeCRUD = () => {
         degree: null,
         offerletter: null,
         joiningletter: null,
-        resume: null
+        resume: null,
+        profilePicture: null
     });
 
     const fetchEmployees = async () => {
@@ -81,7 +82,7 @@ const EmployeeCRUD = () => {
             setShowModal(false);
             setEditingEmployee(null);
             setFormData({ name: '', email: '', phone: '', qualification: '', address: '' });
-            setFiles({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null });
+            setFiles({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null, profilePicture: null });
             fetchEmployees();
         } catch (err) {
             alert(err.response?.data?.message || 'Action failed');
@@ -94,8 +95,6 @@ const EmployeeCRUD = () => {
             await API.delete(`/employees/${id}`);
             fetchEmployees();
         } catch (err) {
-            Files({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null });
-            set
             alert('Delete failed');
         }
     };
@@ -106,12 +105,17 @@ const EmployeeCRUD = () => {
     );
 
     const buildFileUrl = (filePath) => {
-        if (!filePath) return '';
-        if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
-        const baseUrl = (API?.defaults?.baseURL || '').replace(/\/api\/?$/, '');
-        const normalized = filePath.replace(/\\/g, '/');
+        if (!filePath) return '#';
+        if (typeof filePath === 'string' && filePath.startsWith('http')) return filePath;
+
+        // For local files, fallback to port 5001 if API base URL is not available
+        const rawBaseUrl = API?.defaults?.baseURL || 'http://localhost:5001/api';
+        const baseUrl = rawBaseUrl.replace(/\/api\/?$/, '');
+
+        const normalized = String(filePath).replace(/\\/g, '/');
         const uploadsIndex = normalized.indexOf('uploads/');
         const relativePath = uploadsIndex >= 0 ? normalized.slice(uploadsIndex) : normalized.replace(/^\/+/, '');
+
         return `${baseUrl}/${relativePath}`;
     };
 
@@ -172,8 +176,12 @@ const EmployeeCRUD = () => {
                                     <tr key={emp._id} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center text-primary-600 font-bold">
-                                                    {emp.name.charAt(0)}
+                                                <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center text-primary-600 font-bold overflow-hidden border border-slate-100">
+                                                    {emp.profilePicture ? (
+                                                        <img src={emp.profilePicture} alt={emp.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        emp.name.charAt(0)
+                                                    )}
                                                 </div>
                                                 <span className="font-medium text-slate-900">{emp.name}</span>
                                             </div>
@@ -319,6 +327,7 @@ const EmployeeCRUD = () => {
                                 </h3>
                                 <div className="space-y-3">
                                     {[
+                                        { key: 'profilePicture', label: 'Profile Picture' },
                                         { key: 'tenth', label: '10th Certificate' },
                                         { key: 'twelfth', label: '12th Certificate' },
                                         { key: 'degree', label: 'Degree Certificate' },
@@ -334,12 +343,13 @@ const EmployeeCRUD = () => {
                                                 onChange={(e) => setFiles({ ...files, [doc.key]: e.target.files[0] })}
                                                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                             />
-                                            {editingEmployee?.documents?.[doc.key] && (
+                                            {((doc.key === 'profilePicture' ? editingEmployee?.profilePicture : editingEmployee?.documents?.[doc.key])) && (
                                                 <a
-                                                    href={buildFileUrl(editingEmployee.documents[doc.key])}
+                                                    href={buildFileUrl(doc.key === 'profilePicture' ? editingEmployee.profilePicture : editingEmployee.documents[doc.key])}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="text-sm text-primary-600 mt-1 inline-block"
+                                                    title={buildFileUrl(doc.key === 'profilePicture' ? editingEmployee.profilePicture : editingEmployee.documents[doc.key])}
                                                 >
                                                     View existing
                                                 </a>

@@ -6,7 +6,8 @@ import {
     XCircle,
     MessageSquare,
     Search,
-    Filter
+    Filter,
+    FileText
 } from 'lucide-react';
 
 const LeaveRequests = () => {
@@ -113,6 +114,16 @@ const LeaveRequests = () => {
                                             <span className="px-3 py-1 bg-[#F4F6F9] text-[#0B3C5D] rounded-full text-[10px] font-black uppercase tracking-wider border border-[#0B3C5D]/5">
                                                 {leave.leaveType}
                                             </span>
+                                            {leave.attachment && (
+                                                <a
+                                                    href={leave.attachment}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="block mt-2 text-[10px] text-primary-600 font-bold hover:underline flex items-center gap-1"
+                                                >
+                                                    <FileText size={10} /> View Attachment
+                                                </a>
+                                            )}
                                         </td>
                                         <td className="py-6 px-4 text-xs font-bold text-slate-500 font-mono">
                                             {new Date(leave.fromDate).toLocaleDateString('en-GB')} <span className="text-slate-300 mx-1">→</span> {new Date(leave.toDate).toLocaleDateString('en-GB')}

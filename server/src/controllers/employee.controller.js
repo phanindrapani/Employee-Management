@@ -1,16 +1,44 @@
 import Employee from "../models/employee.model.js";
 import User from "../../models/user.model.js";
-import path from "path";
+import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
+
+const fieldToFolder = {
+  tenth: "10th",
+  twelfth: "12th",
+  degree: "degree",
+  offerletter: "offerletter",
+  joiningletter: "joiningletter",
+  resume: "resume",
+  profilePicture: "profile_pictures"
+};
+
+async function buildCloudinaryDocumentMap(files = {}, existingDocuments = {}) {
+  const documents = { ...existingDocuments };
+
+  for (const [fieldName, folder] of Object.entries(fieldToFolder)) {
+    const file = files?.[fieldName]?.[0];
+    if (!file) continue;
+
+    const url = await uploadBufferToCloudinary(file, folder);
+    if (fieldName !== 'profilePicture') {
+      documents[fieldName] = url;
+    }
+  }
+
+  return documents;
+}
 
 const buildDefaultPassword = (name) => {
   const firstName = (name || "").trim().split(/\s+/)[0] || "Employee";
   return `${firstName}123`;
 };
 
-const buildDocPath = (file, folder) => {
+// Helper to extract specifically the profile picture
+async function uploadProfilePicture(files) {
+  const file = files?.profilePicture?.[0];
   if (!file) return undefined;
-  return path.posix.join("uploads", folder, file.filename);
-};
+  return await uploadBufferToCloudinary(file, fieldToFolder.profilePicture);
+}
 
 export const getEmployees = async (req, res) => {
   try {
@@ -47,30 +75,29 @@ export const addEmployee = async (req, res) => {
 
     const defaultPassword = buildDefaultPassword(name);
 
+    // Initial upload of profile picture if provided
+    const profilePictureUrl = await uploadProfilePicture(req.files);
+
     const user = await User.create({
       name,
       email,
       password: defaultPassword,
       role: "employee",
-      phone
+      phone,
+      profilePicture: profilePictureUrl
     });
 
     let employee;
     try {
+      const documents = await buildCloudinaryDocumentMap(req.files);
       employee = await Employee.create({
         name,
         email,
         phone,
         address,
         qualification,
-        documents: {
-          tenth: buildDocPath(req.files?.tenth?.[0], "10th"),
-          twelfth: buildDocPath(req.files?.twelfth?.[0], "12th"),
-          degree: buildDocPath(req.files?.degree?.[0], "degree"),
-          offerletter: buildDocPath(req.files?.offerletter?.[0], "offerletter"),
-          joiningletter: buildDocPath(req.files?.joiningletter?.[0], "joiningletter"),
-          resume: buildDocPath(req.files?.resume?.[0], "resume")
-        }
+        documents,
+        profilePicture: profilePictureUrl
       });
     } catch (error) {
       await User.findByIdAndDelete(user._id);
@@ -86,6 +113,7 @@ export const addEmployee = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 export const updateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
@@ -101,15 +129,15 @@ export const updateEmployee = async (req, res) => {
 
     // Keep existing documents and update only the new ones
     if (req.files && Object.keys(req.files).length > 0) {
-      updatedData.documents = {
-        ...employee.documents,
-        tenth: buildDocPath(req.files?.tenth?.[0], "10th") || employee.documents.tenth,
-        twelfth: buildDocPath(req.files?.twelfth?.[0], "12th") || employee.documents.twelfth,
-        degree: buildDocPath(req.files?.degree?.[0], "degree") || employee.documents.degree,
-        offerletter: buildDocPath(req.files?.offerletter?.[0], "offerletter") || employee.documents.offerletter,
-        joiningletter: buildDocPath(req.files?.joiningletter?.[0], "joiningletter") || employee.documents.joiningletter,
-        resume: buildDocPath(req.files?.resume?.[0], "resume") || employee.documents.resume
-      };
+      updatedData.documents = await buildCloudinaryDocumentMap(req.files, employee.documents.toObject());
+
+      if (req.files.profilePicture) {
+        const profilePictureUrl = await uploadProfilePicture(req.files);
+        updatedData.profilePicture = profilePictureUrl;
+        await User.findOneAndUpdate({ email: employee.email }, {
+          profilePicture: profilePictureUrl
+        });
+      }
     }
 
     const updatedEmployee = await Employee.findByIdAndUpdate(
@@ -126,6 +154,7 @@ export const updateEmployee = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 export const deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;

@@ -48,9 +48,18 @@ const EmployeeDashboard = () => {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-black tracking-tight">Dashboard</h1>
-                    <p className="text-slate-500 font-medium italic">Your leave summary and balance</p>
+                <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-[#F0F7FF] flex items-center justify-center text-[#0B3C5D] font-black text-2xl border border-[#0B3C5D]/10 overflow-hidden">
+                        {user?.profilePicture ? (
+                            <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
+                        ) : (
+                            user?.name?.charAt(0)
+                        )}
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black tracking-tight">Welcome, {user?.name?.split(' ')[0]}</h1>
+                        <p className="text-slate-500 font-medium italic">Your leave summary and balance</p>
+                    </div>
                 </div>
                 <div className="px-4 py-2 bg-[#F0F7FF] rounded-xl text-[#0B3C5D] font-bold text-xs uppercase tracking-widest border border-[#0B3C5D]/10">
                     Employee Account
