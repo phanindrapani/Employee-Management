@@ -93,8 +93,9 @@ const EmployeeCRUD = () => {
         try {
             await API.delete(`/employees/${id}`);
             fetchEmployees();
-        } catch (err) {Files({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null });
-                        set
+        } catch (err) {
+            Files({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null });
+            set
             alert('Delete failed');
         }
     };
@@ -115,14 +116,16 @@ const EmployeeCRUD = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <Users className="text-primary-600" />
-                        Employee Management
-                    </h1>
-                    <p className="text-slate-500 text-sm">Create, edit and manage employee records</p>
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#F0F7FF] rounded-xl text-[#0B3C5D]">
+                        <Users size={32} />
+                    </div>
+                    <div>
+                        <h1 className="text-3XL font-extrabold tracking-tight">Employees</h1>
+                        <p className="text-slate-500 font-medium">Manage all employees</p>
+                    </div>
                 </div>
                 <button
                     onClick={() => {
@@ -130,20 +133,20 @@ const EmployeeCRUD = () => {
                         setFormData({ name: '', email: '', phone: '', qualification: '', address: '' });
                         setShowModal(true);
                     }}
-                    className="btn-primary flex items-center gap-2"
+                    className="px-6 py-3 bg-[#63C132] text-white rounded-xl font-bold hover:bg-[#52A428] transition-all flex items-center gap-2 shadow-lg shadow-[#63C132]/20"
                 >
-                    <UserPlus size={18} />
+                    <UserPlus size={20} />
                     Add Employee
                 </button>
             </div>
 
-            <div className="card">
-                <div className="relative mb-6">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <div className="card shadow-sm border-none bg-white p-6">
+                <div className="relative mb-8">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
                     <input
                         type="text"
-                        placeholder="Search by name or email..."
-                        className="input-field pl-10"
+                        placeholder="Search employees..."
+                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#0B3C5D]/10 transition-all font-medium text-slate-600"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -152,11 +155,11 @@ const EmployeeCRUD = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b border-slate-100 text-slate-600 text-sm uppercase tracking-wider">
-                                <th className="pb-4 font-semibold">Employee</th>
-                                <th className="pb-4 font-semibold">Contact</th>
-                                <th className="pb-4 font-semibold">Qualification</th>
-                                <th className="pb-4 font-semibold text-right">Actions</th>
+                            <tr className="border-b border-slate-100 text-slate-400 text-[11px] uppercase font-black tracking-[0.1em]">
+                                <th className="pb-4 px-4 font-black">Employee</th>
+                                <th className="pb-4 px-4 font-black">Contact</th>
+                                <th className="pb-4 px-4 font-black">Qualification</th>
+                                <th className="pb-4 px-4 font-black text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -228,15 +231,20 @@ const EmployeeCRUD = () => {
             </div>
 
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-8 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
-                            <h2 className="text-xl font-bold text-slate-900">
-                                {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
-                            </h2>
+                <div className="fixed inset-0 bg-[#0B3C5D]/40 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-lg my-8 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] border border-slate-200">
+                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-[24px] flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-[#0B3C5D] text-white rounded-lg">
+                                    <UserPlus size={20} />
+                                </div>
+                                <h2 className="text-xl font-bold text-[#0B3C5D]">
+                                    {editingEmployee ? 'Edit Employee' : 'Add Employee'}
+                                </h2>
+                            </div>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+                                className="p-2 hover:bg-slate-200 text-slate-400 rounded-full transition-colors"
                             >
                                 <X size={20} />
                             </button>
