@@ -7,6 +7,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import HolidayManagement from './pages/HolidayManagement';
 import LeaveRequests from './pages/LeaveRequests';
 import EmployeeCRUD from './pages/EmployeeCRUD';
+import Reports from './pages/Reports';
+import ChangePassword from './pages/ChangePassword';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -34,6 +36,8 @@ function App() {
             <Route path="holidays" element={<HolidayManagement />} />
             <Route path="leaves" element={<LeaveRequests />} />
             <Route path="employees" element={<EmployeeCRUD />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="change-password" element={<ChangePassword />} />
           </Route>
         </Routes>
       </Router>
