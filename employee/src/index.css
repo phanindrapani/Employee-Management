@@ -2,11 +2,16 @@
 @reference "tailwindcss";
 
 @theme {
+  --color-primary-50: #F0F7FF;
+  --color-primary-500: #1A4B6D;
+  --color-primary-600: #0B3C5D;
+  --color-primary-700: #062C45;
   --color-primary: #0B3C5D;
   --color-accent: #63C132;
   --color-bg: #F4F6F9;
   --color-sidebar: #0B3C5D;
   --color-card: #FFFFFF;
+  --shadow-premium: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 :root {
@@ -33,7 +38,7 @@ h6 {
 }
 
 .card {
-  @apply bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0, 0, 0, 0.04)] p-8 border border-slate-50;
+  @apply bg-white rounded-[24px] shadow-premium p-8 border border-slate-50;
 }
 
 .btn-primary {
