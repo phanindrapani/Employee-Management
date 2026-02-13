@@ -20,62 +20,65 @@ import {
 } from 'lucide-react';
 
 const Sidebar = () => {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
 
-    const sections = [
+    const allSections = [
         {
             title: 'Dashboard',
             items: [
-                { name: 'System Overview', path: '/', icon: Home },
-                // { name: 'Stats & Charts', path: '/', icon: BarChart3 }, // Part of Overview
+                { name: 'System Overview', path: '/', icon: Home, roles: ['admin'] },
             ]
         },
         {
             title: 'Organization',
             items: [
-                { name: 'Employees', path: '/employees', icon: Users },
-                { name: 'Departments', path: '/departments', icon: Building2 },
-                { name: 'Teams', path: '/teams', icon: Users2 },
+                { name: 'Employees', path: '/employees', icon: Users, roles: ['admin'] },
+                { name: 'Departments', path: '/departments', icon: Building2, roles: ['admin'] },
+                { name: 'Teams', path: '/teams', icon: Users2, roles: ['admin'] },
             ]
         },
         {
             title: 'Project Management',
             items: [
-                { name: 'All Projects', path: '/projects', icon: FolderKanban },
-                { name: 'Create Project', path: '/projects/create', icon: PlusSquare },
-                { name: 'Project Analytics', path: '/projects/reports', icon: BarChart3 },
+                { name: 'All Projects', path: '/projects', icon: FolderKanban, roles: ['admin'] },
+                { name: 'Create Project', path: '/projects/create', icon: PlusSquare, roles: ['admin'] },
+                { name: 'Project Analytics', path: '/projects/reports', icon: BarChart3, roles: ['admin'] },
             ]
         },
         {
             title: 'Leave Management',
             items: [
-                { name: 'Leave Requests', path: '/leaves', icon: ClipboardList },
-                { name: 'Leave Analytics', path: '/reports', icon: BarChart3 },
+                { name: 'Leave Requests', path: '/leaves', icon: ClipboardList, roles: ['admin', 'employee'] }, // Employees might need this later
+                { name: 'Leave Analytics', path: '/reports', icon: BarChart3, roles: ['admin'] },
             ]
         },
         {
             title: 'Holiday Management',
             items: [
-                { name: 'Holiday Calendar', path: '/holidays', icon: Calendar },
-                // { name: 'Manage Holidays', path: '/holidays', icon: PlusSquare },
+                { name: 'Holiday Calendar', path: '/holidays', icon: Calendar, roles: ['admin', 'employee'] },
             ]
         },
         {
             title: 'Reports & Analytics',
             items: [
-                { name: 'Employee Performance', path: '/employee-performance', icon: Users },
+                { name: 'Employee Performance', path: '/employee-performance', icon: Users, roles: ['admin'] },
             ]
         },
         {
             title: 'Settings',
             items: [
-                { name: 'Leave Settings', path: '/leave-settings', icon: Sliders },
-                { name: 'Roles & Permissions', path: '/settings/roles', icon: ShieldCheck }, // Placeholder
-                { name: 'Profile', path: '/settings/profile', icon: UserCircle }, // Placeholder
-                { name: 'Security', path: '/change-password', icon: ShieldCheck },
+                { name: 'Leave Settings', path: '/leave-settings', icon: Sliders, roles: ['admin'] },
+                { name: 'Roles & Permissions', path: '/settings/roles', icon: ShieldCheck, roles: ['admin'] },
+                { name: 'Profile', path: '/settings/profile', icon: UserCircle, roles: ['admin', 'employee'] },
+                { name: 'Security', path: '/change-password', icon: ShieldCheck, roles: ['admin', 'employee'] },
             ]
         }
     ];
+
+    const sections = allSections.map(section => ({
+        ...section,
+        items: section.items.filter(item => item.roles.includes(user?.role || 'employee'))
+    })).filter(section => section.items.length > 0);
 
     return (
         <div className="w-64 bg-[#0B3C5D] text-white h-screen flex flex-col sticky top-0 shadow-2xl overflow-y-auto">

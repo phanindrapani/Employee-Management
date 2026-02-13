@@ -8,7 +8,7 @@ const TeamManagement = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({ name: '', department: '', teamLead: '' });
+    const [formData, setFormData] = useState({ name: '', department: '', teamLead: '', members: [] });
 
     const fetchData = async () => {
         try {
@@ -31,12 +31,21 @@ const TeamManagement = () => {
         fetchData();
     }, []);
 
+    const toggleMember = (id) => {
+        setFormData(prev => {
+            const members = prev.members.includes(id)
+                ? prev.members.filter(m => m !== id)
+                : [...prev.members, id];
+            return { ...prev, members };
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             await API.post('/admin/teams', formData);
             setShowModal(false);
-            setFormData({ name: '', department: '', teamLead: '' });
+            setFormData({ name: '', department: '', teamLead: '', members: [] });
             fetchData();
         } catch (err) {
             alert(err.response?.data?.message || 'Action failed');
@@ -127,39 +136,42 @@ const TeamManagement = () => {
 
             {showModal && (
                 <div className="fixed inset-0 bg-[#0B3C5D]/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-[24px]">
+                    <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <h2 className="text-xl font-bold text-[#0B3C5D]">Add New Team</h2>
                             <button onClick={() => setShowModal(false)} className="p-2 hover:bg-slate-200 text-slate-400 rounded-full">
                                 <X size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="label">Team Name</label>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    required
-                                    placeholder="e.g. Frontend Devs, Sales Ops"
-                                />
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="label">Team Name</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        required
+                                        placeholder="e.g. Frontend Devs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="label">Department</label>
+                                    <select
+                                        className="input-field"
+                                        value={formData.department}
+                                        onChange={(e) => setFormData({ ...formData, department: e.target.value, teamLead: '', members: [] })}
+                                        required
+                                    >
+                                        <option value="">Select Department</option>
+                                        {departments.map(dept => (
+                                            <option key={dept._id} value={dept._id}>{dept.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className="label">Department</label>
-                                <select
-                                    className="input-field"
-                                    value={formData.department}
-                                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Select Department</option>
-                                    {departments.map(dept => (
-                                        <option key={dept._id} value={dept._id}>{dept.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+
                             <div>
                                 <label className="label">Team Lead</label>
                                 <select
@@ -168,14 +180,42 @@ const TeamManagement = () => {
                                     onChange={(e) => setFormData({ ...formData, teamLead: e.target.value })}
                                 >
                                     <option value="">Assign Team Lead (Optional)</option>
-                                    {employees.map(emp => (
-                                        <option key={emp._id} value={emp._id}>{emp.name}</option>
-                                    ))}
+                                    {employees
+                                        .filter(emp => !formData.department || emp.department?._id === formData.department || emp.department === formData.department)
+                                        .map(emp => (
+                                            <option key={emp._id} value={emp._id}>{emp.name}</option>
+                                        ))}
                                 </select>
                             </div>
+
+                            <div>
+                                <label className="label mb-2 block">Select Team Members</label>
+                                <div className="border border-slate-100 rounded-xl max-h-48 overflow-y-auto p-2 bg-slate-50/30">
+                                    {employees
+                                        .filter(emp => (!formData.department || emp.department?._id === formData.department || emp.department === formData.department) && emp._id !== formData.teamLead)
+                                        .map(emp => (
+                                            <label key={emp._id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 rounded text-[#0B3C5D] focus:ring-[#0B3C5D]"
+                                                    checked={formData.members.includes(emp._id)}
+                                                    onChange={() => toggleMember(emp._id)}
+                                                />
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-bold text-slate-700">{emp.name}</span>
+                                                    <span className="text-[10px] text-slate-400">{emp.email}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    {employees.filter(emp => !formData.department || emp.department?._id === formData.department || emp.department === formData.department).length === 0 && (
+                                        <p className="text-center py-4 text-xs text-slate-400">No employees found in this department</p>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">Cancel</button>
-                                <button type="submit" className="btn-primary flex-1">Create</button>
+                                <button type="submit" className="btn-primary flex-1">Create Team</button>
                             </div>
                         </form>
                     </div>

@@ -1,22 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
 import {
-    Users,
-    UserPlus,
-    Search,
-    Mail,
-    Phone,
-    BookOpen,
-    Trash2,
-    Edit2,
-    FileText,
-    X,
-    Plus,
-    File,
-    ClipboardList
+    Users, Plus, Search, Filter, MoreVertical, Edit2,
+    Trash2, Mail, Phone, MapPin, X, Save, File, Eye, UserPlus, BookOpen, ClipboardList
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const EmployeeCRUD = () => {
+    const navigate = useNavigate();
     const [employees, setEmployees] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [teams, setTeams] = useState([]);
@@ -34,20 +25,11 @@ const EmployeeCRUD = () => {
         reportingManager: '',
         skills: '',
         experienceLevel: '',
-        casual: 12,
-        sick: 10,
-        earned: 15
+        phone: '',
+        qualification: ''
     });
 
-    const [files, setFiles] = useState({
-        tenthMarksheet: null,
-        intermediateMarksheet: null,
-        graduationCertificate: null,
-        offerLetter: null,
-        joiningLetter: null,
-        resume: null,
-        profilePicture: null
-    });
+
 
     const fetchData = async () => {
         try {
@@ -79,11 +61,7 @@ const EmployeeCRUD = () => {
                     formDataToSend.append(key, formData[key]);
                 }
             });
-            Object.keys(files).forEach(key => {
-                if (files[key]) {
-                    formDataToSend.append(key, files[key]);
-                }
-            });
+
 
             if (editingEmployee) {
                 await API.put(`/admin/employees/${editingEmployee._id}`, formDataToSend, {
@@ -98,13 +76,9 @@ const EmployeeCRUD = () => {
             setEditingEmployee(null);
             setFormData({
                 name: '', email: '', role: 'employee', department: '', team: '',
-                reportingManager: '', skills: '', experienceLevel: '',
-                casual: 12, sick: 10, earned: 15
+                reportingManager: '', skills: '', experienceLevel: ''
             });
-            setFiles({
-                tenthMarksheet: null, intermediateMarksheet: null, graduationCertificate: null,
-                offerLetter: null, joiningLetter: null, resume: null, profilePicture: null
-            });
+
             fetchData();
         } catch (err) {
             alert(err.response?.data?.message || 'Action failed');
@@ -156,7 +130,7 @@ const EmployeeCRUD = () => {
                 <button
                     onClick={() => {
                         setEditingEmployee(null);
-                        setFormData({ name: '', email: '', phone: '', qualification: '', address: '', cl: 12, sl: 10, el: 15 });
+                        setFormData({ name: '', email: '', phone: '', qualification: '', address: '' });
                         setShowModal(true);
                     }}
                     className="px-6 py-3 bg-[#63C132] text-white rounded-xl font-bold hover:bg-[#52A428] transition-all flex items-center gap-2 shadow-lg shadow-[#63C132]/20"
@@ -227,7 +201,14 @@ const EmployeeCRUD = () => {
                                             </div>
                                         </td>
                                         <td className="py-4">
-                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => navigate(`/employees/${emp._id}`)}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    title="View Details & Documents"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
                                                 <button
                                                     onClick={() => {
                                                         setEditingEmployee(emp);
@@ -240,9 +221,8 @@ const EmployeeCRUD = () => {
                                                             reportingManager: emp.reportingManager?._id || '',
                                                             skills: Array.isArray(emp.skills) ? emp.skills.join(', ') : '',
                                                             experienceLevel: emp.experienceLevel || '',
-                                                            casual: emp.leaveBalance?.casual || 0,
-                                                            sick: emp.leaveBalance?.sick || 0,
-                                                            earned: emp.leaveBalance?.earned || 0
+                                                            phone: emp.phone || '',
+                                                            qualification: emp.qualification || ''
                                                         });
                                                         setShowModal(true);
                                                     }}
@@ -318,17 +298,28 @@ const EmployeeCRUD = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="label">Role</label>
-                                    <select
+                                    <label className="label">Phone Number</label>
+                                    <input
+                                        type="text"
                                         className="input-field"
-                                        value={formData.role}
-                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         required
-                                    >
-                                        <option value="employee">Employee</option>
-                                        <option value="team-lead">Team Lead</option>
-                                    </select>
+                                    />
                                 </div>
+                                <div>
+                                    <label className="label">Qualification</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        value={formData.qualification}
+                                        onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="label">Department</label>
                                     <select
@@ -343,15 +334,20 @@ const EmployeeCRUD = () => {
                                         ))}
                                     </select>
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="label">Team</label>
                                     <select
                                         className="input-field"
                                         value={formData.team}
-                                        onChange={(e) => setFormData({ ...formData, team: e.target.value })}
+                                        onChange={(e) => {
+                                            const selectedTeamId = e.target.value;
+                                            const selectedTeam = teams.find(t => t._id === selectedTeamId);
+                                            setFormData({
+                                                ...formData,
+                                                team: selectedTeamId,
+                                                reportingManager: selectedTeam?.teamLead?._id || selectedTeam?.teamLead || ''
+                                            });
+                                        }}
                                     >
                                         <option value="">Select Team</option>
                                         {teams
@@ -367,14 +363,18 @@ const EmployeeCRUD = () => {
                                 <div>
                                     <label className="label">Reporting Manager</label>
                                     <select
-                                        className="input-field"
+                                        className="input-field opacity-70 cursor-not-allowed"
                                         value={formData.reportingManager}
-                                        onChange={(e) => setFormData({ ...formData, reportingManager: e.target.value })}
+                                        disabled
                                     >
-                                        <option value="">Select Manager</option>
-                                        {employees.map(emp => (
-                                            <option key={emp._id} value={emp._id}>{emp.name}</option>
-                                        ))}
+                                        <option value="">
+                                            {formData.team ? 'Team Lead (Auto)' : 'Select Team First'}
+                                        </option>
+                                        {employees
+                                            .filter(emp => emp.role === 'team-lead')
+                                            .map(emp => (
+                                                <option key={emp._id} value={emp._id}>{emp.name}</option>
+                                            ))}
                                     </select>
                                 </div>
                                 <div>
@@ -398,85 +398,9 @@ const EmployeeCRUD = () => {
                                 />
                             </div>
 
-                            <div className="border-t border-slate-200 pt-4">
-                                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                    <ClipboardList size={18} className="text-primary-600" />
-                                    Leave Balances
-                                </h3>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="label text-[10px]">Casual</label>
-                                        <input
-                                            type="number"
-                                            className="input-field py-2"
-                                            value={formData.casual}
-                                            onChange={(e) => setFormData({ ...formData, casual: parseInt(e.target.value) || 0 })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="label text-[10px]">Sick</label>
-                                        <input
-                                            type="number"
-                                            className="input-field py-2"
-                                            value={formData.sick}
-                                            onChange={(e) => setFormData({ ...formData, sick: parseInt(e.target.value) || 0 })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="label text-[10px]">Earned</label>
-                                        <input
-                                            type="number"
-                                            className="input-field py-2"
-                                            value={formData.earned}
-                                            onChange={(e) => setFormData({ ...formData, earned: parseInt(e.target.value) || 0 })}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="border-t border-slate-200 pt-4 mt-4">
-                                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                    <File size={18} className="text-primary-600" />
-                                    Documents
-                                </h3>
-                                <div className="space-y-3">
-                                    {[
-                                        { key: 'profilePicture', label: 'Profile Picture' },
-                                        { key: 'tenthMarksheet', label: '10th Certificate' },
-                                        { key: 'intermediateMarksheet', label: '12th Certificate' },
-                                        { key: 'graduationCertificate', label: 'Degree Certificate' },
-                                        { key: 'offerLetter', label: 'Offer Letter' },
-                                        { key: 'joiningLetter', label: 'Joining Letter' },
-                                        { key: 'resume', label: 'Resume' }
-                                    ].map((doc) => (
-                                        <div key={doc.key}>
-                                            <label className="label">{doc.label}</label>
-                                            <input
-                                                type="file"
-                                                className="input-field cursor-pointer"
-                                                onChange={(e) => setFiles({ ...files, [doc.key]: e.target.files[0] })}
-                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            />
-                                            {((doc.key === 'profilePicture' ? editingEmployee?.profilePicture : editingEmployee?.documents?.[doc.key])) && (
-                                                <a
-                                                    href={buildFileUrl(doc.key === 'profilePicture' ? editingEmployee.profilePicture : editingEmployee.documents[doc.key])}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-sm text-primary-600 mt-1 inline-block"
-                                                    title={buildFileUrl(doc.key === 'profilePicture' ? editingEmployee.profilePicture : editingEmployee.documents[doc.key])}
-                                                >
-                                                    View existing
-                                                </a>
-                                            )}
-                                            {files[doc.key] && (
-                                                <p className="text-sm text-primary-600 mt-1">
-                                                    Selected: {files[doc.key].name}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+
+
 
                             <div className="flex gap-3 pt-4 border-t border-slate-200 flex-shrink-0 sticky bottom-0 bg-white">
                                 <button

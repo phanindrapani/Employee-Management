@@ -7,6 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import HolidayManagement from './pages/HolidayManagement';
 import LeaveRequests from './pages/LeaveRequests';
 import EmployeeCRUD from './pages/EmployeeCRUD';
+import EmployeeDetails from './pages/EmployeeDetails';
 import DepartmentManagement from './pages/DepartmentManagement';
 import TeamManagement from './pages/TeamManagement';
 import ProjectManagement from './pages/ProjectManagement';
@@ -24,9 +25,15 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
-  if (user.role !== 'admin') return <Navigate to="/login" />; // Admins only here
+  // if (user.role !== 'admin') return <Navigate to="/login" />; // Allow all authenticated users
 
   return children;
+};
+
+const RoleBasedDashboard = () => {
+  const { user } = useAuth();
+  if (user.role === 'admin') return <AdminDashboard />;
+  return <Navigate to="/settings/profile" replace />;
 };
 
 function App() {
@@ -41,10 +48,11 @@ function App() {
               <DashboardLayout />
             </PrivateRoute>
           }>
-            <Route index element={<AdminDashboard />} />
+            <Route index element={<RoleBasedDashboard />} />
             <Route path="holidays" element={<HolidayManagement />} />
             <Route path="leaves" element={<LeaveRequests />} />
             <Route path="employees" element={<EmployeeCRUD />} />
+            <Route path="employees/:id" element={<EmployeeDetails />} />
             <Route path="departments" element={<DepartmentManagement />} />
             <Route path="teams" element={<TeamManagement />} />
             <Route path="projects" element={<ProjectManagement />} />

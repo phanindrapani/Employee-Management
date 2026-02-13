@@ -54,6 +54,10 @@ const userSchema = new mongoose.Schema({
     profilePicture: {
         type: String,
         default: ''
+    },
+    qualification: {
+        type: String,
+        default: ''
     }
 }, baseOptions);
 
@@ -128,14 +132,6 @@ const Employee = User.discriminator('employee', new mongoose.Schema({
         type: String,
         enum: ['Junior', 'Mid', 'Senior', 'Intern'],
         default: 'Junior'
-    },
-    documents: {
-        tenthMarksheet: String,
-        intermediateMarksheet: String,
-        graduationCertificate: String,
-        offerLetter: String,
-        joiningLetter: String,
-        resume: String
     }
 }));
 

@@ -46,7 +46,8 @@ const seedData = async () => {
             role: 'admin',
             isActive: true,
             permissions: ['all'],
-            systemAccessLevel: 'full'
+            systemAccessLevel: 'full',
+            qualification: 'Master of Computer Applications (MCA)'
         });
 
         console.log('🌱 Seeding Teams...');
@@ -74,7 +75,8 @@ const seedData = async () => {
             reportingManager: admin._id,
             skills: ['React', 'Leadership', 'Agile'],
             leadershipLevel: 'Senior',
-            teamPerformanceScore: 85
+            teamPerformanceScore: 85,
+            qualification: 'B.Tech in Computer Science'
         });
 
         // Backend TL
@@ -89,7 +91,8 @@ const seedData = async () => {
             reportingManager: admin._id,
             skills: ['Node.js', 'MongoDB', 'Architecture'],
             leadershipLevel: 'Mid',
-            teamPerformanceScore: 90
+            teamPerformanceScore: 90,
+            qualification: 'M.Tech in Software Engineering'
         });
 
         // Update Teams with Team Leads
@@ -111,7 +114,8 @@ const seedData = async () => {
                 reportingManager: feLead._id,
                 skills: ['HTML', 'CSS', 'React'],
                 experienceLevel: 'Junior',
-                leaveBalance: { casual: 10, sick: 10, earned: 15 }
+                leaveBalance: { casual: 10, sick: 10, earned: 15 },
+                qualification: 'B.E. in Information Technology'
             },
             {
                 name: 'Jane Smith',
@@ -124,7 +128,8 @@ const seedData = async () => {
                 reportingManager: feLead._id,
                 skills: ['Vue', 'Design'],
                 experienceLevel: 'Mid',
-                leaveBalance: { casual: 12, sick: 8, earned: 10 }
+                leaveBalance: { casual: 12, sick: 8, earned: 10 },
+                qualification: 'B.Des in Interaction Design'
             },
             {
                 name: 'Robert Code',
@@ -137,7 +142,8 @@ const seedData = async () => {
                 reportingManager: beLead._id,
                 skills: ['Express', 'SQL'],
                 experienceLevel: 'Senior',
-                leaveBalance: { casual: 5, sick: 5, earned: 20 }
+                leaveBalance: { casual: 5, sick: 5, earned: 20 },
+                qualification: 'B.Tech in Computer Science'
             }
         ]);
 

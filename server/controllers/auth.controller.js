@@ -73,32 +73,39 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
+import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
+
 export const updateProfile = async (req, res) => {
-    const user = await User.findById(req.user._id);
+    try {
+        const user = await User.findById(req.user._id);
 
-    if (user) {
-        user.name = req.body.name || user.name;
-        user.phone = req.body.phone || user.phone;
+        if (user) {
+            user.name = req.body.name || user.name;
+            user.phone = req.body.phone || user.phone;
 
-        // If profile picture is handled via separate upload middleware in routes
-        if (req.file) {
-            // For now, assuming direct URL or handling logic elsewhere if middleware used
-            // If this controller is used with cloudinary middleware, we might get req.file.path
+            if (req.file) {
+                const firstName = user.name.split(' ')[0].toLowerCase();
+                user.profilePicture = await uploadBufferToCloudinary(req.file, `profiles/${firstName}`);
+            }
+
+            const updatedUser = await user.save();
+
+            res.json({
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                phone: updatedUser.phone,
+                leaveBalance: updatedUser.leaveBalance,
+                profilePicture: updatedUser.profilePicture, // Add this
+                token: generateToken(updatedUser._id),
+            });
+        } else {
+            res.status(404).json({ message: 'User not found' });
         }
-
-        const updatedUser = await user.save();
-
-        res.json({
-            _id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            role: updatedUser.role,
-            phone: updatedUser.phone,
-            leaveBalance: updatedUser.leaveBalance,
-            token: generateToken(updatedUser._id), // Optional: refresh token
-        });
-    } else {
-        res.status(404).json({ message: 'User not found' });
+    } catch (error) {
+        console.error("Update Profile Error:", error);
+        res.status(500).json({ message: error.message || "Failed to update profile" });
     }
 };
 

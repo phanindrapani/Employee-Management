@@ -38,6 +38,8 @@ app.use('/api/holidays', holidayRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/admin', adminRoutes);
+import documentRoutes from "./routes/employeeDocument.routes.js";
+app.use('/api/documents', documentRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

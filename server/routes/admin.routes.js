@@ -5,6 +5,7 @@ import {
     getReportStats,
     createEmployee,
     getAllEmployees,
+    getEmployeeById,
     updateEmployee,
     deleteEmployee,
     createDepartment,
@@ -34,6 +35,7 @@ router.get('/reports', protect, admin, getReportStats);
 // Employee Management
 router.post('/employees', protect, admin, uploadDocuments, createEmployee);
 router.get('/employees', protect, admin, getAllEmployees);
+router.get('/employees/:id', protect, admin, getEmployeeById);
 router.put('/employees/:id', protect, admin, uploadDocuments, updateEmployee); // Add this line
 router.delete('/employees/:id', protect, admin, deleteEmployee);
 

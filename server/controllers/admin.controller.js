@@ -265,7 +265,7 @@ export const getReportStats = async (req, res) => {
 // Employee Management
 export const createEmployee = async (req, res) => {
     try {
-        const { name, email, role, department, reportingManager, skills, experienceLevel } = req.body;
+        const { name, email, phone, role, department, team, reportingManager, skills, experienceLevel } = req.body;
 
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -277,24 +277,7 @@ export const createEmployee = async (req, res) => {
         const defaultPassword = `${firstName}123`;
 
         // Handle File Uploads
-        const documents = {};
-        const files = req.files || {};
 
-        const fileFields = [
-            'profilePicture', 'tenthMarksheet', 'intermediateMarksheet',
-            'graduationCertificate', 'offerLetter', 'joiningLetter', 'resume'
-        ];
-
-        for (const field of fileFields) {
-            if (files[field] && files[field][0]) {
-                const url = await uploadBufferToCloudinary(files[field][0], firstName);
-                if (field === 'profilePicture') {
-                    // profilePicture is at top level in schema
-                } else {
-                    documents[field] = url;
-                }
-            }
-        }
 
         const parseSkills = (skillsData) => {
             if (!skillsData) return [];
@@ -308,9 +291,11 @@ export const createEmployee = async (req, res) => {
         const newUser = await User.create({
             name,
             email,
+            phone,
             password: defaultPassword,
             role: role || 'employee',
             department,
+            team,
             reportingManager,
             skills: parseSkills(skills),
             experienceLevel,
@@ -319,8 +304,7 @@ export const createEmployee = async (req, res) => {
                 sick: req.body.sick ? parseInt(req.body.sick) : 10,
                 earned: req.body.earned ? parseInt(req.body.earned) : 15
             },
-            profilePicture: files['profilePicture'] ? await uploadBufferToCloudinary(files['profilePicture'][0], firstName) : null,
-            documents
+            qualification: req.body.qualification || ''
         });
 
         res.status(201).json({
@@ -351,6 +335,19 @@ export const getAllEmployees = async (req, res) => {
     }
 };
 
+export const getEmployeeById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .populate('reportingManager', 'name email')
+            .populate('department', 'name');
+
+        if (!user) return res.status(404).json({ message: "Employee not found" });
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch employee details" });
+    }
+};
+
 export const deleteEmployee = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
@@ -366,17 +363,20 @@ export const deleteEmployee = async (req, res) => {
 export const updateEmployee = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, role, department, reportingManager, skills, experienceLevel, casual, sick, earned } = req.body;
+        const { name, email, phone, role, department, team, reportingManager, skills, experienceLevel, casual, sick, earned } = req.body;
 
         const user = await User.findById(id);
         if (!user) return res.status(404).json({ message: "Employee not found" });
 
         if (name) user.name = name;
         if (email) user.email = email;
+        if (phone) user.phone = phone;
         if (role) user.role = role;
         if (department) user.department = department;
+        if (team !== undefined) user.team = team;
         if (reportingManager) user.reportingManager = reportingManager;
         if (experienceLevel) user.experienceLevel = experienceLevel;
+        if (req.body.qualification) user.qualification = req.body.qualification;
 
         // Update leave balance if provided
         if (casual !== undefined || sick !== undefined || earned !== undefined) {
@@ -395,27 +395,7 @@ export const updateEmployee = async (req, res) => {
             }
         }
 
-        // Handle File Uploads
-        const files = req.files || {};
-        const firstName = user.name.split(' ')[0].toLowerCase();
 
-        if (files['profilePicture'] && files['profilePicture'][0]) {
-            user.profilePicture = await uploadBufferToCloudinary(files['profilePicture'][0], firstName);
-        }
-
-        const fileFields = [
-            'tenthMarksheet', 'intermediateMarksheet',
-            'graduationCertificate', 'offerLetter', 'joiningLetter', 'resume'
-        ];
-
-        let updatedDocs = { ...user.documents };
-        for (const field of fileFields) {
-            if (files[field] && files[field][0]) {
-                const url = await uploadBufferToCloudinary(files[field][0], firstName);
-                updatedDocs[field] = url;
-            }
-        }
-        user.documents = updatedDocs;
 
         await user.save();
         res.json({ message: "Employee updated successfully", user });
@@ -457,12 +437,23 @@ export const deleteDepartment = async (req, res) => {
 // Team Management
 export const createTeam = async (req, res) => {
     try {
-        const { name, department, teamLead } = req.body;
-        const team = await Team.create({ name, department, teamLead });
+        const { name, department, teamLead, members = [] } = req.body;
+        const team = await Team.create({ name, department, teamLead, members });
 
-        // If team lead is assigned, update user role to team-lead if it's currently employee
+        // If team lead is assigned, update user role to team-lead and set their team
         if (teamLead) {
-            await User.findByIdAndUpdate(teamLead, { role: 'team-lead', team: team._id });
+            await User.findByIdAndUpdate(teamLead, {
+                role: 'team-lead',
+                team: team._id
+            });
+        }
+
+        // Update all members to point to this team
+        if (members.length > 0) {
+            await User.updateMany(
+                { _id: { $in: members } },
+                { team: team._id }
+            );
         }
 
         res.status(201).json(team);
@@ -505,8 +496,13 @@ export const manageTeamMembers = async (req, res) => {
 
 export const deleteTeam = async (req, res) => {
     try {
-        await Team.findByIdAndDelete(req.params.id);
-        res.json({ message: "Team deleted" });
+        const { id } = req.params;
+
+        // Remove team reference from all users in this team
+        await User.updateMany({ team: id }, { team: null });
+
+        await Team.findByIdAndDelete(id);
+        res.json({ message: "Team deleted and members updated" });
     } catch (error) {
         res.status(500).json({ message: "Failed to delete team" });
     }
