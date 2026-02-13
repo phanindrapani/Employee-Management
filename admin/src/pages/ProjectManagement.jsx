@@ -10,7 +10,7 @@ const ProjectManagement = () => {
 
     const fetchProjects = async () => {
         try {
-            const { data } = await API.get('/projects');
+            const { data } = await API.get('/admin/projects');
             setProjects(data);
         } catch (err) {
             console.error('Failed to fetch projects');
@@ -26,7 +26,7 @@ const ProjectManagement = () => {
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this project and all its tasks?')) return;
         try {
-            await API.delete(`/projects/${id}`);
+            await API.delete(`/admin/projects/${id}`);
             fetchProjects();
         } catch (err) {
             alert('Delete failed');

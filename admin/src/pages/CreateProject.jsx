@@ -20,7 +20,7 @@ const CreateProject = () => {
     useEffect(() => {
         const fetchTeams = async () => {
             try {
-                const { data } = await API.get('/teams');
+                const { data } = await API.get('/admin/teams');
                 setTeams(data);
             } catch (err) {
                 console.error('Failed to fetch teams');
@@ -34,7 +34,7 @@ const CreateProject = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await API.post('/projects', formData);
+            await API.post('/admin/projects', formData);
             navigate('/projects');
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to create project');
@@ -101,8 +101,8 @@ const CreateProject = () => {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, priority: p })}
                                             className={`flex-1 py-3 rounded-xl border-2 font-bold capitalize transition-all ${formData.priority === p
-                                                    ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white'
-                                                    : 'border-slate-100 text-slate-400 hover:border-slate-200'
+                                                ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white'
+                                                : 'border-slate-100 text-slate-400 hover:border-slate-200'
                                                 }`}
                                         >
                                             {p}

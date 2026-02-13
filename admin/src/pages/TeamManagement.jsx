@@ -13,9 +13,9 @@ const TeamManagement = () => {
     const fetchData = async () => {
         try {
             const [teamsRes, deptsRes, empsRes] = await Promise.all([
-                API.get('/teams'),
-                API.get('/departments'),
-                API.get('/employees')
+                API.get('/admin/teams'),
+                API.get('/admin/departments'),
+                API.get('/admin/employees')
             ]);
             setTeams(teamsRes.data);
             setDepartments(deptsRes.data);
@@ -34,7 +34,7 @@ const TeamManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await API.post('/teams', formData);
+            await API.post('/admin/teams', formData);
             setShowModal(false);
             setFormData({ name: '', department: '', teamLead: '' });
             fetchData();
@@ -46,7 +46,7 @@ const TeamManagement = () => {
     const handleDelete = async (id) => {
         if (!confirm('Are you sure?')) return;
         try {
-            await API.delete(`/teams/${id}`);
+            await API.delete(`/admin/teams/${id}`);
             fetchData();
         } catch (err) {
             alert('Delete failed');

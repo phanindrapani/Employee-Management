@@ -52,9 +52,9 @@ const EmployeeCRUD = () => {
     const fetchData = async () => {
         try {
             const [empRes, deptRes, teamRes] = await Promise.all([
-                API.get('/employees'),
-                API.get('/departments'),
-                API.get('/teams')
+                API.get('/admin/employees'),
+                API.get('/admin/departments'),
+                API.get('/admin/teams')
             ]);
             setEmployees(empRes.data);
             setDepartments(deptRes.data);
@@ -86,11 +86,11 @@ const EmployeeCRUD = () => {
             });
 
             if (editingEmployee) {
-                await API.put(`/employees/${editingEmployee._id}`, formDataToSend, {
+                await API.put(`/admin/employees/${editingEmployee._id}`, formDataToSend, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
             } else {
-                await API.post('/employees', formDataToSend, {
+                await API.post('/admin/employees', formDataToSend, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
             }
@@ -114,7 +114,7 @@ const EmployeeCRUD = () => {
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this employee?')) return;
         try {
-            await API.delete(`/employees/${id}`);
+            await API.delete(`/admin/employees/${id}`);
             fetchData();
         } catch (err) {
             alert('Delete failed');
