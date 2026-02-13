@@ -26,20 +26,22 @@ const EmployeeCRUD = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        phone: '',
-        qualification: '',
-        address: '',
-        cl: 12,
-        sl: 10,
-        el: 15
+        role: 'employee',
+        department: '',
+        reportingManager: '',
+        skills: '',
+        experienceLevel: '',
+        casual: 12,
+        sick: 10,
+        earned: 15
     });
 
     const [files, setFiles] = useState({
-        tenth: null,
-        twelfth: null,
-        degree: null,
-        offerletter: null,
-        joiningletter: null,
+        tenthMarksheet: null,
+        intermediateMarksheet: null,
+        graduationCertificate: null,
+        offerLetter: null,
+        joiningLetter: null,
         resume: null,
         profilePicture: null
     });
@@ -85,8 +87,15 @@ const EmployeeCRUD = () => {
             }
             setShowModal(false);
             setEditingEmployee(null);
-            setFormData({ name: '', email: '', phone: '', qualification: '', address: '', cl: 12, sl: 10, el: 15 });
-            setFiles({ tenth: null, twelfth: null, degree: null, offerletter: null, joiningletter: null, resume: null, profilePicture: null });
+            setFormData({
+                name: '', email: '', role: 'employee', department: '',
+                reportingManager: '', skills: '', experienceLevel: '',
+                casual: 12, sick: 10, earned: 15
+            });
+            setFiles({
+                tenthMarksheet: null, intermediateMarksheet: null, graduationCertificate: null,
+                offerLetter: null, joiningLetter: null, resume: null, profilePicture: null
+            });
             fetchEmployees();
         } catch (err) {
             alert(err.response?.data?.message || 'Action failed');
@@ -216,12 +225,14 @@ const EmployeeCRUD = () => {
                                                         setFormData({
                                                             name: emp.name,
                                                             email: emp.email,
-                                                            phone: emp.phone,
-                                                            qualification: emp.qualification,
-                                                            address: emp.address || '',
-                                                            cl: emp.leaveBalance?.cl || 0,
-                                                            sl: emp.leaveBalance?.sl || 0,
-                                                            el: emp.leaveBalance?.el || 0
+                                                            role: emp.role || 'employee',
+                                                            department: emp.department || '',
+                                                            reportingManager: emp.reportingManager?._id || '',
+                                                            skills: Array.isArray(emp.skills) ? emp.skills.join(', ') : '',
+                                                            experienceLevel: emp.experienceLevel || '',
+                                                            casual: emp.leaveBalance?.casual || 0,
+                                                            sick: emp.leaveBalance?.sick || 0,
+                                                            earned: emp.leaveBalance?.earned || 0
                                                         });
                                                         setShowModal(true);
                                                     }}
@@ -297,34 +308,61 @@ const EmployeeCRUD = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="label">Phone Number</label>
-                                    <input
-                                        type="text"
+                                    <label className="label">Role</label>
+                                    <select
                                         className="input-field"
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        value={formData.role}
+                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                         required
-                                    />
+                                    >
+                                        <option value="employee">Employee</option>
+                                        <option value="team-lead">Team Lead</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label className="label">Qualification</label>
+                                    <label className="label">Department</label>
                                     <input
                                         type="text"
                                         className="input-field"
-                                        value={formData.qualification}
-                                        onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
-                                        required
+                                        value={formData.department}
+                                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="label">Reporting Manager</label>
+                                    <select
+                                        className="input-field"
+                                        value={formData.reportingManager}
+                                        onChange={(e) => setFormData({ ...formData, reportingManager: e.target.value })}
+                                    >
+                                        <option value="">Select Manager</option>
+                                        {employees.map(emp => (
+                                            <option key={emp._id} value={emp._id}>{emp.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="label">Experience Level</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        value={formData.experienceLevel}
+                                        onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })}
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="label">Address</label>
-                                <textarea
-                                    className="input-field h-20 resize-none"
-                                    value={formData.address}
-                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                ></textarea>
+                                <label className="label">Skills (Comma separated)</label>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    value={formData.skills}
+                                    onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                                />
                             </div>
 
                             <div className="border-t border-slate-200 pt-4">
@@ -334,30 +372,30 @@ const EmployeeCRUD = () => {
                                 </h3>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
-                                        <label className="label text-[10px]">Casual (CL)</label>
+                                        <label className="label text-[10px]">Casual</label>
                                         <input
                                             type="number"
                                             className="input-field py-2"
-                                            value={formData.cl}
-                                            onChange={(e) => setFormData({ ...formData, cl: parseInt(e.target.value) || 0 })}
+                                            value={formData.casual}
+                                            onChange={(e) => setFormData({ ...formData, casual: parseInt(e.target.value) || 0 })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="label text-[10px]">Sick (SL)</label>
+                                        <label className="label text-[10px]">Sick</label>
                                         <input
                                             type="number"
                                             className="input-field py-2"
-                                            value={formData.sl}
-                                            onChange={(e) => setFormData({ ...formData, sl: parseInt(e.target.value) || 0 })}
+                                            value={formData.sick}
+                                            onChange={(e) => setFormData({ ...formData, sick: parseInt(e.target.value) || 0 })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="label text-[10px]">Earned (EL)</label>
+                                        <label className="label text-[10px]">Earned</label>
                                         <input
                                             type="number"
                                             className="input-field py-2"
-                                            value={formData.el}
-                                            onChange={(e) => setFormData({ ...formData, el: parseInt(e.target.value) || 0 })}
+                                            value={formData.earned}
+                                            onChange={(e) => setFormData({ ...formData, earned: parseInt(e.target.value) || 0 })}
                                         />
                                     </div>
                                 </div>
@@ -371,11 +409,11 @@ const EmployeeCRUD = () => {
                                 <div className="space-y-3">
                                     {[
                                         { key: 'profilePicture', label: 'Profile Picture' },
-                                        { key: 'tenth', label: '10th Certificate' },
-                                        { key: 'twelfth', label: '12th Certificate' },
-                                        { key: 'degree', label: 'Degree Certificate' },
-                                        { key: 'offerletter', label: 'Offer Letter' },
-                                        { key: 'joiningletter', label: 'Joining Letter' },
+                                        { key: 'tenthMarksheet', label: '10th Certificate' },
+                                        { key: 'intermediateMarksheet', label: '12th Certificate' },
+                                        { key: 'graduationCertificate', label: 'Degree Certificate' },
+                                        { key: 'offerLetter', label: 'Offer Letter' },
+                                        { key: 'joiningLetter', label: 'Joining Letter' },
                                         { key: 'resume', label: 'Resume' }
                                     ].map((doc) => (
                                         <div key={doc.key}>

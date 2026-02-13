@@ -1,6 +1,7 @@
 import User from '../models/user.model.js';
 import Leave from '../models/leave.model.js';
 import Holiday from '../models/holiday.model.js';
+import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 export const getDashboardStats = async (req, res) => {
     try {
@@ -167,5 +168,101 @@ export const getReportStats = async (req, res) => {
     } catch (error) {
         console.error("Report Stats Error:", error);
         res.status(500).json({ message: "Failed to fetch report stats" });
+    }
+};
+
+// Employee Management
+export const createEmployee = async (req, res) => {
+    try {
+        const { name, email, role, department, reportingManager, skills, experienceLevel } = req.body;
+
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: "Employee already exists with this email" });
+        }
+
+        // Generate default password: firstname + 123
+        const firstName = name.split(' ')[0].toLowerCase();
+        const defaultPassword = `${firstName}123`;
+
+        // Handle File Uploads
+        const documents = {};
+        const files = req.files || {};
+
+        const fileFields = [
+            'profilePicture', 'tenthMarksheet', 'intermediateMarksheet',
+            'graduationCertificate', 'offerLetter', 'joiningLetter', 'resume'
+        ];
+
+        for (const field of fileFields) {
+            if (files[field] && files[field][0]) {
+                const url = await uploadBufferToCloudinary(files[field][0], firstName);
+                if (field === 'profilePicture') {
+                    // profilePicture is at top level in schema
+                } else {
+                    documents[field] = url;
+                }
+            }
+        }
+
+        const parseSkills = (skillsData) => {
+            if (!skillsData) return [];
+            try {
+                return JSON.parse(skillsData);
+            } catch (e) {
+                return skillsData.split(',').map(s => s.trim());
+            }
+        };
+
+        const newUser = await User.create({
+            name,
+            email,
+            password: defaultPassword,
+            role: role || 'employee',
+            department,
+            reportingManager,
+            skills: parseSkills(skills),
+            experienceLevel,
+            profilePicture: files['profilePicture'] ? await uploadBufferToCloudinary(files['profilePicture'][0], firstName) : null,
+            documents
+        });
+
+        res.status(201).json({
+            message: "Employee created successfully",
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+                password: defaultPassword // Return for admin visibility
+            }
+        });
+
+    } catch (error) {
+        console.error("Create Employee error:", error);
+        res.status(500).json({ message: error.message || "Failed to create employee" });
+    }
+};
+
+export const getAllEmployees = async (req, res) => {
+    try {
+        const employees = await User.find({ role: { $ne: 'admin' } })
+            .populate('reportingManager', 'name email')
+            .sort({ createdAt: -1 });
+        res.json(employees);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch employees" });
+    }
+};
+
+export const deleteEmployee = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: "Employee not found" });
+
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ message: "Employee removed successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete employee" });
     }
 };
