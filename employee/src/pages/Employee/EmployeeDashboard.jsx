@@ -8,8 +8,6 @@ import {
     Plane,
     History,
     Clock,
-    CheckCircle2,
-    XCircle,
     Bell
 } from 'lucide-react';
 
