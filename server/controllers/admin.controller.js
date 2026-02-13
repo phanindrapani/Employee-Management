@@ -1,6 +1,10 @@
 import User from '../models/user.model.js';
 import Leave from '../models/leave.model.js';
 import Holiday from '../models/holiday.model.js';
+import Department from '../models/department.model.js';
+import Team from '../models/team.model.js';
+import Project from '../models/project.model.js';
+import Task from '../models/task.model.js';
 import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 export const getDashboardStats = async (req, res) => {
@@ -264,5 +268,207 @@ export const deleteEmployee = async (req, res) => {
         res.json({ message: "Employee removed successfully" });
     } catch (error) {
         res.status(500).json({ message: "Failed to delete employee" });
+    }
+};
+
+// Department Management
+export const createDepartment = async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const dept = await Department.create({ name, description, createdBy: req.user._id });
+        res.status(201).json(dept);
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to create department" });
+    }
+};
+
+export const getAllDepartments = async (req, res) => {
+    try {
+        const departments = await Department.find();
+        res.json(departments);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch departments" });
+    }
+};
+
+export const deleteDepartment = async (req, res) => {
+    try {
+        await Department.findByIdAndDelete(req.params.id);
+        res.json({ message: "Department deleted" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete department" });
+    }
+};
+
+// Team Management
+export const createTeam = async (req, res) => {
+    try {
+        const { name, department, teamLead } = req.body;
+        const team = await Team.create({ name, department, teamLead });
+
+        // If team lead is assigned, update user role to team-lead if it's currently employee
+        if (teamLead) {
+            await User.findByIdAndUpdate(teamLead, { role: 'team-lead', team: team._id });
+        }
+
+        res.status(201).json(team);
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to create team" });
+    }
+};
+
+export const getAllTeams = async (req, res) => {
+    try {
+        const teams = await Team.find().populate('department').populate('teamLead', 'name email');
+        res.json(teams);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch teams" });
+    }
+};
+
+export const manageTeamMembers = async (req, res) => {
+    try {
+        const { teamId, memberId, action } = req.body; // action: 'add' or 'remove'
+        const team = await Team.findById(teamId);
+        if (!team) return res.status(404).json({ message: "Team not found" });
+
+        if (action === 'add') {
+            if (!team.members.includes(memberId)) {
+                team.members.push(memberId);
+                await User.findByIdAndUpdate(memberId, { team: teamId });
+            }
+        } else {
+            team.members = team.members.filter(m => m.toString() !== memberId);
+            await User.findByIdAndUpdate(memberId, { team: null });
+        }
+
+        await team.save();
+        res.json(team);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to manage team members" });
+    }
+};
+
+export const deleteTeam = async (req, res) => {
+    try {
+        await Team.findByIdAndDelete(req.params.id);
+        res.json({ message: "Team deleted" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete team" });
+    }
+};
+
+// Project Management
+export const createProject = async (req, res) => {
+    try {
+        const { name, description, priority, startDate, endDate, assignedTeam } = req.body;
+        const project = await Project.create({
+            name,
+            description,
+            priority,
+            startDate,
+            endDate,
+            assignedTeam,
+            createdBy: req.user._id
+        });
+        res.status(201).json(project);
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to create project" });
+    }
+};
+
+export const getAllProjects = async (req, res) => {
+    try {
+        const projects = await Project.find()
+            .populate({
+                path: 'assignedTeam',
+                populate: { path: 'department' }
+            })
+            .sort({ createdAt: -1 });
+        res.json(projects);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch projects" });
+    }
+};
+
+export const updateProjectStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, progress } = req.body;
+        const project = await Project.findByIdAndUpdate(id, { status, progress }, { new: true });
+        res.json(project);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update project" });
+    }
+};
+
+export const deleteProject = async (req, res) => {
+    try {
+        await Project.findByIdAndDelete(req.params.id);
+        // Also delete associated tasks? Usually yes for cleanup
+        await Task.deleteMany({ project: req.params.id });
+        res.json({ message: "Project and associated tasks deleted" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete project" });
+    }
+};
+
+// Holiday Management
+export const createHoliday = async (req, res) => {
+    try {
+        const { name, date, type, description } = req.body;
+        const holiday = await Holiday.create({ name, date, type, description });
+        res.status(201).json(holiday);
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to create holiday" });
+    }
+};
+
+export const getAllHolidays = async (req, res) => {
+    try {
+        const holidays = await Holiday.find().sort({ date: 1 });
+        res.json(holidays);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch holidays" });
+    }
+};
+
+export const deleteHoliday = async (req, res) => {
+    try {
+        await Holiday.findByIdAndDelete(req.params.id);
+        res.json({ message: "Holiday deleted" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete holiday" });
+    }
+};
+
+// Leave Management
+export const getAllLeaves = async (req, res) => {
+    try {
+        const leaves = await Leave.find()
+            .populate('user', 'name email department role')
+            .sort({ createdAt: -1 });
+        res.json(leaves);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch leaves" });
+    }
+};
+
+export const updateLeaveStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, rejectionReason } = req.body;
+        const leave = await Leave.findByIdAndUpdate(
+            id,
+            { status, rejectionReason: status === 'rejected' ? rejectionReason : undefined },
+            { new: true }
+        );
+
+        // Logic to deduct leave balance if approved could go here or in a separate hook
+        // For now complex balance logic is omitted, but can be added later
+
+        res.json(leave);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update leave status" });
     }
 };

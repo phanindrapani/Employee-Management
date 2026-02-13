@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    department: { type: String }, // Can be linked to Department model later
+    department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
     team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' },
     reportingManager: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     leaveBalance: {

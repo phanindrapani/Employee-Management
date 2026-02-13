@@ -21,7 +21,7 @@ const LeaveRequests = () => {
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const { data } = await API.get('/leaves/all');
+            const { data } = await API.get('/admin/leaves');
             setLeaves(data);
         } catch (err) {
             console.error('Failed to fetch requests');
@@ -56,7 +56,7 @@ const LeaveRequests = () => {
         }
 
         try {
-            await API.put(`/leaves/${id}/status`, { status, rejectionReason });
+            await API.put(`/admin/leaves/${id}`, { status, rejectionReason });
             setRejectionReason('');
             setSelectedId(null);
             fetchRequests();

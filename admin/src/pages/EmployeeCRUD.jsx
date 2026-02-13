@@ -18,6 +18,8 @@ import {
 
 const EmployeeCRUD = () => {
     const [employees, setEmployees] = useState([]);
+    const [departments, setDepartments] = useState([]);
+    const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
@@ -28,6 +30,7 @@ const EmployeeCRUD = () => {
         email: '',
         role: 'employee',
         department: '',
+        team: '',
         reportingManager: '',
         skills: '',
         experienceLevel: '',
@@ -46,19 +49,25 @@ const EmployeeCRUD = () => {
         profilePicture: null
     });
 
-    const fetchEmployees = async () => {
+    const fetchData = async () => {
         try {
-            const { data } = await API.get('/employees');
-            setEmployees(data);
+            const [empRes, deptRes, teamRes] = await Promise.all([
+                API.get('/employees'),
+                API.get('/departments'),
+                API.get('/teams')
+            ]);
+            setEmployees(empRes.data);
+            setDepartments(deptRes.data);
+            setTeams(teamRes.data);
         } catch (err) {
-            console.error('Failed to fetch employees');
+            console.error('Failed to fetch data');
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchEmployees();
+        fetchData();
     }, []);
 
     const handleSubmit = async (e) => {
@@ -88,7 +97,7 @@ const EmployeeCRUD = () => {
             setShowModal(false);
             setEditingEmployee(null);
             setFormData({
-                name: '', email: '', role: 'employee', department: '',
+                name: '', email: '', role: 'employee', department: '', team: '',
                 reportingManager: '', skills: '', experienceLevel: '',
                 casual: 12, sick: 10, earned: 15
             });
@@ -96,7 +105,7 @@ const EmployeeCRUD = () => {
                 tenthMarksheet: null, intermediateMarksheet: null, graduationCertificate: null,
                 offerLetter: null, joiningLetter: null, resume: null, profilePicture: null
             });
-            fetchEmployees();
+            fetchData();
         } catch (err) {
             alert(err.response?.data?.message || 'Action failed');
         }
@@ -106,7 +115,7 @@ const EmployeeCRUD = () => {
         if (!confirm('Are you sure you want to delete this employee?')) return;
         try {
             await API.delete(`/employees/${id}`);
-            fetchEmployees();
+            fetchData();
         } catch (err) {
             alert('Delete failed');
         }
@@ -226,7 +235,8 @@ const EmployeeCRUD = () => {
                                                             name: emp.name,
                                                             email: emp.email,
                                                             role: emp.role || 'employee',
-                                                            department: emp.department || '',
+                                                            department: emp.department?._id || emp.department || '',
+                                                            team: emp.team?._id || emp.team || '',
                                                             reportingManager: emp.reportingManager?._id || '',
                                                             skills: Array.isArray(emp.skills) ? emp.skills.join(', ') : '',
                                                             experienceLevel: emp.experienceLevel || '',
@@ -321,12 +331,35 @@ const EmployeeCRUD = () => {
                                 </div>
                                 <div>
                                     <label className="label">Department</label>
-                                    <input
-                                        type="text"
+                                    <select
                                         className="input-field"
                                         value={formData.department}
                                         onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                                    />
+                                        required
+                                    >
+                                        <option value="">Select Department</option>
+                                        {departments.map(dept => (
+                                            <option key={dept._id} value={dept._id}>{dept.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="label">Team</label>
+                                    <select
+                                        className="input-field"
+                                        value={formData.team}
+                                        onChange={(e) => setFormData({ ...formData, team: e.target.value })}
+                                    >
+                                        <option value="">Select Team</option>
+                                        {teams
+                                            .filter(t => !formData.department || t.department?._id === formData.department || t.department === formData.department)
+                                            .map(team => (
+                                                <option key={team._id} value={team._id}>{team.name}</option>
+                                            ))}
+                                    </select>
                                 </div>
                             </div>
 

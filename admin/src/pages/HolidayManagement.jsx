@@ -23,7 +23,7 @@ const HolidayManagement = () => {
 
     const fetchHolidays = async () => {
         try {
-            const { data } = await API.get('/holidays');
+            const { data } = await API.get('/admin/holidays');
             setHolidays(data);
         } catch (err) {
             console.error('Failed to fetch holidays');
@@ -38,7 +38,7 @@ const HolidayManagement = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await API.post('/holidays', {
+            await API.post('/admin/holidays', {
                 ...formData,
                 date: selectedDate
             });
@@ -54,7 +54,7 @@ const HolidayManagement = () => {
     const handleDeleteHoliday = async (id) => {
         if (!confirm('Are you sure you want to delete this holiday?')) return;
         try {
-            await API.delete(`/holidays/${id}`);
+            await API.delete(`/admin/holidays/${id}`);
             fetchHolidays();
         } catch (err) {
             alert('Failed to delete holiday');

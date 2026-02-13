@@ -7,6 +7,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import HolidayManagement from './pages/HolidayManagement';
 import LeaveRequests from './pages/LeaveRequests';
 import EmployeeCRUD from './pages/EmployeeCRUD';
+import DepartmentManagement from './pages/DepartmentManagement';
+import TeamManagement from './pages/TeamManagement';
+import ProjectManagement from './pages/ProjectManagement';
+import CreateProject from './pages/CreateProject';
 import Reports from './pages/Reports';
 import ChangePassword from './pages/ChangePassword';
 
@@ -36,6 +40,10 @@ function App() {
             <Route path="holidays" element={<HolidayManagement />} />
             <Route path="leaves" element={<LeaveRequests />} />
             <Route path="employees" element={<EmployeeCRUD />} />
+            <Route path="departments" element={<DepartmentManagement />} />
+            <Route path="teams" element={<TeamManagement />} />
+            <Route path="projects" element={<ProjectManagement />} />
+            <Route path="projects/create" element={<CreateProject />} />
             <Route path="reports" element={<Reports />} />
             <Route path="change-password" element={<ChangePassword />} />
           </Route>
