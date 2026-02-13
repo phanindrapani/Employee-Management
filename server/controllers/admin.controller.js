@@ -10,29 +10,111 @@ import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 export const getDashboardStats = async (req, res) => {
     try {
         const today = new Date();
-        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
 
-        // 1. Basic Counts
-        const totalEmployees = await User.countDocuments({ role: 'employee' });
-        const pendingLeaves = await Leave.countDocuments({ status: 'pending' });
-        const approvedLeaves = await Leave.countDocuments({ status: 'approved' });
-        const todaysHolidays = await Holiday.countDocuments({
-            date: {
-                $gte: startOfDay,
-                $lte: endOfDay
-            }
-        });
+        // 1. Organization Stats
+        const totalEmployees = await User.countDocuments({ role: { $ne: 'admin' } });
+        const totalDepartments = await Department.countDocuments();
+        const totalTeams = await Team.countDocuments();
 
-        // 2. Monthly Leave Trend (Current Year)
+        // 2. Project Stats
+        const projects = await Project.find();
+        const projectStats = {
+            total: projects.length,
+            ongoing: projects.filter(p => p.status === 'ongoing').length,
+            completed: projects.filter(p => p.status === 'completed').length,
+            upcoming: projects.filter(p => p.status === 'upcoming' || p.status === 'planning').length,
+            onHold: projects.filter(p => p.status === 'on-hold').length
+        };
+
+        // 3. Leave Stats
+        const leaveStats = {
+            pending: await Leave.countDocuments({ status: 'pending' }),
+            approvedThisMonth: await Leave.countDocuments({
+                status: 'approved',
+                updatedAt: { $gte: firstDayOfMonth }
+            }),
+            rejectedThisMonth: await Leave.countDocuments({
+                status: 'rejected',
+                updatedAt: { $gte: firstDayOfMonth }
+            })
+        };
+
+        // 4. Holiday Stats
+        const holidayStats = {
+            total: await Holiday.countDocuments({ date: { $gte: startOfYear } }),
+            upcoming: await Holiday.findOne({ date: { $gte: today } }).sort({ date: 1 })
+        };
+
+        // 5. Pending Actions (Critical)
+        const pendingLeaves = await Leave.find({ status: 'pending' })
+            .populate('user', 'name profilePicture')
+            .limit(5)
+            .sort({ appliedAt: -1 });
+
+        const upcomingDeadlines = await Project.find({
+            endDate: { $gte: today, $lte: nextWeek },
+            status: { $ne: 'completed' }
+        }).select('name endDate status assignedTeam').populate('assignedTeam', 'name').limit(5);
+
+        // 6. Team Performance Snapshot
+        // Aggregate projects by team to calculate average progress
+        const teams = await Team.find().populate('teamLead', 'name').lean();
+        const teamPerformance = await Promise.all(teams.map(async (team) => {
+            const teamProjects = await Project.find({ assignedTeam: team._id, status: 'ongoing' });
+            const avgProgress = teamProjects.length > 0
+                ? teamProjects.reduce((acc, curr) => acc + curr.progress, 0) / teamProjects.length
+                : 0;
+
+            return {
+                _id: team._id,
+                name: team.name,
+                lead: team.teamLead?.name || 'Unassigned',
+                activeProjects: teamProjects.length,
+                members: team.members.length,
+                avgProgress: Math.round(avgProgress)
+            };
+        }));
+
+        // 7. Recent Activity Feed (Synthesized)
+        // Fetch latest 5 from multiple collections and sort
+        const recentLeaves = await Leave.find().sort({ updatedAt: -1 }).limit(5).populate('user', 'name');
+        const recentProjects = await Project.find().sort({ updatedAt: -1 }).limit(5);
+        const newEmployees = await User.find({ role: { $ne: 'admin' } }).sort({ createdAt: -1 }).limit(3);
+
+        const activities = [
+            ...recentLeaves.map(l => ({
+                id: l._id,
+                type: 'leave',
+                message: `${l.user.name} leave request ${l.status}`,
+                time: l.updatedAt
+            })),
+            ...recentProjects.map(p => ({
+                id: p._id,
+                type: 'project',
+                message: `Project "${p.name}" updated to ${p.status}`,
+                time: p.updatedAt
+            })),
+            ...newEmployees.map(u => ({
+                id: u._id,
+                type: 'employee',
+                message: `New employee ${u.name} joined`,
+                time: u.createdAt
+            }))
+        ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 10);
+
+        // 8. Monthly Leave Trend (Current Year)
         const currentYear = new Date().getFullYear();
-        const startOfYear = new Date(currentYear, 0, 1);
-        const endOfYear = new Date(currentYear, 11, 31);
+        const startOfYearDate = new Date(currentYear, 0, 1);
+        const endOfYearDate = new Date(currentYear, 11, 31);
 
         const monthlyLeaves = await Leave.aggregate([
             {
                 $match: {
-                    appliedAt: { $gte: startOfYear, $lte: endOfYear }
+                    appliedAt: { $gte: startOfYearDate, $lte: endOfYearDate }
                 }
             },
             {
@@ -50,7 +132,7 @@ export const getDashboardStats = async (req, res) => {
             monthlyTrend[item._id - 1] = item.count;
         });
 
-        // 3. Leave Type Distribution
+        // 9. Leave Type Distribution
         const leaveDistribution = await Leave.aggregate([
             {
                 $group: {
@@ -61,23 +143,28 @@ export const getDashboardStats = async (req, res) => {
         ]);
 
         // Calculate percentages
-        const totalLeaves = leaveDistribution.reduce((acc, curr) => acc + curr.count, 0);
+        const totalLeavesCount = leaveDistribution.reduce((acc, curr) => acc + curr.count, 0);
         const distribution = leaveDistribution.map(item => ({
             label: item._id,
-            count: totalLeaves > 0 ? Math.round((item.count / totalLeaves) * 100) : 0,
-            value: item.count // Keep raw count just in case
+            count: totalLeavesCount > 0 ? Math.round((item.count / totalLeavesCount) * 100) : 0,
+            value: item.count
         }));
 
-        // Map simplified labels if needed (e.g. UPPERCASE)
-        // detailed mapping can be done on frontend or here
-
         res.json({
-            stats: {
-                totalEmployees,
-                pendingLeaves,
-                approvedLeaves,
-                todaysHolidays
+            summary: {
+                employees: totalEmployees,
+                departments: totalDepartments,
+                teams: totalTeams,
+                projects: projectStats,
+                leaves: leaveStats,
+                holidays: holidayStats
             },
+            pendingActions: {
+                leaves: pendingLeaves,
+                deadlines: upcomingDeadlines
+            },
+            teamPerformance,
+            recentActivity: activities,
             monthlyTrend,
             distribution
         });
