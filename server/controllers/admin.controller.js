@@ -227,6 +227,11 @@ export const createEmployee = async (req, res) => {
             reportingManager,
             skills: parseSkills(skills),
             experienceLevel,
+            leaveBalance: {
+                casual: req.body.casual ? parseInt(req.body.casual) : 12,
+                sick: req.body.sick ? parseInt(req.body.sick) : 10,
+                earned: req.body.earned ? parseInt(req.body.earned) : 15
+            },
             profilePicture: files['profilePicture'] ? await uploadBufferToCloudinary(files['profilePicture'][0], firstName) : null,
             documents
         });
@@ -268,6 +273,68 @@ export const deleteEmployee = async (req, res) => {
         res.json({ message: "Employee removed successfully" });
     } catch (error) {
         res.status(500).json({ message: "Failed to delete employee" });
+    }
+};
+
+export const updateEmployee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, role, department, reportingManager, skills, experienceLevel, casual, sick, earned } = req.body;
+
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ message: "Employee not found" });
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (role) user.role = role;
+        if (department) user.department = department;
+        if (reportingManager) user.reportingManager = reportingManager;
+        if (experienceLevel) user.experienceLevel = experienceLevel;
+
+        // Update leave balance if provided
+        if (casual !== undefined || sick !== undefined || earned !== undefined) {
+            user.leaveBalance = {
+                casual: casual !== undefined ? parseInt(casual) : user.leaveBalance.casual,
+                sick: sick !== undefined ? parseInt(sick) : user.leaveBalance.sick,
+                earned: earned !== undefined ? parseInt(earned) : user.leaveBalance.earned
+            };
+        }
+
+        if (skills) {
+            try {
+                user.skills = JSON.parse(skills);
+            } catch (e) {
+                user.skills = skills.split(',').map(s => s.trim());
+            }
+        }
+
+        // Handle File Uploads
+        const files = req.files || {};
+        const firstName = user.name.split(' ')[0].toLowerCase();
+
+        if (files['profilePicture'] && files['profilePicture'][0]) {
+            user.profilePicture = await uploadBufferToCloudinary(files['profilePicture'][0], firstName);
+        }
+
+        const fileFields = [
+            'tenthMarksheet', 'intermediateMarksheet',
+            'graduationCertificate', 'offerLetter', 'joiningLetter', 'resume'
+        ];
+
+        let updatedDocs = { ...user.documents };
+        for (const field of fileFields) {
+            if (files[field] && files[field][0]) {
+                const url = await uploadBufferToCloudinary(files[field][0], firstName);
+                updatedDocs[field] = url;
+            }
+        }
+        user.documents = updatedDocs;
+
+        await user.save();
+        res.json({ message: "Employee updated successfully", user });
+    } catch (error) {
+        console.error("Update Employee error:", error);
+        res.status(500).json({ message: error.message || "Failed to update employee" });
     }
 };
 
