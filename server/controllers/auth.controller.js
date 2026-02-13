@@ -73,6 +73,35 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
+export const updateProfile = async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        user.name = req.body.name || user.name;
+        user.phone = req.body.phone || user.phone;
+
+        // If profile picture is handled via separate upload middleware in routes
+        if (req.file) {
+            // For now, assuming direct URL or handling logic elsewhere if middleware used
+            // If this controller is used with cloudinary middleware, we might get req.file.path
+        }
+
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            phone: updatedUser.phone,
+            leaveBalance: updatedUser.leaveBalance,
+            token: generateToken(updatedUser._id), // Optional: refresh token
+        });
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
+};
+
 export const changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 

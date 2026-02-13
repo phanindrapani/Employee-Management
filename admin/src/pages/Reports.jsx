@@ -71,7 +71,7 @@ const Reports = () => {
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight">Reports</h1>
+                    <h1 className="text-3xl font-black tracking-tight">Leave Analytics</h1>
                     <p className="text-slate-500 font-medium italic">Summary of leave data</p>
                 </div>
                 <button

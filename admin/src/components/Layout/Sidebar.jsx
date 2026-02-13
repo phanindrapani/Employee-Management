@@ -12,7 +12,11 @@ import {
     Building2,
     Users2,
     FolderKanban,
-    PlusSquare
+    PlusSquare,
+    Activity,
+    PieChart,
+    Sliders,
+    UserCircle
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -23,7 +27,7 @@ const Sidebar = () => {
             title: 'Dashboard',
             items: [
                 { name: 'System Overview', path: '/', icon: Home },
-                { name: 'Reports & Analytics', path: '/reports', icon: BarChart3 },
+                // { name: 'Stats & Charts', path: '/', icon: BarChart3 }, // Part of Overview
             ]
         },
         {
@@ -39,18 +43,35 @@ const Sidebar = () => {
             items: [
                 { name: 'All Projects', path: '/projects', icon: FolderKanban },
                 { name: 'Create Project', path: '/projects/create', icon: PlusSquare },
+                { name: 'Project Analytics', path: '/projects/reports', icon: BarChart3 },
             ]
         },
         {
-            title: 'HR Operations',
+            title: 'Leave Management',
             items: [
                 { name: 'Leave Requests', path: '/leaves', icon: ClipboardList },
+                { name: 'Leave Analytics', path: '/reports', icon: BarChart3 },
+            ]
+        },
+        {
+            title: 'Holiday Management',
+            items: [
                 { name: 'Holiday Calendar', path: '/holidays', icon: Calendar },
+                // { name: 'Manage Holidays', path: '/holidays', icon: PlusSquare },
+            ]
+        },
+        {
+            title: 'Reports & Analytics',
+            items: [
+                { name: 'Employee Performance', path: '/employee-performance', icon: Users },
             ]
         },
         {
             title: 'Settings',
             items: [
+                { name: 'Leave Settings', path: '/leave-settings', icon: Sliders },
+                { name: 'Roles & Permissions', path: '/settings/roles', icon: ShieldCheck }, // Placeholder
+                { name: 'Profile', path: '/settings/profile', icon: UserCircle }, // Placeholder
                 { name: 'Security', path: '/change-password', icon: ShieldCheck },
             ]
         }
@@ -74,6 +95,7 @@ const Sidebar = () => {
                                 <NavLink
                                     key={item.name}
                                     to={item.path}
+                                    end
                                     className={({ isActive }) => `
                                         flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200
                                         ${isActive

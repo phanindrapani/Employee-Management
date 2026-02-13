@@ -13,6 +13,11 @@ import ProjectManagement from './pages/ProjectManagement';
 import CreateProject from './pages/CreateProject';
 import Reports from './pages/Reports';
 import ChangePassword from './pages/ChangePassword';
+import ProjectReports from './pages/ProjectReports';
+import EmployeePerformance from './pages/EmployeePerformance';
+import LeaveSettings from './pages/LeaveSettings';
+import Profile from './pages/Profile';
+import RolesPermissions from './pages/RolesPermissions';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -44,7 +49,11 @@ function App() {
             <Route path="teams" element={<TeamManagement />} />
             <Route path="projects" element={<ProjectManagement />} />
             <Route path="projects/create" element={<CreateProject />} />
+            <Route path="projects/reports" element={<ProjectReports />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="leave-settings" element={<LeaveSettings />} />
+            <Route path="settings/roles" element={<RolesPermissions />} />
+            <Route path="settings/profile" element={<Profile />} />
             <Route path="change-password" element={<ChangePassword />} />
           </Route>
         </Routes>
