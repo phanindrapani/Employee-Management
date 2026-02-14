@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, admin } from '../middlewares/auth.middleware.js';
+import { protect, authorizeRole } from '../middlewares/auth.middleware.js';
 import { upload } from '../middlewares/upload.middleware.js';
 import {
     uploadDocument,
@@ -23,7 +23,7 @@ router.post('/upload', protect, upload.single('file'), uploadDocument);
 router.delete('/:id', protect, deleteDocument);
 
 // Admin: Verify/Reject
-router.put('/:id/verify', protect, admin, verifyDocument);
-router.put('/:id/reject', protect, admin, rejectDocument);
+router.put('/:id/verify', protect, authorizeRole(['admin']), verifyDocument);
+router.put('/:id/reject', protect, authorizeRole(['admin']), rejectDocument);
 
 export default router;

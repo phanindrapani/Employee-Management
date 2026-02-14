@@ -1,14 +1,14 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import connectDB from './src/config/db.js';
+import connectDB from '../config/db.js';
 
 // Models
-import { User, Admin, TeamLead, Employee } from './models/user.model.js';
-import Department from './models/department.model.js';
-import Team from './models/team.model.js';
-import Project from './models/project.model.js';
-import Leave from './models/leave.model.js';
-import Holiday from './models/holiday.model.js';
+import { User, Admin, TeamLead, Employee } from '../models/user.model.js';
+import Department from '../models/department.model.js';
+import Team from '../models/team.model.js';
+import Project from '../models/project.model.js';
+import Leave from '../models/leave.model.js';
+import Holiday from '../models/holiday.model.js';
 import bcrypt from 'bcryptjs';
 
 dotenv.config();

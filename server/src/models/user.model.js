@@ -24,16 +24,19 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
         lowercase: true,
-        trim: true
+        trim: true,
+        index: true
     },
     phone: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        select: false
     },
     department: {
         type: mongoose.Schema.Types.ObjectId,
@@ -90,7 +93,7 @@ const User = mongoose.model('User', userSchema);
 // DISCRIMINATORS (Role-Specific Schemas)
 // ==================================================
 
-// 1️⃣ ADMIN DISCRIMINATOR
+// ADMIN DISCRIMINATOR
 const Admin = User.discriminator('admin', new mongoose.Schema({
     permissions: [{
         type: String
@@ -102,7 +105,7 @@ const Admin = User.discriminator('admin', new mongoose.Schema({
     }
 }));
 
-// 2️⃣ TEAM LEAD DISCRIMINATOR
+// TEAM LEAD DISCRIMINATOR
 const TeamLead = User.discriminator('team-lead', new mongoose.Schema({
     skills: [{
         type: String
@@ -118,7 +121,7 @@ const TeamLead = User.discriminator('team-lead', new mongoose.Schema({
     }
 }));
 
-// 3️⃣ EMPLOYEE DISCRIMINATOR
+// EMPLOYEE DISCRIMINATOR
 const Employee = User.discriminator('employee', new mongoose.Schema({
     leaveBalance: {
         casual: { type: Number, default: 12 },

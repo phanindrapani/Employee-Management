@@ -5,6 +5,7 @@ import Department from '../models/department.model.js';
 import Team from '../models/team.model.js';
 import Project from '../models/project.model.js';
 import Task from '../models/task.model.js';
+import { promoteUser } from '../services/promotion.service.js';
 import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 export const getDashboardStats = async (req, res) => {
@@ -620,5 +621,21 @@ export const updateLeaveStatus = async (req, res) => {
         res.json(leave);
     } catch (error) {
         res.status(500).json({ message: "Failed to update leave status" });
+    }
+};
+
+export const promoteUserAccount = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+
+        const updatedUser = await promoteUser(id, role);
+
+        res.json({
+            message: `User promoted to ${role} successfully. User must re-login.`,
+            user: updatedUser
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message || "Promotion failed" });
     }
 };

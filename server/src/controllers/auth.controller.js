@@ -1,9 +1,9 @@
 import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
 
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET || 'secret', {
-        expiresIn: '30d',
+const generateToken = (id, role) => {
+    return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret', {
+        expiresIn: '30d', // Expire in 30 day as per requirement
     });
 };
 
@@ -30,7 +30,7 @@ export const registerUser = async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            token: generateToken(user._id),
+            token: generateToken(user._id, user.role),
         });
     } else {
         res.status(400).json({ message: 'Invalid user data' });
@@ -40,7 +40,8 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    // We must explicitly select password because it's 'select: false' in schema
+    const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.comparePassword(password))) {
         res.json({
@@ -48,8 +49,7 @@ export const loginUser = async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            leaveBalance: user.leaveBalance,
-            token: generateToken(user._id),
+            token: generateToken(user._id, user.role),
         });
     } else {
         res.status(401).json({ message: 'Invalid email or password' });

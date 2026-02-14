@@ -97,7 +97,7 @@ export const updateLeaveStatus = async (req, res) => {
                 await user.save();
 
                 // Also update Employee model for consistency in Admin view
-                await (await import('../src/models/employee.model.js')).default.findOneAndUpdate(
+                await (await import('../models/employee.model.js')).default.findOneAndUpdate(
                     { email: user.email },
                     { [`leaveBalance.${type}`]: user.leaveBalance[type] }
                 );

@@ -1,6 +1,6 @@
 import Employee from "../models/employee.model.js";
-import User from "../../models/user.model.js";
-import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
+import User from "../models/user.model.js";
+import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 const fieldToFolder = {
   tenth: "10th",

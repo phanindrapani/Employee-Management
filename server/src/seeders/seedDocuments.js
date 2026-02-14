@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import connectDB from './src/config/db.js';
-import User from './models/user.model.js';
-import EmployeeDocument from './models/employeeDocument.model.js';
+import connectDB from '../config/db.js';
+import User from '../models/user.model.js';
+import EmployeeDocument from '../models/employeeDocument.model.js';
 
 dotenv.config();
 
