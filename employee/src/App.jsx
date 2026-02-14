@@ -9,12 +9,17 @@ import LeaveHistory from './pages/Employee/LeaveHistory';
 import HolidayCalendar from './pages/Employee/HolidayCalendar';
 import Notifications from './pages/Employee/Notifications';
 import ChangePassword from './pages/ChangePassword';
+import Unauthorized from './pages/Unauthorized';
 
-const PrivateRoute = ({ children }) => {
+const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
+
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" />;
+  }
 
   return children;
 };
@@ -25,9 +30,10 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
 
           <Route path="/" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['employee', 'team-lead']}>
               <DashboardLayout />
             </PrivateRoute>
           }>

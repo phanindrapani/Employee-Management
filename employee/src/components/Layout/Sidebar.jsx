@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { TEAM_PORTAL_URL } from '../../config';
 import {
     Home,
     KeyRound,
@@ -8,11 +9,12 @@ import {
     FilePlus2,
     History,
     Calendar,
-    Bell
+    Bell,
+    LayoutTemplate
 } from 'lucide-react';
 
 const Sidebar = () => {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
 
     const navItems = [
         { name: 'Dashboard', path: '/', icon: Home },
@@ -47,6 +49,19 @@ const Sidebar = () => {
                         </div>
                     </NavLink>
                 ))}
+
+                {/* Switch to Team Portal for Team Leads */}
+                {user?.role === 'team-lead' && (
+                    <button
+                        onClick={() => window.location.href = TEAM_PORTAL_URL}
+                        className="flex items-center justify-between px-3 py-2.5 rounded-lg transition-all w-full mt-4 bg-[#63C132]/10 text-[#63C132] font-bold border border-[#63C132]/20 hover:bg-[#63C132] hover:text-white group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <LayoutTemplate size={20} className="group-hover:scale-110 transition-transform" />
+                            Switch to Team Portal
+                        </div>
+                    </button>
+                )}
             </nav>
 
             <div className="p-4 border-t border-[#1A4B6D]">
