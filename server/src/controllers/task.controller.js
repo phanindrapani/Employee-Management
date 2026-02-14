@@ -108,7 +108,7 @@ export const deleteTask = async (req, res) => {
 
         // Security check
         const worker = await User.findById(task.assignedTo);
-        if (worker.team?.toString() !== req.user.team?.toString()) {
+        if (!worker || worker.team?.toString() !== req.user.team?.toString()) {
             return res.status(403).json({ message: "You can only delete tasks for your team members" });
         }
 

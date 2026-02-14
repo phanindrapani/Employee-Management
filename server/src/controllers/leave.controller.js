@@ -80,6 +80,10 @@ export const updateLeaveStatus = async (req, res) => {
         return res.status(400).json({ message: 'Leave request already processed' });
     }
 
+    if (!leave.user) {
+        return res.status(400).json({ message: 'User associated with this leave no longer exists' });
+    }
+
     leave.status = status;
     if (status === 'rejected') leave.rejectionReason = rejectionReason;
 
