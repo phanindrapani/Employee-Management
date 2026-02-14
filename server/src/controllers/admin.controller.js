@@ -1,4 +1,4 @@
-import User from '../models/user.model.js';
+import User from '../models/user.model.js'; // Trigger restart
 import Leave from '../models/leave.model.js';
 import Holiday from '../models/holiday.model.js';
 import Department from '../models/department.model.js';
@@ -11,10 +11,12 @@ import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 export const getDashboardStats = async (req, res) => {
     try {
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+
         const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const startOfYear = new Date(today.getFullYear(), 0, 1);
-        const nextWeek = new Date(today);
-        nextWeek.setDate(today.getDate() + 7);
+        const nextTwoWeeks = new Date(today);
+        nextTwoWeeks.setDate(today.getDate() + 14); // Expand to 14 days
 
         // 1. Organization Stats
         const totalEmployees = await User.countDocuments({ role: { $ne: 'admin' } });
@@ -51,15 +53,19 @@ export const getDashboardStats = async (req, res) => {
         };
 
         // 5. Pending Actions (Critical)
-        const pendingLeaves = await Leave.find({ status: 'pending' })
+        const pendingLeavesRaw = await Leave.find({ status: 'pending' })
             .populate('user', 'name profilePicture')
-            .limit(5)
+            .limit(10)
             .sort({ appliedAt: -1 });
 
-        const upcomingDeadlines = await Project.find({
-            endDate: { $gte: today, $lte: nextWeek },
+        const upcomingDeadlinesRaw = await Project.find({
+            endDate: { $gte: today, $lte: nextTwoWeeks },
             status: { $ne: 'completed' }
-        }).select('name endDate status assignedTeam').populate('assignedTeam', 'name').limit(5);
+        }).select('name endDate status assignedTeam').populate('assignedTeam', 'name').limit(10);
+
+        // Filter out records where mandatory populated relations are null (e.g., deleted users)
+        const pendingLeaves = pendingLeavesRaw.filter(l => l.user);
+        const upcomingDeadlines = upcomingDeadlinesRaw;
 
         // 6. Team Performance Snapshot
         // Aggregate projects by team to calculate average progress
@@ -90,7 +96,7 @@ export const getDashboardStats = async (req, res) => {
             ...recentLeaves.map(l => ({
                 id: l._id,
                 type: 'leave',
-                message: `${l.user.name} leave request ${l.status}`,
+                message: `${l.user?.name || 'Unknown User'} leave request ${l.status}`,
                 time: l.updatedAt
             })),
             ...recentProjects.map(p => ({
@@ -435,6 +441,21 @@ export const deleteDepartment = async (req, res) => {
     }
 };
 
+export const updateDepartment = async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const dept = await Department.findByIdAndUpdate(
+            req.params.id,
+            { name, description },
+            { new: true, runValidators: true }
+        );
+        if (!dept) return res.status(404).json({ message: "Department not found" });
+        res.json(dept);
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to update department" });
+    }
+};
+
 // Team Management
 export const createTeam = async (req, res) => {
     try {
@@ -509,6 +530,49 @@ export const deleteTeam = async (req, res) => {
     }
 };
 
+export const updateTeam = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, department, teamLead, members = [] } = req.body;
+
+        const team = await Team.findById(id);
+        if (!team) return res.status(404).json({ message: "Team not found" });
+
+        // If team lead is changing
+        if (teamLead && team.teamLead?.toString() !== teamLead) {
+            // Update new lead's role
+            await User.findByIdAndUpdate(teamLead, {
+                role: 'team-lead',
+                team: id
+            });
+        }
+
+        // Identify members to remove and members to add
+        const oldMembers = team.members.map(m => m.toString());
+        const newMembers = members.map(m => m.toString());
+
+        const membersToRemove = oldMembers.filter(m => !newMembers.includes(m));
+        const membersToAdd = newMembers.filter(m => !oldMembers.includes(m));
+
+        if (membersToRemove.length > 0) {
+            await User.updateMany({ _id: { $in: membersToRemove } }, { team: null });
+        }
+        if (membersToAdd.length > 0) {
+            await User.updateMany({ _id: { $in: membersToAdd } }, { team: id });
+        }
+
+        team.name = name || team.name;
+        team.department = department || team.department;
+        team.teamLead = teamLead || team.teamLead;
+        team.members = members;
+
+        await team.save();
+        res.json(team);
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to update team" });
+    }
+};
+
 // Project Management
 export const createProject = async (req, res) => {
     try {
@@ -550,6 +614,24 @@ export const updateProjectStatus = async (req, res) => {
         res.json(project);
     } catch (error) {
         res.status(500).json({ message: "Failed to update project" });
+    }
+};
+
+export const updateProject = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, priority, startDate, endDate, assignedTeam, status, progress } = req.body;
+
+        const project = await Project.findByIdAndUpdate(
+            id,
+            { name, description, priority, startDate, endDate, assignedTeam, status, progress },
+            { new: true, runValidators: true }
+        );
+
+        if (!project) return res.status(404).json({ message: "Project not found" });
+        res.json(project);
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to update project" });
     }
 };
 

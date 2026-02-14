@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
-import { Users2, Plus, Trash2, X, UserCheck, ShieldCheck } from 'lucide-react';
+import { Users2, Plus, Trash2, X, UserCheck, ShieldCheck, Pencil } from 'lucide-react';
 
 const TeamManagement = () => {
     const [teams, setTeams] = useState([]);
@@ -9,6 +9,8 @@ const TeamManagement = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({ name: '', department: '', teamLead: '', members: [] });
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingId, setEditingId] = useState(null);
 
     const fetchData = async () => {
         try {
@@ -43,13 +45,31 @@ const TeamManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await API.post('/admin/teams', formData);
+            if (isEditing) {
+                await API.put(`/admin/teams/${editingId}`, formData);
+            } else {
+                await API.post('/admin/teams', formData);
+            }
             setShowModal(false);
             setFormData({ name: '', department: '', teamLead: '', members: [] });
+            setIsEditing(false);
+            setEditingId(null);
             fetchData();
         } catch (err) {
             alert(err.response?.data?.message || 'Action failed');
         }
+    };
+
+    const handleEdit = (team) => {
+        setFormData({
+            name: team.name,
+            department: team.department?._id || team.department,
+            teamLead: team.teamLead?._id || team.teamLead,
+            members: team.members?.map(m => m._id || m) || []
+        });
+        setEditingId(team._id);
+        setIsEditing(true);
+        setShowModal(true);
     };
 
     const handleDelete = async (id) => {
@@ -75,7 +95,12 @@ const TeamManagement = () => {
                     </div>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        setFormData({ name: '', department: '', teamLead: '', members: [] });
+                        setIsEditing(false);
+                        setEditingId(null);
+                        setShowModal(true);
+                    }}
                     className="px-6 py-3 bg-[#63C132] text-white rounded-xl font-bold hover:bg-[#52A428] transition-all flex items-center gap-2 shadow-lg shadow-[#63C132]/20"
                 >
                     <Plus size={20} />
@@ -95,12 +120,20 @@ const TeamManagement = () => {
                                 <div className="p-2 bg-slate-50 text-[#0B3C5D] rounded-lg">
                                     <Users2 size={24} />
                                 </div>
-                                <button
-                                    onClick={() => handleDelete(team._id)}
-                                    className="p-2 text-red-100 group-hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleEdit(team)}
+                                        className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-lg transition-all"
+                                    >
+                                        <Pencil size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(team._id)}
+                                        className="p-2 text-red-100 group-hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
                             <h3 className="text-xl font-bold mb-1">{team.name}</h3>
                             <div className="flex items-center gap-2 text-sm text-slate-400 mb-4 font-semibold uppercase tracking-wider">
@@ -138,7 +171,9 @@ const TeamManagement = () => {
                 <div className="fixed inset-0 bg-[#0B3C5D]/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                            <h2 className="text-xl font-bold text-[#0B3C5D]">Add New Team</h2>
+                            <h2 className="text-xl font-bold text-[#0B3C5D]">
+                                {isEditing ? 'Edit Team' : 'Add New Team'}
+                            </h2>
                             <button onClick={() => setShowModal(false)} className="p-2 hover:bg-slate-200 text-slate-400 rounded-full">
                                 <X size={20} />
                             </button>
@@ -215,7 +250,9 @@ const TeamManagement = () => {
 
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">Cancel</button>
-                                <button type="submit" className="btn-primary flex-1">Create Team</button>
+                                <button type="submit" className="btn-primary flex-1">
+                                    {isEditing ? 'Save Changes' : 'Create Team'}
+                                </button>
                             </div>
                         </form>
                     </div>

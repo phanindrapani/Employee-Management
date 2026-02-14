@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
-import { FolderKanban, Plus, MoreVertical, Calendar, Users2, Activity, Trash2 } from 'lucide-react';
+import { FolderKanban, Plus, MoreVertical, Calendar, Users2, Activity, Trash2, Pencil } from 'lucide-react';
 
 const ProjectManagement = () => {
     const [projects, setProjects] = useState([]);
@@ -76,12 +76,20 @@ const ProjectManagement = () => {
                                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getStatusColor(project.status)}`}>
                                     {project.status}
                                 </span>
-                                <button
-                                    onClick={() => handleDelete(project._id)}
-                                    className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => navigate(`/projects/edit/${project._id}`)}
+                                        className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-lg transition-all"
+                                    >
+                                        <Pencil size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(project._id)}
+                                        className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
                             <h3 className="text-xl font-bold mb-2">{project.name}</h3>
                             <p className="text-slate-500 text-sm mb-6 line-clamp-2">{project.description}</p>

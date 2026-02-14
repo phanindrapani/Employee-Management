@@ -153,10 +153,10 @@ const AdminDashboard = () => {
                                 pendingActions.leaves.map(leave => (
                                     <div key={leave._id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
                                         <div className="w-8 h-8 rounded-full bg-[#0B3C5D] text-white flex items-center justify-center font-bold text-xs">
-                                            {leave.user.name.charAt(0)}
+                                            {leave.user?.name?.charAt(0) || '?'}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-bold text-[#0B3C5D] truncate">{leave.user.name}</p>
+                                            <p className="text-sm font-bold text-[#0B3C5D] truncate">{leave.user?.name || 'Unknown User'}</p>
                                             <p className="text-xs text-slate-500 truncate">{new Date(leave.appliedAt).toLocaleDateString()} • {leave.leaveType}</p>
                                         </div>
                                         <button onClick={() => navigate('/leaves')} className="text-[#3B82F6] hover:bg-blue-50 p-1.5 rounded-full transition-colors">

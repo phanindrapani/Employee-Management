@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
-import { Building2, Plus, Trash2, X, Search } from 'lucide-react';
+import { Building2, Plus, Trash2, X, Search, Pencil } from 'lucide-react';
 
 const DepartmentManagement = () => {
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({ name: '', description: '' });
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingId, setEditingId] = useState(null);
 
     const fetchDepartments = async () => {
         try {
@@ -26,13 +28,26 @@ const DepartmentManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await API.post('/admin/departments', formData);
+            if (isEditing) {
+                await API.put(`/admin/departments/${editingId}`, formData);
+            } else {
+                await API.post('/admin/departments', formData);
+            }
             setShowModal(false);
             setFormData({ name: '', description: '' });
+            setIsEditing(false);
+            setEditingId(null);
             fetchDepartments();
         } catch (err) {
             alert(err.response?.data?.message || 'Action failed');
         }
+    };
+
+    const handleEdit = (dept) => {
+        setFormData({ name: dept.name, description: dept.description });
+        setEditingId(dept._id);
+        setIsEditing(true);
+        setShowModal(true);
     };
 
     const handleDelete = async (id) => {
@@ -58,7 +73,12 @@ const DepartmentManagement = () => {
                     </div>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        setFormData({ name: '', description: '' });
+                        setIsEditing(false);
+                        setEditingId(null);
+                        setShowModal(true);
+                    }}
                     className="px-6 py-3 bg-[#63C132] text-white rounded-xl font-bold hover:bg-[#52A428] transition-all flex items-center gap-2 shadow-lg shadow-[#63C132]/20"
                 >
                     <Plus size={20} />
@@ -78,12 +98,20 @@ const DepartmentManagement = () => {
                                 <div className="p-2 bg-slate-50 text-[#0B3C5D] rounded-lg">
                                     <Building2 size={24} />
                                 </div>
-                                <button
-                                    onClick={() => handleDelete(dept._id)}
-                                    className="p-2 text-red-100 group-hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleEdit(dept)}
+                                        className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-lg transition-all"
+                                    >
+                                        <Pencil size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(dept._id)}
+                                        className="p-2 text-red-100 group-hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
                             <h3 className="text-xl font-bold mb-2">{dept.name}</h3>
                             <p className="text-slate-500 text-sm mb-4 line-clamp-2">{dept.description || 'No description provided'}</p>
@@ -100,7 +128,9 @@ const DepartmentManagement = () => {
                 <div className="fixed inset-0 bg-[#0B3C5D]/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-[24px]">
-                            <h2 className="text-xl font-bold text-[#0B3C5D]">Add Department</h2>
+                            <h2 className="text-xl font-bold text-[#0B3C5D]">
+                                {isEditing ? 'Edit Department' : 'Add Department'}
+                            </h2>
                             <button onClick={() => setShowModal(false)} className="p-2 hover:bg-slate-200 text-slate-400 rounded-full">
                                 <X size={20} />
                             </button>
@@ -128,7 +158,9 @@ const DepartmentManagement = () => {
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">Cancel</button>
-                                <button type="submit" className="btn-primary flex-1">Create</button>
+                                <button type="submit" className="btn-primary flex-1">
+                                    {isEditing ? 'Save Changes' : 'Create'}
+                                </button>
                             </div>
                         </form>
                     </div>

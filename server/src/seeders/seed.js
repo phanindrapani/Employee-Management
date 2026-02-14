@@ -156,14 +156,14 @@ const seedData = async () => {
         const currentYear = new Date().getFullYear();
 
         console.log('🌱 Seeding Projects...');
-        await Project.create([
+        const projects = await Project.create([
             {
                 name: 'Website Redesign',
                 description: 'Overhauling the corporate website with new branding.',
                 status: 'ongoing',
                 priority: 'high',
-                startDate: new Date(`${currentYear}-01-01`),
-                endDate: new Date(`${currentYear}-06-30`),
+                startDate: new Date('2026-01-01'),
+                endDate: new Date('2026-02-20'), // Next week from Feb 14
                 assignedTeam: feTeam._id,
                 progress: 45,
                 createdBy: admin._id
@@ -173,7 +173,8 @@ const seedData = async () => {
                 description: 'Migrating legacy APIs to GraphQL.',
                 status: 'upcoming',
                 priority: 'medium',
-                startDate: new Date(`${currentYear}-04-01`),
+                startDate: new Date('2026-02-10'),
+                endDate: new Date('2026-02-25'), // In 11 days
                 assignedTeam: beTeam._id,
                 progress: 0,
                 createdBy: admin._id
@@ -182,10 +183,9 @@ const seedData = async () => {
 
         console.log('🌱 Seeding Holidays...');
         await Holiday.create([
-            { name: 'New Year', date: new Date(`${currentYear}-01-01`), type: 'public' },
-            { name: 'Republic Day', date: new Date(`${currentYear}-01-26`), type: 'public' },
-            { name: 'Holi', date: new Date(`${currentYear}-03-25`), type: 'festival' },
-            { name: 'Independence Day', date: new Date(`${currentYear}-08-15`), type: 'public' }
+            { name: 'Valentine\'s Break', date: new Date('2026-02-14'), type: 'public' },
+            { name: 'Shivaratri', date: new Date('2026-02-26'), type: 'festival' },
+            { name: 'Holi', date: new Date('2026-03-25'), type: 'festival' }
         ]);
 
         console.log('🌱 Seeding Leaves...');
@@ -193,20 +193,20 @@ const seedData = async () => {
             {
                 user: employees[0]._id,
                 leaveType: 'CL',
-                fromDate: new Date(`${currentYear}-02-01`),
-                toDate: new Date(`${currentYear}-02-02`),
+                fromDate: new Date('2026-02-10'),
+                toDate: new Date('2026-02-12'),
                 totalDays: 2,
                 status: 'approved',
-                appliedAt: new Date(`${currentYear}-01-25`)
+                appliedAt: new Date('2026-02-05')
             },
             {
                 user: employees[1]._id,
                 leaveType: 'SL',
-                fromDate: new Date(`${currentYear}-03-10`),
-                toDate: new Date(`${currentYear}-03-10`),
+                fromDate: new Date('2026-02-15'),
+                toDate: new Date('2026-02-15'),
                 totalDays: 1,
                 status: 'pending',
-                appliedAt: new Date(`${currentYear}-03-08`)
+                appliedAt: new Date('2026-02-14') // Today
             }
         ]);
 
