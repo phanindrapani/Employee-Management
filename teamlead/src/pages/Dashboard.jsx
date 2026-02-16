@@ -9,7 +9,7 @@ import {
     Clock,
     AlertCircle
 } from 'lucide-react';
-import API from '../../api';
+import API from '../api';
 
 const Dashboard = () => {
     const [stats, setStats] = useState({

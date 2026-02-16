@@ -9,7 +9,7 @@ import {
     Info,
     ArrowRight
 } from 'lucide-react';
-import API from '../../api';
+import API from '../api';
 
 const LeaveOverview = () => {
     const [leaves, setLeaves] = useState([]);

@@ -8,7 +8,7 @@ import {
     Users,
     CheckCircle2
 } from 'lucide-react';
-import API from '../../api';
+import API from '../api';
 
 const TeamProjects = () => {
     const [projects, setProjects] = useState([]);

@@ -7,7 +7,7 @@ import {
     CalendarCheck,
     MoreHorizontal
 } from 'lucide-react';
-import API from '../../api';
+import API from '../api';
 
 const MyTeam = () => {
     const [members, setMembers] = useState([]);

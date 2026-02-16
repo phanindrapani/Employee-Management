@@ -21,7 +21,7 @@ import {
     Target,
     Users
 } from 'lucide-react';
-import API from '../../api';
+import API from '../api';
 
 const Reports = () => {
     const [loading, setLoading] = useState(true);

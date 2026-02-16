@@ -9,7 +9,7 @@ import {
     CalendarCheck,
     MessageSquare
 } from 'lucide-react';
-import API from '../../api';
+import API from '../api';
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
@@ -69,8 +69,8 @@ const Notifications = () => {
                     <div
                         key={notification._id}
                         className={`group p-8 rounded-[32px] border transition-all duration-300 flex items-start gap-6 relative overflow-hidden ${notification.isRead
-                                ? 'bg-white border-slate-100 opacity-75'
-                                : 'bg-white border-[#63C132]/20 shadow-xl shadow-slate-200/50'
+                            ? 'bg-white border-slate-100 opacity-75'
+                            : 'bg-white border-[#63C132]/20 shadow-xl shadow-slate-200/50'
                             }`}
                     >
                         {!notification.isRead && (
