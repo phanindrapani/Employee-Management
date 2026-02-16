@@ -168,7 +168,7 @@ const AdminDashboard = () => {
                                                 <div className="w-8 h-8 rounded-full bg-[#0B3C5D] text-white flex items-center justify-center font-bold text-xs">
                                                     {leave.user?.name?.charAt(0) || '?'}
                                                 </div>
-                                                <div className="flex-1 min-w-0">
+                                                <div className="flex-1 min-w-0" title={`Reason: ${leave.reason || 'N/A'}`}>
                                                     <p className="text-sm font-bold text-[#0B3C5D] truncate">{leave.user?.name || 'Unknown User'}</p>
                                                     <p className="text-xs text-slate-500 truncate">{new Date(leave.appliedAt).toLocaleDateString()} • {leave.leaveType}</p>
                                                 </div>

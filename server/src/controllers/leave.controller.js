@@ -5,7 +5,7 @@ import { calculateWorkingDays } from '../utils/leaveCalculator.js';
 import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 export const applyLeave = async (req, res) => {
-    const { leaveType, fromDate, toDate, session } = req.body;
+    const { leaveType, fromDate, toDate, session, reason } = req.body;
     const userId = req.user._id;
 
     // 1. Basic validation
@@ -46,6 +46,7 @@ export const applyLeave = async (req, res) => {
         toDate,
         session,
         totalDays,
+        reason,
         status: 'pending',
         attachment: attachmentUrl
     });

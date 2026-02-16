@@ -170,6 +170,9 @@ const LeaveRequests = () => {
                                             <span className="px-3 py-1 bg-[#F4F6F9] text-[#0B3C5D] rounded-full text-[10px] font-black uppercase tracking-wider border border-[#0B3C5D]/5">
                                                 {leave.leaveType}
                                             </span>
+                                            <p className="mt-2 text-[10px] text-slate-500 font-medium line-clamp-2 max-w-[200px]" title={leave.reason}>
+                                                <span className="font-black text-[#0B3C5D]">Reason:</span> {leave.reason || 'No reason provided'}
+                                            </p>
                                             {leave.attachment && (
                                                 <a
                                                     href={leave.attachment}
