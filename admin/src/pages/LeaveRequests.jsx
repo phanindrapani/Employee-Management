@@ -66,7 +66,7 @@ const LeaveRequests = () => {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
+        <div className="space-y-10 text-[#0B3C5D]">
             <div className="flex items-center gap-5">
                 <div className="p-4 bg-[#F0F7FF] text-[#0B3C5D] rounded-2xl shadow-inner">
                     <ClipboardList size={32} />

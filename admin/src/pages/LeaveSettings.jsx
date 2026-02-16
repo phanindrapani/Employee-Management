@@ -42,10 +42,10 @@ const LeaveSettings = () => {
         setSettings(prev => ({ ...prev, [type]: parseInt(val) || 0 }));
     };
 
-    if (loading) return <div className="p-10 text-center text-slate-400">Loading settings...</div>;
+    // if (loading) return <div className="p-10 text-center text-slate-400">Loading settings...</div>;
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
+        <div className="space-y-8 text-[#0B3C5D]">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-[#F0F7FF] rounded-xl text-[#0B3C5D]">
@@ -66,67 +66,73 @@ const LeaveSettings = () => {
                 </button>
             </div>
 
-            <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 max-w-2xl">
-                <h3 className="text-lg font-bold mb-8 flex items-center gap-2">
-                    <Sliders size={20} className="text-[#0B3C5D]" />
-                    Global Leave Quotas (per year)
-                </h3>
+            {loading ? (
+                <div className="flex items-center justify-center p-20 bg-white rounded-[32px] border border-slate-100 max-w-2xl text-slate-400 italic">
+                    Loading Global Policies...
+                </div>
+            ) : (
+                <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 max-w-2xl">
+                    <h3 className="text-lg font-bold mb-8 flex items-center gap-2">
+                        <Sliders size={20} className="text-[#0B3C5D]" />
+                        Global Leave Quotas (per year)
+                    </h3>
 
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <div>
-                            <span className="block font-bold text-slate-700">Casual Leave (CL)</span>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Short unplanned leaves</span>
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div>
+                                <span className="block font-bold text-slate-700">Casual Leave (CL)</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Short unplanned leaves</span>
+                            </div>
+                            <input
+                                type="number"
+                                value={settings.cl}
+                                onChange={(e) => handleChange('cl', e.target.value)}
+                                className="w-24 px-4 py-2 bg-white border border-slate-200 rounded-xl text-center font-black focus:ring-2 focus:ring-[#0B3C5D] outline-none"
+                            />
                         </div>
-                        <input
-                            type="number"
-                            value={settings.cl}
-                            onChange={(e) => handleChange('cl', e.target.value)}
-                            className="w-24 px-4 py-2 bg-white border border-slate-200 rounded-xl text-center font-black focus:ring-2 focus:ring-[#0B3C5D] outline-none"
-                        />
-                    </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <div>
-                            <span className="block font-bold text-slate-700">Sick Leave (SL)</span>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Medical related leaves</span>
+                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div>
+                                <span className="block font-bold text-slate-700">Sick Leave (SL)</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Medical related leaves</span>
+                            </div>
+                            <input
+                                type="number"
+                                value={settings.sl}
+                                onChange={(e) => handleChange('sl', e.target.value)}
+                                className="w-24 px-4 py-2 bg-white border border-slate-200 rounded-xl text-center font-black focus:ring-2 focus:ring-[#0B3C5D] outline-none"
+                            />
                         </div>
-                        <input
-                            type="number"
-                            value={settings.sl}
-                            onChange={(e) => handleChange('sl', e.target.value)}
-                            className="w-24 px-4 py-2 bg-white border border-slate-200 rounded-xl text-center font-black focus:ring-2 focus:ring-[#0B3C5D] outline-none"
-                        />
-                    </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <div>
-                            <span className="block font-bold text-slate-700">Earned Leave (EL)</span>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Planned privilege leaves</span>
+                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div>
+                                <span className="block font-bold text-slate-700">Earned Leave (EL)</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Planned privilege leaves</span>
+                            </div>
+                            <input
+                                type="number"
+                                value={settings.el}
+                                onChange={(e) => handleChange('el', e.target.value)}
+                                className="w-24 px-4 py-2 bg-white border border-slate-200 rounded-xl text-center font-black focus:ring-2 focus:ring-[#0B3C5D] outline-none"
+                            />
                         </div>
-                        <input
-                            type="number"
-                            value={settings.el}
-                            onChange={(e) => handleChange('el', e.target.value)}
-                            className="w-24 px-4 py-2 bg-white border border-slate-200 rounded-xl text-center font-black focus:ring-2 focus:ring-[#0B3C5D] outline-none"
-                        />
-                    </div>
 
-                    {error && (
-                        <div className="p-3 bg-rose-50 text-rose-500 text-xs font-bold rounded-xl text-center">
-                            {error}
+                        {error && (
+                            <div className="p-3 bg-rose-50 text-rose-500 text-xs font-bold rounded-xl text-center">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
+                            <Sliders size={18} className="text-amber-600 shrink-0" />
+                            <p className="text-[11px] text-amber-700 font-medium leading-relaxed">
+                                <strong>Important:</strong> Changing these values will update the global policy.
+                                Individual overrides can still be managed via the Employee Management portal.
+                            </p>
                         </div>
-                    )}
-
-                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
-                        <Sliders size={18} className="text-amber-600 shrink-0" />
-                        <p className="text-[11px] text-amber-700 font-medium leading-relaxed">
-                            <strong>Important:</strong> Changing these values will update the global policy.
-                            Individual overrides can still be managed via the Employee Management portal.
-                        </p>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

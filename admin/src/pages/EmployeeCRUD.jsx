@@ -116,7 +116,7 @@ const EmployeeCRUD = () => {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
+        <div className="space-y-8 text-[#0B3C5D]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-[#F0F7FF] rounded-xl text-[#0B3C5D]">
