@@ -5,6 +5,7 @@ import {
     getTeamLeaves,
     getTeamProjects
 } from '../controllers/team.controller.js';
+import { updateProjectProgress } from '../controllers/project.controller.js';
 import { protect, authorizeRole } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
@@ -16,5 +17,6 @@ router.get('/stats', getTeamDashboardStats);
 router.get('/members', getTeamMembers);
 router.get('/leaves', getTeamLeaves);
 router.get('/projects', getTeamProjects);
+router.put('/projects/:id/progress', authorizeRole(['team-lead', 'admin']), updateProjectProgress);
 
 export default router;

@@ -1,34 +1,49 @@
+import Project from '../models/project.model.js';
 import Task from '../models/task.model.js';
 import User from '../models/user.model.js';
-import Project from '../models/project.model.js';
+import { syncProjectProgress } from '../services/projectProgress.service.js';
+import mongoose from 'mongoose';
 
 /**
  * Assign a new task (Team Lead only)
  */
 export const createTask = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
-        const { project, title, description, assignedTo, deadline, priority } = req.body;
+        const { project: projectId, title, description, assignedTo, deadline, priority, weight } = req.body;
 
-        // Security check: Ensure the assigned user belongs to the same team as the Team Lead
-        const worker = await User.findById(assignedTo);
-        if (!worker) return res.status(404).json({ message: "Assigned user not found" });
+        const worker = await User.findById(assignedTo).session(session);
+        if (!worker) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: "Assigned user not found" });
+        }
 
         if (worker.team?.toString() !== req.user.team?.toString()) {
+            await session.abortTransaction();
             return res.status(403).json({ message: "You can only assign tasks to your own team members" });
         }
 
-        const task = await Task.create({
-            project,
+        const task = await Task.create([{
+            project: projectId,
             title,
             description,
             assignedTo,
             deadline,
-            priority
-        });
+            priority,
+            weight
+        }], { session });
 
-        res.status(201).json(task);
+        // Trigger auto-sync for project
+        await syncProjectProgress(projectId, req.user._id, session);
+
+        await session.commitTransaction();
+        res.status(201).json(task[0]);
     } catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message || "Failed to create task" });
+    } finally {
+        session.endSession();
     }
 };
 
@@ -73,27 +88,40 @@ export const getMyTasks = async (req, res) => {
  * Update task status
  */
 export const updateTaskStatus = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         const { id } = req.params;
         const { status } = req.body;
 
-        const task = await Task.findById(id);
-        if (!task) return res.status(404).json({ message: "Task not found" });
+        const task = await Task.findById(id).session(session);
+        if (!task) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: "Task not found" });
+        }
 
-        // Security: Only assigned user or their TL can update
         const isAssigned = task.assignedTo.toString() === req.user._id.toString();
-        const isTL = req.user.role === 'team-lead' && (await User.findById(task.assignedTo)).team?.toString() === req.user.team?.toString();
+        const worker = await User.findById(task.assignedTo).session(session);
+        const isTL = req.user.role === 'team-lead' && worker.team?.toString() === req.user.team?.toString();
 
         if (!isAssigned && !isTL) {
+            await session.abortTransaction();
             return res.status(403).json({ message: "Not authorized to update this task" });
         }
 
         task.status = status;
-        await task.save();
+        await task.save({ session });
 
+        // Trigger auto-sync for project
+        await syncProjectProgress(task.project, req.user._id, session);
+
+        await session.commitTransaction();
         res.json(task);
     } catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: "Failed to update task" });
+    } finally {
+        session.endSession();
     }
 };
 
@@ -101,20 +129,34 @@ export const updateTaskStatus = async (req, res) => {
  * Delete task (TL only)
  */
 export const deleteTask = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         const { id } = req.params;
-        const task = await Task.findById(id);
-        if (!task) return res.status(404).json({ message: "Task not found" });
+        const task = await Task.findById(id).session(session);
+        if (!task) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: "Task not found" });
+        }
 
-        // Security check
-        const worker = await User.findById(task.assignedTo);
+        const worker = await User.findById(task.assignedTo).session(session);
         if (!worker || worker.team?.toString() !== req.user.team?.toString()) {
+            await session.abortTransaction();
             return res.status(403).json({ message: "You can only delete tasks for your team members" });
         }
 
-        await Task.findByIdAndDelete(id);
+        const projectId = task.project;
+        await Task.findByIdAndDelete(id).session(session);
+
+        // Trigger auto-sync for project
+        await syncProjectProgress(projectId, req.user._id, session);
+
+        await session.commitTransaction();
         res.json({ message: "Task deleted successfully" });
     } catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: "Failed to delete task" });
+    } finally {
+        session.endSession();
     }
 };

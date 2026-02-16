@@ -32,6 +32,23 @@ const TaskDetailsModal = ({ task, onClose }) => {
         }
     };
 
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleUpdateStatus = async (newStatus) => {
+        setIsUpdating(true);
+        setError(null);
+        try {
+            const { data } = await API.patch(`/tasks/${task._id}/status`, { status: newStatus });
+            onUpdate(data);
+            setIsUpdating(false);
+            onClose();
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to update status");
+            setIsUpdating(false);
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}></div>
@@ -91,13 +108,34 @@ const TaskDetailsModal = ({ task, onClose }) => {
                         </div>
                     </div>
 
-                    {/* Actions */}
+                    {/* Update Status Actions */}
+                    <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Update Status</h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {['todo', 'in-progress', 'review', 'done'].map((s) => (
+                                <button
+                                    key={s}
+                                    disabled={isUpdating || task.status === s}
+                                    onClick={() => handleUpdateStatus(s)}
+                                    className={`py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border-2 ${task.status === s
+                                        ? 'bg-[#0B3C5D] text-white border-[#0B3C5D]'
+                                        : 'bg-white text-slate-400 border-slate-100 hover:border-[#63C132] hover:text-[#63C132]'
+                                        }`}
+                                >
+                                    {isUpdating && task.status !== s ? <RefreshCw size={12} className="animate-spin mx-auto" /> : s.replace('-', ' ')}
+                                </button>
+                            ))}
+                        </div>
+                        {error && <p className="text-[10px] text-rose-500 font-bold text-center">{error}</p>}
+                    </div>
+
+                    {/* Footer Actions */}
                     <div className="flex gap-4 pt-4">
                         <button
                             onClick={onClose}
-                            className="flex-1 py-4 bg-[#0B3C5D] text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-[#1a4a6e] shadow-lg shadow-[#0B3C5D]/10 transition-all"
+                            className="flex-1 py-4 bg-slate-100 text-[#0B3C5D] text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all"
                         >
-                            Got it
+                            Dismiss
                         </button>
                     </div>
                 </div>
@@ -244,6 +282,10 @@ const MyTasks = () => {
                 <TaskDetailsModal
                     task={selectedTask}
                     onClose={() => setSelectedTask(null)}
+                    onUpdate={(updatedTask) => {
+                        setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t));
+                        setSelectedTask(updatedTask);
+                    }}
                 />
             )}
         </div>

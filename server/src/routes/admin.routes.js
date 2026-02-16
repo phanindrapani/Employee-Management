@@ -29,6 +29,7 @@ import {
     updateLeaveStatus,
     promoteUserAccount
 } from '../controllers/admin.controller.js';
+import { updateProjectProgress } from '../controllers/project.controller.js';
 import { uploadDocuments } from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
@@ -61,6 +62,7 @@ router.post('/projects', protect, authorizeRole(['admin']), createProject);
 router.get('/projects', protect, authorizeRole(['admin']), getAllProjects);
 router.put('/projects/:id', protect, authorizeRole(['admin']), updateProject);
 router.patch('/projects/:id/status', protect, authorizeRole(['admin']), updateProjectStatus);
+router.put('/projects/:id/progress', protect, authorizeRole(['admin', 'team-lead']), updateProjectProgress);
 router.delete('/projects/:id', protect, authorizeRole(['admin']), deleteProject);
 
 // Holiday Management

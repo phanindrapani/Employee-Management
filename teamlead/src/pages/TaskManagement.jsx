@@ -9,28 +9,212 @@ import {
     Calendar,
     User,
     ClipboardList,
-    ChevronDown
+    ChevronDown,
+    X,
+    Target,
+    Scale,
+    Briefcase,
+    ChevronRight,
+    AlertCircle
 } from 'lucide-react';
 import API from '../api';
 
+const AssignTaskModal = ({ onClose, onSuccess, projects, members }) => {
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        project: '',
+        assignedTo: '',
+        deadline: '',
+        priority: 'medium',
+        weight: 1
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError(null);
+        try {
+            await API.post('/tasks', formData);
+            onSuccess();
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to assign task");
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-[#0B3C5D]/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}></div>
+            <div className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300 border border-slate-100">
+                <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-white">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-50 rounded-2xl text-[#0B3C5D]">
+                            <Plus size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight">Assign Task</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Team Deployment Operations</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-50 text-slate-300 rounded-full transition-all">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-10 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Title</label>
+                        <input
+                            required
+                            type="text"
+                            placeholder="Enter task objective..."
+                            className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10"
+                            value={formData.title}
+                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Project Context</label>
+                            <select
+                                required
+                                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10"
+                                value={formData.project}
+                                onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+                            >
+                                <option value="">Select Project</option>
+                                {projects.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Team Member</label>
+                            <select
+                                required
+                                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10"
+                                value={formData.assignedTo}
+                                onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                            >
+                                <option value="">Select Assignee</option>
+                                {members.map(m => <option key={m._id} value={m._id}>{m.name}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Execution Deadline</label>
+                            <input
+                                required
+                                type="date"
+                                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10"
+                                value={formData.deadline}
+                                onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Priority Matrix</label>
+                            <select
+                                required
+                                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10"
+                                value={formData.priority}
+                                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                            >
+                                <option value="low">Low Priority</option>
+                                <option value="medium">Medium Priority</option>
+                                <option value="high">High Priority</option>
+                                <option value="urgent">Critical/Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="p-6 bg-[#63C132]/5 rounded-[32px] border border-[#63C132]/10 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-[#0B3C5D] uppercase tracking-widest">
+                                <Scale size={14} className="text-[#63C132]" /> Task weight (Impact)
+                            </div>
+                            <div className="flex bg-white px-3 py-1 rounded-xl border border-slate-100">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="10"
+                                    className="w-10 text-center font-black text-sm text-[#0B3C5D] bg-transparent outline-none"
+                                    value={formData.weight}
+                                    onChange={(e) => setFormData({ ...formData, weight: parseInt(e.target.value) || 1 })}
+                                />
+                                <span className="text-[10px] font-black text-slate-300 ml-1">PTS</span>
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-medium italic">
+                            Higher weights exert more influence on the project's overall progress calculation. Standard tasks are 1pt.
+                        </p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Technical Requirements</label>
+                        <textarea
+                            placeholder="Detail task requirements..."
+                            className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10 min-h-[100px]"
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        ></textarea>
+                    </div>
+
+                    {error && (
+                        <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100 flex items-center gap-3 text-rose-500">
+                            <AlertCircle size={18} />
+                            <span className="text-[10px] font-black uppercase tracking-wider">{error}</span>
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-5 bg-[#0B3C5D] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#1A4B6D] transition-all transform hover:scale-[1.02] shadow-xl shadow-[#0B3C5D]/20 flex items-center justify-center gap-3"
+                    >
+                        {isSubmitting ? <RefreshCw className="animate-spin" size={18} /> : (
+                            <>
+                                <CheckCircle2 size={18} />
+                                Confirm Task Assignment
+                            </>
+                        )}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 const TaskManagement = () => {
     const [tasks, setTasks] = useState([]);
+    const [projects, setProjects] = useState([]);
+    const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // all, todo, in-progress, done, overdue
     const [showAssignModal, setShowAssignModal] = useState(false);
 
+    const fetchData = async () => {
+        try {
+            const [tasksRes, projectsRes, membersRes] = await Promise.all([
+                API.get('/tasks/team'),
+                API.get('/team/projects'),
+                API.get('/team/members')
+            ]);
+            setTasks(tasksRes.data);
+            setProjects(projectsRes.data);
+            setMembers(membersRes.data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Fetch data error:", error);
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const { data } = await API.get('/tasks/team');
-                setTasks(data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Fetch tasks error:", error);
-                setLoading(false);
-            }
-        };
-        fetchTasks();
+        fetchData();
     }, []);
 
     const filteredTasks = tasks.filter(task => {
@@ -51,7 +235,7 @@ const TaskManagement = () => {
         }
     };
 
-    if (loading) return <div className="space-y-4 animate-pulse">
+    if (loading) return <div className="space-y-4 animate-pulse p-10">
         <div className="h-20 bg-white rounded-3xl"></div>
         {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-16 bg-white rounded-2xl"></div>)}
     </div>;
@@ -119,7 +303,11 @@ const TaskManagement = () => {
                                 <td className="px-8 py-6">
                                     <div>
                                         <div className="font-bold text-[#0B3C5D] group-hover:text-[#63C132] transition-colors">{task.title}</div>
-                                        <div className="text-xs text-slate-400 font-medium">{task.project?.name}</div>
+                                        <div className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+                                            <Briefcase size={10} /> {task.project?.name}
+                                            <span className="mx-2">•</span>
+                                            <Scale size={10} /> {task.weight || 1} pts
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="px-8 py-6">
@@ -146,7 +334,7 @@ const TaskManagement = () => {
                                 </td>
                                 <td className="px-8 py-6 text-right">
                                     <button className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-white rounded-xl transition-all">
-                                        <ChevronDown size={20} />
+                                        <ChevronRight size={20} />
                                     </button>
                                 </td>
                             </tr>
@@ -198,6 +386,18 @@ const TaskManagement = () => {
                     </div>
                 </div>
             </div>
+
+            {showAssignModal && (
+                <AssignTaskModal
+                    onClose={() => setShowAssignModal(false)}
+                    onSuccess={() => {
+                        setShowAssignModal(false);
+                        fetchData();
+                    }}
+                    projects={projects}
+                    members={members}
+                />
+            )}
         </div>
     );
 };
