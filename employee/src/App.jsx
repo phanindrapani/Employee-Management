@@ -13,6 +13,7 @@ import Unauthorized from './pages/Unauthorized';
 import MyProjects from './pages/Employee/MyProjects';
 import MyTasks from './pages/Employee/MyTasks';
 import Profile from './pages/Employee/Profile';
+import Documents from './pages/Employee/Documents';
 
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
@@ -47,6 +48,7 @@ function App() {
             <Route path="notifications" element={<Notifications />} />
             <Route path="projects" element={<MyProjects />} />
             <Route path="tasks" element={<MyTasks />} />
+            <Route path="documents" element={<Documents />} />
             <Route path="profile" element={<Profile />} />
             <Route path="change-password" element={<ChangePassword />} />
           </Route>

@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import { TEAM_PORTAL_URL } from '../../config';
 import {
     Home,
-    KeyRound,
     LogOut,
     FilePlus2,
     History,
@@ -13,7 +12,9 @@ import {
     LayoutTemplate,
     FolderKanban,
     ClipboardList,
-    UserCircle
+    User,
+    FileText,
+    ShieldCheck
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -26,7 +27,6 @@ const Sidebar = () => {
                 { name: 'Summary', path: '/', icon: Home },
                 { name: 'My Tasks', path: '/tasks', icon: ClipboardList },
                 { name: 'My Projects', path: '/projects', icon: FolderKanban },
-                { name: 'Notifications', path: '/notifications', icon: Bell },
             ]
         },
         {
@@ -40,8 +40,9 @@ const Sidebar = () => {
         {
             title: 'PERSONAL',
             items: [
-                { name: 'My Profile', path: '/profile', icon: UserCircle },
-                { name: 'Security', path: '/change-password', icon: KeyRound },
+                { name: 'My Profile', path: '/profile', icon: User },
+                { name: 'My Documents', path: '/documents', icon: FileText },
+                { name: 'Security', path: '/change-password', icon: ShieldCheck },
             ]
         }
     ];

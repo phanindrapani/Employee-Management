@@ -14,8 +14,8 @@ const DocumentManager = ({ targetUserId }) => {
 
     const effectiveUserId = targetUserId || authUser._id;
     const isOwner = !targetUserId || targetUserId === authUser._id;
-    const canManage = authUser.role === 'admin';
 
+    // Defined Slots for "Clean & Neat" UI
     const documentGroups = [
         {
             title: 'Academic Records',
@@ -51,9 +51,6 @@ const DocumentManager = ({ targetUserId }) => {
             ]
         }
     ];
-
-    const [rejectingDocId, setRejectingDocId] = useState(null);
-    const [rejectionReason, setRejectionReason] = useState('');
 
     useEffect(() => {
         fetchDocuments();
@@ -109,46 +106,6 @@ const DocumentManager = ({ targetUserId }) => {
         }
     };
 
-    const handleVerify = async (docId) => {
-        try {
-            setDocuments(prev => prev.map(d =>
-                d._id === docId ? { ...d, verificationStatus: 'verified' } : d
-            ));
-            await API.put(`/documents/${docId}/verify`);
-            await fetchDocuments();
-        } catch (err) {
-            console.error("Verification failed", err);
-            fetchDocuments();
-        }
-    };
-
-    const initiateReject = (docId) => {
-        setRejectingDocId(docId);
-        setRejectionReason('');
-    };
-
-    const cancelReject = () => {
-        setRejectingDocId(null);
-        setRejectionReason('');
-    };
-
-    const confirmReject = async (docId) => {
-        if (!rejectionReason.trim()) return;
-
-        try {
-            setDocuments(prev => prev.map(d =>
-                d._id === docId ? { ...d, verificationStatus: 'rejected', rejectionReason: rejectionReason } : d
-            ));
-            await API.put(`/documents/${docId}/reject`, { reason: rejectionReason });
-            await fetchDocuments();
-            setRejectingDocId(null);
-            setRejectionReason('');
-        } catch (err) {
-            console.error("Rejection failed", err);
-            fetchDocuments();
-        }
-    };
-
     const getStatusBadge = (status) => {
         switch (status) {
             case 'verified':
@@ -161,13 +118,13 @@ const DocumentManager = ({ targetUserId }) => {
     };
 
     if (loading) return (
-        <div className="space-y-6 animate-pulse p-4">
-            {[1, 2].map(i => <div key={i} className="h-40 bg-slate-50 rounded-[32px]"></div>)}
+        <div className="space-y-6 animate-pulse p-10">
+            {[1, 2, 3].map(i => <div key={i} className="h-40 bg-slate-50 rounded-[32px]"></div>)}
         </div>
     );
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-12 pb-20">
             {documentGroups.map((group, gIdx) => (
                 <div key={gIdx} className="space-y-6">
                     <div className="flex items-center gap-4">
@@ -178,6 +135,7 @@ const DocumentManager = ({ targetUserId }) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {group.slots.map((slot) => {
+                            // Find documents for this specific slot name
                             const slotDocs = documents.filter(d => d.documentName === slot.label);
                             const hasDocs = slotDocs.length > 0;
 
@@ -204,44 +162,21 @@ const DocumentManager = ({ targetUserId }) => {
                                     {hasDocs ? (
                                         <div className="space-y-4">
                                             {slotDocs.map(doc => (
-                                                <div key={doc._id} className="space-y-3">
+                                                <div key={doc._id} className="flex flex-col gap-3">
                                                     <div className="flex items-center justify-between bg-white border border-slate-50 p-3 rounded-2xl shadow-sm">
                                                         <div className="flex items-center gap-3">
                                                             {getStatusBadge(doc.verificationStatus)}
-                                                            <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-[#0B3C5D] transition-colors"><ExternalLink size={16} /></a>
+                                                            <span className="text-[10px] text-slate-400 font-bold">{new Date(doc.createdAt).toLocaleDateString()}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-1">
-                                                            {canManage && doc.verificationStatus === 'pending' && !rejectingDocId && (
-                                                                <>
-                                                                    <button onClick={() => handleVerify(doc._id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Verify"><CheckCircle size={18} /></button>
-                                                                    <button onClick={() => initiateReject(doc._id)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Reject"><XCircle size={18} /></button>
-                                                                </>
-                                                            )}
+                                                        <div className="flex items-center gap-2">
+                                                            <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-[#0B3C5D] transition-colors"><ExternalLink size={16} /></a>
                                                             {isOwner && doc.verificationStatus !== 'verified' && (
                                                                 <button onClick={() => handleDelete(doc._id)} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                                                             )}
                                                         </div>
                                                     </div>
-
-                                                    {rejectingDocId === doc._id && (
-                                                        <div className="p-3 bg-rose-50 rounded-2xl border border-rose-100 space-y-3 animate-in fade-in slide-in-from-top-2">
-                                                            <input
-                                                                type="text"
-                                                                className="w-full px-4 py-2 text-xs border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500/20 outline-none"
-                                                                placeholder="Reason for rejection..."
-                                                                value={rejectionReason}
-                                                                onChange={(e) => setRejectionReason(e.target.value)}
-                                                                autoFocus
-                                                            />
-                                                            <div className="flex gap-2">
-                                                                <button onClick={() => confirmReject(doc._id)} className="flex-1 py-2 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-700">Confirm Reject</button>
-                                                                <button onClick={cancelReject} className="px-4 py-2 bg-white text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200">Cancel</button>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
                                                     {doc.rejectionReason && (
-                                                        <div className="text-[10px] text-rose-600 font-black uppercase tracking-widest bg-rose-50 px-4 py-2 rounded-xl flex items-center gap-2 border border-rose-100">
+                                                        <div className="text-[10px] text-rose-600 font-black uppercase tracking-widest bg-rose-50 px-4 py-2 rounded-xl flex items-center gap-2">
                                                             <AlertTriangle size={12} /> Reason: {doc.rejectionReason}
                                                         </div>
                                                     )}

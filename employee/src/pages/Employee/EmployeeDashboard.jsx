@@ -7,7 +7,6 @@ import {
     CalendarClock,
     History,
     Clock,
-    Bell,
     CheckCircle2,
     XCircle,
     FolderKanban,
@@ -65,7 +64,6 @@ const EmployeeDashboard = () => {
         }
     };
 
-    const unreadNotifications = notifications.filter(n => !n.isRead).length;
     const pendingTasks = tasks.filter(t => t.status !== 'done').length;
     const activeProjects = projects.filter(p => p.status === 'ongoing').length;
 
@@ -94,7 +92,7 @@ const EmployeeDashboard = () => {
             </div>
 
             {/* Main KPI Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div
                     onClick={() => navigate('/leave-history')}
                     className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
@@ -140,22 +138,6 @@ const EmployeeDashboard = () => {
                     <div className="space-y-1">
                         <h3 className="text-3xl font-black text-[#0B3C5D]">{activeProjects}</h3>
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">My Projects</p>
-                    </div>
-                </div>
-
-                <div
-                    onClick={() => navigate('/notifications')}
-                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
-                >
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:scale-110 transition-transform">
-                            <Bell size={24} />
-                        </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2">Unread</span>
-                    </div>
-                    <div className="space-y-1">
-                        <h3 className="text-3xl font-black text-[#0B3C5D]">{unreadNotifications}</h3>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Notifications</p>
                     </div>
                 </div>
             </div>
@@ -245,7 +227,7 @@ const EmployeeDashboard = () => {
                             </div>
                         </div>
                         <div className="space-y-6">
-                            {projects.filter(p => p.status === 'ongoing').slice(0, 2).map(project => (
+                            {projects.filter(p => p.status === 'ongoing').slice(0, 3).map(project => (
                                 <div key={project._id} className="space-y-3">
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-[#0B3C5D]">
                                         <span className="line-clamp-1">{project.name}</span>
@@ -266,22 +248,6 @@ const EmployeeDashboard = () => {
                         >
                             View All Projects
                         </button>
-                    </div>
-
-                    {/* Notifications (Quick View) */}
-                    <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-slate-800">Latest Alerts</h3>
-                            <Bell size={18} className="text-slate-300" />
-                        </div>
-                        <div className="space-y-4">
-                            {notifications.slice(0, 3).map(n => (
-                                <div key={n._id} className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                                    <p className="text-xs font-bold text-[#0B3C5D] line-clamp-2">{n.message}</p>
-                                    <span className="text-[10px] text-slate-400 font-medium mt-1 inline-block">{new Date(n.createdAt).toLocaleDateString()}</span>
-                                </div>
-                            ))}
-                        </div>
                     </div>
                 </div>
             </div>
