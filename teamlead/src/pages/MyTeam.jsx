@@ -10,14 +10,18 @@ import {
 import API from '../api';
 
 const MyTeam = () => {
-    const [members, setMembers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [members, setMembers] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_team_members');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(members.length === 0);
 
     useEffect(() => {
         const fetchTeamMembers = async () => {
             try {
                 const { data } = await API.get('/team/members');
                 setMembers(data);
+                localStorage.setItem('ls_tl_team_members', JSON.stringify(data));
                 setLoading(false);
             } catch (error) {
                 console.error("Fetch team members error:", error);

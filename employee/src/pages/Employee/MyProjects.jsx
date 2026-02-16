@@ -202,8 +202,11 @@ const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
 };
 
 const MyProjects = () => {
-    const [projects, setProjects] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [projects, setProjects] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_projects_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(projects.length === 0);
     const [selectedProject, setSelectedProject] = useState(null);
 
     useEffect(() => {
@@ -212,6 +215,7 @@ const MyProjects = () => {
                 // Fetch projects assigned to the employee's team
                 const { data } = await API.get('/team/projects');
                 setProjects(data);
+                localStorage.setItem('ls_emp_projects_list', JSON.stringify(data));
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching projects:", error);

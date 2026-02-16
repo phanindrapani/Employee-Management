@@ -24,6 +24,7 @@ const ApplyLeave = () => {
         try {
             const { data } = await API.get('/auth/profile');
             setUser(data);
+            localStorage.setItem('ls_emp_profile_sync', JSON.stringify(data));
         } catch (err) {
             console.error('Failed to sync balances:', err.response?.data || err.message);
         } finally {

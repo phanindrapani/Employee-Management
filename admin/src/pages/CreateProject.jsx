@@ -4,8 +4,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import API from '../api';
 
 const CreateProject = () => {
-    const [teams, setTeams] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [teams, setTeams] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_teams_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(teams.length === 0);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -26,9 +29,11 @@ const CreateProject = () => {
             try {
                 const { data: teamsData } = await API.get('/admin/teams');
                 setTeams(teamsData);
+                localStorage.setItem('ls_admin_teams_list', JSON.stringify(teamsData));
 
                 if (isEdit) {
                     const { data: projectData } = await API.get('/admin/projects');
+                    localStorage.setItem('ls_admin_projects_list', JSON.stringify(projectData));
                     const project = projectData.find(p => p._id === id);
                     if (project) {
                         setFormData({
@@ -49,6 +54,27 @@ const CreateProject = () => {
                 setLoading(false);
             }
         };
+
+        // Populate from cache if editing and projects are already cached
+        if (isEdit) {
+            const cachedProjects = localStorage.getItem('ls_admin_projects_list');
+            if (cachedProjects) {
+                const project = JSON.parse(cachedProjects).find(p => p._id === id);
+                if (project) {
+                    setFormData({
+                        name: project.name,
+                        description: project.description,
+                        priority: project.priority,
+                        startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
+                        endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+                        assignedTeam: project.assignedTeam?._id || project.assignedTeam,
+                        status: project.status,
+                        progress: project.progress
+                    });
+                }
+            }
+        }
+
         fetchData();
     }, [id, isEdit]);
 

@@ -3,14 +3,28 @@ import API from '../api';
 import { Users2, Plus, Trash2, X, UserCheck, ShieldCheck, Pencil } from 'lucide-react';
 
 const TeamManagement = () => {
-    const [teams, setTeams] = useState([]);
-    const [departments, setDepartments] = useState([]);
-    const [employees, setEmployees] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [teams, setTeams] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_teams_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [departments, setDepartments] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_departments_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [employees, setEmployees] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_employees_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(teams.length === 0);
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({ name: '', department: '', teamLead: '', members: [] });
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        department: '',
+        teamLead: '',
+        members: []
+    });
 
     const fetchData = async () => {
         try {
@@ -22,6 +36,9 @@ const TeamManagement = () => {
             setTeams(teamsRes.data);
             setDepartments(deptsRes.data);
             setEmployees(empsRes.data);
+            localStorage.setItem('ls_admin_teams_list', JSON.stringify(teamsRes.data));
+            localStorage.setItem('ls_admin_departments_list', JSON.stringify(deptsRes.data));
+            localStorage.setItem('ls_admin_employees_list', JSON.stringify(empsRes.data));
         } catch (err) {
             console.error('Failed to fetch data');
         } finally {

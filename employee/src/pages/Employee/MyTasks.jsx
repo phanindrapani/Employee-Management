@@ -146,8 +146,11 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
 };
 
 const MyTasks = () => {
-    const [tasks, setTasks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [tasks, setTasks] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_my_tasks');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(tasks.length === 0);
     const [selectedTask, setSelectedTask] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -159,6 +162,7 @@ const MyTasks = () => {
                 // Fetch tasks assigned to the current employee
                 const { data } = await API.get('/tasks/my');
                 setTasks(data);
+                localStorage.setItem('ls_emp_my_tasks', JSON.stringify(data));
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching tasks:", error);
@@ -211,7 +215,7 @@ const MyTasks = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-100 pb-6">
                 <div>
                     <h1 className="text-4xl font-black text-slate-800 tracking-tight mb-2">My Tasks</h1>
-                    <p className="text-slate-500 font-medium text-sm italic">Individual action items and deadlines</p>
+                    <p className="text-slate-500 font-medium text-sm italic">Individual action items • Synced from Cloud</p>
                 </div>
 
                 <div className="flex gap-3 w-full md:w-auto">

@@ -12,7 +12,10 @@ import {
 } from 'lucide-react';
 
 const HolidayManagement = () => {
-    const [holidays, setHolidays] = useState([]);
+    const [holidays, setHolidays] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_holidays_list');
+        return cached ? JSON.parse(cached) : [];
+    });
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [formData, setFormData] = useState({
         name: '',
@@ -20,13 +23,17 @@ const HolidayManagement = () => {
         description: ''
     });
     const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(holidays.length === 0);
 
     const fetchHolidays = async () => {
         try {
             const { data } = await API.get('/admin/holidays');
             setHolidays(data);
+            localStorage.setItem('ls_admin_holidays_list', JSON.stringify(data));
         } catch (err) {
             console.error('Failed to fetch holidays');
+        } finally {
+            setFetching(false);
         }
     };
 

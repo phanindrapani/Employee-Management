@@ -21,16 +21,19 @@ import API from '../../api';
 
 const Profile = () => {
     const { user: authUser } = useAuth();
-    const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [profile, setProfile] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_profile');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [loading, setLoading] = useState(!profile);
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const { data } = await API.get('/auth/profile');
-                console.log("[DEBUG] Frontend Profile Data:", data);
                 setProfile(data);
+                localStorage.setItem('ls_emp_profile', JSON.stringify(data));
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching profile:", error);

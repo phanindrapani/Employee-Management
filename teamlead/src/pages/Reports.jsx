@@ -24,28 +24,44 @@ import {
 import API from '../api';
 
 const Reports = () => {
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_reports_data');
+        return !cached;
+    });
 
     // Mock data for analytics - in a real app, this would come from /api/team/analytics
-    const productivityData = [
-        { name: 'Mon', tasks: 12, efficiency: 75 },
-        { name: 'Tue', tasks: 18, efficiency: 82 },
-        { name: 'Wed', tasks: 15, efficiency: 88 },
-        { name: 'Thu', tasks: 22, efficiency: 92 },
-        { name: 'Fri', tasks: 20, efficiency: 85 },
-    ];
+    const [productivityData, setProductivityData] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_prod_data');
+        return cached ? JSON.parse(cached) : [
+            { name: 'Mon', tasks: 12, efficiency: 75 },
+            { name: 'Tue', tasks: 18, efficiency: 82 },
+            { name: 'Wed', tasks: 15, efficiency: 88 },
+            { name: 'Thu', tasks: 22, efficiency: 92 },
+            { name: 'Fri', tasks: 20, efficiency: 85 },
+        ];
+    });
 
-    const contributionData = [
-        { name: 'John Doe', value: 35 },
-        { name: 'Sarah Smith', value: 25 },
-        { name: 'Mike Ross', value: 20 },
-        { name: 'Rachel Zane', value: 20 },
-    ];
+    const [contributionData, setContributionData] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_cont_data');
+        return cached ? JSON.parse(cached) : [
+            { name: 'John Doe', value: 35 },
+            { name: 'Sarah Smith', value: 25 },
+            { name: 'Mike Ross', value: 20 },
+            { name: 'Rachel Zane', value: 20 },
+        ];
+    });
 
     const COLORS = ['#0B3C5D', '#63C132', '#1A4B6D', '#74D144'];
 
     useEffect(() => {
-        setTimeout(() => setLoading(false), 1000);
+        // Simulate background sync
+        const syncData = setTimeout(() => {
+            localStorage.setItem('ls_tl_reports_data', 'true');
+            localStorage.setItem('ls_tl_prod_data', JSON.stringify(productivityData));
+            localStorage.setItem('ls_tl_cont_data', JSON.stringify(contributionData));
+            setLoading(false);
+        }, 1000);
+        return () => clearTimeout(syncData);
     }, []);
 
     if (loading) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-pulse">

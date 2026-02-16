@@ -11,14 +11,18 @@ import {
 } from 'lucide-react';
 
 const LeaveHistory = () => {
-    const [leaves, setLeaves] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [leaves, setLeaves] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_leaves_history');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(leaves.length === 0);
     const [filterStatus, setFilterStatus] = useState('all');
 
     const fetchLeaves = async () => {
         try {
             const { data } = await API.get('/leaves');
             setLeaves(data);
+            localStorage.setItem('ls_emp_leaves_history', JSON.stringify(data));
         } catch (err) {
             console.error('Failed to fetch leaves');
         } finally {

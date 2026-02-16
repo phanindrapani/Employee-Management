@@ -6,17 +6,20 @@ import { User, Mail, Phone, Shield, Camera, Save, X } from 'lucide-react';
 
 const Profile = () => {
     const { user: authUser, login } = useAuth();
-    const [profile, setProfile] = useState(null);
+    const [profile, setProfile] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_profile');
+        return cached ? JSON.parse(cached) : null;
+    });
     const [isEditing, setIsEditing] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!profile);
     const [activeTab, setActiveTab] = useState('details');
     const [formData, setFormData] = useState({
-        name: '',
-        phone: ''
+        name: profile?.name || '',
+        phone: profile?.phone || ''
     });
 
     const [selectedImage, setSelectedImage] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(profile?.profilePicture || null);
 
     useEffect(() => {
         fetchProfile();
@@ -26,6 +29,7 @@ const Profile = () => {
         try {
             const { data } = await API.get('/auth/profile');
             setProfile(data);
+            localStorage.setItem('ls_admin_profile', JSON.stringify(data));
             setFormData({
                 name: data.name,
                 phone: data.phone || ''

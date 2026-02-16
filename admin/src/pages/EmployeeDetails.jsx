@@ -7,27 +7,19 @@ import DocumentManager from '../components/DocumentManager';
 const EmployeeDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [employee, setEmployee] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [employee, setEmployee] = useState(() => {
+        const cached = localStorage.getItem(`ls_admin_emp_detail_${id}`);
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [loading, setLoading] = useState(!employee);
     const [activeTab, setActiveTab] = useState('documents'); // Default to documents for admin convenience
 
     useEffect(() => {
         const fetchEmployee = async () => {
             try {
-                // We reuse the admin/employees/:id endpoint if it exists or fetch from list
-                // Since there isn't a dedicated single-user fetch for admin in previous controller (only update/delete),
-                // we might need to rely on the generic list or add a get-one endpoint.
-                // However, let's try generic fetch or assume we need to add a controller method.
-                // Wait, admin.controller.js didn't have getEmployeeById. 
-                // I should add it, or just filter from the all-employees list if performance allows, 
-                // but proper way is getById.
-                // For now, I'll use the existing /auth/profile if I could impersonate, but I can't.
-
-                // Let's check admin.controller.js again.
-                // It has getAllEmployees.
-                // I will add getEmployeeById to admin controller quickly.
                 const { data } = await API.get(`/admin/employees/${id}`);
                 setEmployee(data);
+                localStorage.setItem(`ls_admin_emp_detail_${id}`, JSON.stringify(data));
             } catch (err) {
                 console.error("Failed to fetch employee");
             } finally {
@@ -97,8 +89,8 @@ const EmployeeDetails = () => {
                         <button
                             onClick={() => setActiveTab('documents')}
                             className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'documents'
-                                    ? 'bg-white text-[#0B3C5D] shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700'
+                                ? 'bg-white text-[#0B3C5D] shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700'
                                 }`}
                         >
                             <FileText size={16} />
@@ -107,8 +99,8 @@ const EmployeeDetails = () => {
                         <button
                             onClick={() => setActiveTab('details')}
                             className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'details'
-                                    ? 'bg-white text-[#0B3C5D] shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700'
+                                ? 'bg-white text-[#0B3C5D] shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700'
                                 }`}
                         >
                             Details

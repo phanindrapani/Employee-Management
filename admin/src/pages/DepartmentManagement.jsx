@@ -3,8 +3,11 @@ import API from '../api';
 import { Building2, Plus, Trash2, X, Search, Pencil } from 'lucide-react';
 
 const DepartmentManagement = () => {
-    const [departments, setDepartments] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [departments, setDepartments] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_departments_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(departments.length === 0);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({ name: '', description: '' });
     const [isEditing, setIsEditing] = useState(false);
@@ -14,6 +17,7 @@ const DepartmentManagement = () => {
         try {
             const { data } = await API.get('/admin/departments');
             setDepartments(data);
+            localStorage.setItem('ls_admin_departments_list', JSON.stringify(data));
         } catch (err) {
             console.error('Failed to fetch departments');
         } finally {

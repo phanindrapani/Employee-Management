@@ -163,14 +163,18 @@ const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
 };
 
 const TeamProjects = () => {
-    const [projects, setProjects] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [projects, setProjects] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_projects_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(projects.length === 0);
     const [selectedProject, setSelectedProject] = useState(null);
 
     const fetchTeamProjects = async () => {
         try {
             const { data } = await API.get('/team/projects');
             setProjects(data);
+            localStorage.setItem('ls_tl_projects_list', JSON.stringify(data));
             setLoading(false);
         } catch (error) {
             console.error("Fetch projects error:", error);

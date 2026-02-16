@@ -12,21 +12,25 @@ import {
 import API from '../api';
 
 const Dashboard = () => {
-    const [stats, setStats] = useState({
-        teamSize: 0,
-        activeProjects: 0,
-        pendingTasks: 0,
-        onLeaveToday: 0,
-        pendingApprovals: 0,
-        weeklyProductivity: 0
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_stats');
+        return cached ? JSON.parse(cached) : {
+            teamSize: 0,
+            activeProjects: 0,
+            pendingTasks: 0,
+            onLeaveToday: 0,
+            pendingApprovals: 0,
+            weeklyProductivity: 0
+        };
     });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!stats.teamSize && !stats.activeProjects);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
                 const { data } = await API.get('/team/stats');
                 setStats(data);
+                localStorage.setItem('ls_tl_stats', JSON.stringify(data));
                 setLoading(false);
             } catch (error) {
                 console.error("Dashboard fetch error:", error);

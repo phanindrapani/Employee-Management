@@ -16,6 +16,25 @@ import { useAuth } from '../context/AuthContext';
 
 const MyProfile = () => {
     const { user } = useAuth();
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_profile_stats');
+        return cached ? JSON.parse(cached) : {
+            reliability: 98.4,
+            velocity: 12.5,
+            tenure: '4.2 Years'
+        };
+    });
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        // Sync stats - in real app would be API.get('/team/my-performance')
+        const syncStats = setTimeout(() => {
+            const newStats = { ...stats, reliability: 98.4 };
+            setStats(newStats);
+            localStorage.setItem('ls_tl_profile_stats', JSON.stringify(newStats));
+        }, 1000);
+        return () => clearTimeout(syncStats);
+    }, []);
 
     if (!user) return null;
 
@@ -142,7 +161,7 @@ const MyProfile = () => {
                                         <Calendar size={24} />
                                     </div>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Service Sync</p>
-                                    <p className="text-3xl font-black text-[#0B3C5D]">4.2 Years</p>
+                                    <p className="text-3xl font-black text-[#0B3C5D]">{stats.tenure}</p>
                                 </div>
                                 <div className="absolute -bottom-4 -right-4 text-[#63C132]/5 group-hover:scale-110 transition-transform">
                                     <Calendar size={120} />
@@ -161,7 +180,7 @@ const MyProfile = () => {
                                 <CheckCircle2 size={32} className="text-[#63C132]" />
                                 <div>
                                     <div className="text-[9px] font-black uppercase tracking-widest text-white/40">Reliability Score</div>
-                                    <div className="text-3xl font-black">98.4</div>
+                                    <div className="text-3xl font-black">{stats.reliability}</div>
                                 </div>
                             </div>
                         </div>

@@ -12,14 +12,18 @@ import {
 import API from '../api';
 
 const LeaveOverview = () => {
-    const [leaves, setLeaves] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [leaves, setLeaves] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_leave_requests');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(leaves.length === 0);
 
     useEffect(() => {
         const fetchTeamLeaves = async () => {
             try {
                 const { data } = await API.get('/team/leaves');
                 setLeaves(data);
+                localStorage.setItem('ls_tl_leave_requests', JSON.stringify(data));
                 setLoading(false);
             } catch (error) {
                 console.error("Fetch leaves error:", error);

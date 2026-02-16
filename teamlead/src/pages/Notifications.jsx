@@ -12,14 +12,18 @@ import {
 import API from '../api';
 
 const Notifications = () => {
-    const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [notifications, setNotifications] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_notifications');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(notifications.length === 0);
 
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
                 const { data } = await API.get('/notifications');
                 setNotifications(data);
+                localStorage.setItem('ls_tl_notifications', JSON.stringify(data));
                 setLoading(false);
             } catch (error) {
                 console.error("Fetch notifications error:", error);

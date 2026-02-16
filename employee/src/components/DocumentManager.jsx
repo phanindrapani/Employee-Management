@@ -8,12 +8,15 @@ import {
 
 const DocumentManager = ({ targetUserId }) => {
     const { user: authUser } = useAuth();
-    const [documents, setDocuments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [uploading, setUploading] = useState(false);
+    const effectiveUserId = targetUserId || authUser?._id;
+    const isOwner = !targetUserId || (authUser && targetUserId === authUser._id);
 
-    const effectiveUserId = targetUserId || authUser._id;
-    const isOwner = !targetUserId || targetUserId === authUser._id;
+    const [documents, setDocuments] = useState(() => {
+        const cached = localStorage.getItem(`ls_docs_${effectiveUserId}`);
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(documents.length === 0);
+    const [uploading, setUploading] = useState(false);
 
     // Defined Slots for "Clean & Neat" UI
     const documentGroups = [
@@ -57,11 +60,12 @@ const DocumentManager = ({ targetUserId }) => {
     }, [effectiveUserId]);
 
     const fetchDocuments = async () => {
+        if (!effectiveUserId) return;
         try {
-            setLoading(true);
             const params = targetUserId ? { userId: targetUserId } : {};
             const { data } = await API.get('/documents', { params });
             setDocuments(data);
+            localStorage.setItem(`ls_docs_${effectiveUserId}`, JSON.stringify(data));
         } catch (err) {
             console.error("Failed to load documents", err);
         } finally {

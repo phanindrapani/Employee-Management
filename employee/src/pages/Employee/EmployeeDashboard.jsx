@@ -16,12 +16,17 @@ import {
 const EmployeeDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [leaves, setLeaves] = useState([]);
-    const [balance, setBalance] = useState({ cl: 0, sl: 0, el: 0 });
-    const [notifications, setNotifications] = useState([]);
-    const [tasks, setTasks] = useState([]);
-    const [projects, setProjects] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [cachedData] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_dashboard_agg');
+        return cached ? JSON.parse(cached) : null;
+    });
+
+    const [leaves, setLeaves] = useState(cachedData?.leaves || []);
+    const [balance, setBalance] = useState(cachedData?.balance || { cl: 0, sl: 0, el: 0 });
+    const [notifications, setNotifications] = useState(cachedData?.notifications || []);
+    const [tasks, setTasks] = useState(cachedData?.tasks || []);
+    const [projects, setProjects] = useState(cachedData?.projects || []);
+    const [loading, setLoading] = useState(!cachedData);
 
     const fetchDashboardData = async () => {
         try {
@@ -33,14 +38,15 @@ const EmployeeDashboard = () => {
                 API.get('/team/projects')
             ]);
 
-            if (leavesResult.status === 'fulfilled') setLeaves(leavesResult.value.data);
-            if (notifResult.status === 'fulfilled') setNotifications(notifResult.value.data);
-            if (userResult.status === 'fulfilled') {
-                const userData = userResult.value.data;
-                if (userData && userData.leaveBalance) setBalance(userData.leaveBalance);
-            }
-            if (tasksResult.status === 'fulfilled') setTasks(tasksResult.value.data);
-            if (projectsResult.status === 'fulfilled') setProjects(projectsResult.value.data);
+            const freshCache = {
+                leaves: leavesResult.status === 'fulfilled' ? leavesResult.value.data : (cachedData?.leaves || []),
+                notifications: notifResult.status === 'fulfilled' ? notifResult.value.data : (cachedData?.notifications || []),
+                balance: userResult.status === 'fulfilled' ? userResult.value.data?.leaveBalance : (cachedData?.balance || { cl: 0, sl: 0, el: 0 }),
+                tasks: tasksResult.status === 'fulfilled' ? tasksResult.value.data : (cachedData?.tasks || []),
+                projects: projectsResult.status === 'fulfilled' ? projectsResult.value.data : (cachedData?.projects || [])
+            };
+
+            localStorage.setItem('ls_emp_dashboard_agg', JSON.stringify(freshCache));
 
         } catch (err) {
             console.error('Unexpected error in dashboard fetch:', err);

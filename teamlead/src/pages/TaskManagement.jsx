@@ -189,10 +189,19 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members }) => {
 };
 
 const TaskManagement = () => {
-    const [tasks, setTasks] = useState([]);
-    const [projects, setProjects] = useState([]);
-    const [members, setMembers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [tasks, setTasks] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_tasks_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [projects, setProjects] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_projects_brief');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [members, setMembers] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_team_members');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(tasks.length === 0 && projects.length === 0);
     const [filter, setFilter] = useState('all'); // all, todo, in-progress, done, overdue
     const [showAssignModal, setShowAssignModal] = useState(false);
 
@@ -206,6 +215,11 @@ const TaskManagement = () => {
             setTasks(tasksRes.data);
             setProjects(projectsRes.data);
             setMembers(membersRes.data);
+
+            localStorage.setItem('ls_tl_tasks_list', JSON.stringify(tasksRes.data));
+            localStorage.setItem('ls_tl_projects_brief', JSON.stringify(projectsRes.data));
+            localStorage.setItem('ls_tl_team_members', JSON.stringify(membersRes.data));
+
             setLoading(false);
         } catch (error) {
             console.error("Fetch data error:", error);

@@ -25,8 +25,11 @@ import {
 } from 'recharts';
 
 const PerformanceDashboard = () => {
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_perf_stats');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [loading, setLoading] = useState(!stats);
     const [calculating, setCalculating] = useState(false);
 
     useEffect(() => {
@@ -39,6 +42,7 @@ const PerformanceDashboard = () => {
             const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             const res = await API.get(`/admin/performance/dashboard?period=${period}`);
             setStats(res.data);
+            localStorage.setItem('ls_admin_perf_stats', JSON.stringify(res.data));
         } catch (error) {
             console.error("Failed to fetch dashboard stats", error);
         } finally {

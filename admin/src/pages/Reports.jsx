@@ -26,24 +26,28 @@ import {
 
 const Reports = () => {
     const navigate = useNavigate();
-    const [reportData, setReportData] = useState({
-        summary: {
-            totalLeaves: 0,
-            avgDuration: 0,
-            mostCommonType: 'N/A',
-            utilizationRate: 0
-        },
-        monthlyData: [],
-        employeeStats: [],
-        leaveDistribution: []
+    const [reportData, setReportData] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_reports_data');
+        return cached ? JSON.parse(cached) : {
+            summary: {
+                totalLeaves: 0,
+                avgDuration: 0,
+                mostCommonType: 'N/A',
+                utilizationRate: 0
+            },
+            monthlyData: [],
+            employeeStats: [],
+            leaveDistribution: []
+        };
     });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!reportData.monthlyData?.length);
 
     useEffect(() => {
         const fetchReports = async () => {
             try {
                 const { data } = await API.get('/admin/reports');
                 setReportData(data);
+                localStorage.setItem('ls_admin_reports_data', JSON.stringify(data));
             } catch (err) {
                 console.error('Failed to fetch reports');
             } finally {

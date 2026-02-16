@@ -4,14 +4,18 @@ import API from '../api';
 import { FolderKanban, Plus, MoreVertical, Calendar, Users2, Activity, Trash2, Pencil } from 'lucide-react';
 
 const ProjectManagement = () => {
-    const [projects, setProjects] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [projects, setProjects] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_projects_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(projects.length === 0);
     const navigate = useNavigate();
 
     const fetchProjects = async () => {
         try {
             const { data } = await API.get('/admin/projects');
             setProjects(data);
+            localStorage.setItem('ls_admin_projects_list', JSON.stringify(data));
         } catch (err) {
             console.error('Failed to fetch projects');
         } finally {

@@ -3,8 +3,11 @@ import { Settings, Sliders, Save, RefreshCw } from 'lucide-react';
 import API from '../api';
 
 const LeaveSettings = () => {
-    const [settings, setSettings] = useState({ cl: 12, sl: 10, el: 15 });
-    const [loading, setLoading] = useState(true);
+    const [settings, setSettings] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_leave_settings');
+        return cached ? JSON.parse(cached) : { cl: 12, sl: 10, el: 15 };
+    });
+    const [loading, setLoading] = useState(false); // Settings aren't huge, can show old immediately
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 
@@ -17,6 +20,7 @@ const LeaveSettings = () => {
             const { data } = await API.get('/admin/settings/leave');
             if (data && data.value) {
                 setSettings(data.value);
+                localStorage.setItem('ls_admin_leave_settings', JSON.stringify(data.value));
             }
         } catch (err) {
             setError("Failed to load settings");

@@ -3,13 +3,17 @@ import API from '../../api';
 import { Bell, Check, Trash2, Clock } from 'lucide-react';
 
 const Notifications = () => {
-    const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [notifications, setNotifications] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_notifications');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(notifications.length === 0);
 
     const fetchNotifications = async () => {
         try {
             const { data } = await API.get('/notifications');
             setNotifications(data);
+            localStorage.setItem('ls_emp_notifications', JSON.stringify(data));
         } catch (err) {
             console.error('Failed to fetch notifications');
         } finally {

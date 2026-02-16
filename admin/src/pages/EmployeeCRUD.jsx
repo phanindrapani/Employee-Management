@@ -8,10 +8,19 @@ import { useNavigate } from 'react-router-dom';
 
 const EmployeeCRUD = () => {
     const navigate = useNavigate();
-    const [employees, setEmployees] = useState([]);
-    const [departments, setDepartments] = useState([]);
-    const [teams, setTeams] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [employees, setEmployees] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_employees_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [departments, setDepartments] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_departments_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [teams, setTeams] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_teams_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(employees.length === 0);
     const [showModal, setShowModal] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -41,6 +50,9 @@ const EmployeeCRUD = () => {
             setEmployees(empRes.data);
             setDepartments(deptRes.data);
             setTeams(teamRes.data);
+            localStorage.setItem('ls_admin_employees_list', JSON.stringify(empRes.data));
+            localStorage.setItem('ls_admin_departments_list', JSON.stringify(deptRes.data));
+            localStorage.setItem('ls_admin_teams_list', JSON.stringify(teamRes.data));
         } catch (err) {
             console.error('Failed to fetch data');
         } finally {

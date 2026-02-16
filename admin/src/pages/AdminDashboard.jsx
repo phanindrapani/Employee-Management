@@ -35,14 +35,18 @@ import {
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_stats');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [loading, setLoading] = useState(!data);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 const response = await API.get('/admin/stats');
                 setData(response.data);
+                localStorage.setItem('ls_admin_stats', JSON.stringify(response.data));
             } catch (err) {
                 console.error('Failed to fetch dashboard stats');
             } finally {

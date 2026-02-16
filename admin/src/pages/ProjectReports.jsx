@@ -14,21 +14,28 @@ import {
 } from 'recharts';
 
 const ProjectReports = () => {
-    const [projects, setProjects] = useState([]);
-    const [stats, setStats] = useState({
-        total: 0,
-        completed: 0,
-        ongoing: 0,
-        delayed: 0,
-        upcoming: 0
+    const [projects, setProjects] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_projects_list');
+        return cached ? JSON.parse(cached) : [];
     });
-    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_project_reports_stats');
+        return cached ? JSON.parse(cached) : {
+            total: 0,
+            completed: 0,
+            ongoing: 0,
+            delayed: 0,
+            upcoming: 0
+        };
+    });
+    const [loading, setLoading] = useState(projects.length === 0);
 
     useEffect(() => {
         const fetchProjects = async () => {
             try {
                 const { data } = await API.get('/admin/projects');
                 setProjects(data);
+                localStorage.setItem('ls_admin_projects_list', JSON.stringify(data));
 
                 // Calculate stats
                 const total = data.length;
@@ -37,7 +44,9 @@ const ProjectReports = () => {
                 const delayed = data.filter(p => new Date(p.endDate) < new Date() && p.status !== 'completed').length;
                 const upcoming = data.filter(p => p.status === 'upcoming').length;
 
-                setStats({ total, completed, ongoing, delayed, upcoming });
+                const newStats = { total, completed, ongoing, delayed, upcoming };
+                setStats(newStats);
+                localStorage.setItem('ls_admin_project_reports_stats', JSON.stringify(newStats));
             } catch (err) {
                 console.error('Failed to fetch project stats');
             } finally {

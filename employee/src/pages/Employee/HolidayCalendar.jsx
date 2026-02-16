@@ -5,9 +5,15 @@ import { Calendar as CalendarIcon, Info } from 'lucide-react';
 import 'react-calendar/dist/Calendar.css';
 
 const HolidayCalendar = () => {
-    const [holidays, setHolidays] = useState([]);
-    const [leaves, setLeaves] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [holidays, setHolidays] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_holidays');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [leaves, setLeaves] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_leaves_history');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(holidays.length === 0 && leaves.length === 0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -17,8 +23,14 @@ const HolidayCalendar = () => {
                     API.get('/leaves')
                 ]);
 
-                if (holidaysRes.status === 'fulfilled') setHolidays(holidaysRes.value.data);
-                if (leavesRes.status === 'fulfilled') setLeaves(leavesRes.value.data);
+                if (holidaysRes.status === 'fulfilled') {
+                    setHolidays(holidaysRes.value.data);
+                    localStorage.setItem('ls_emp_holidays', JSON.stringify(holidaysRes.value.data));
+                }
+                if (leavesRes.status === 'fulfilled') {
+                    setLeaves(leavesRes.value.data);
+                    localStorage.setItem('ls_emp_leaves_history', JSON.stringify(leavesRes.value.data));
+                }
 
             } catch (err) {
                 console.error('Failed to fetch calendar data');

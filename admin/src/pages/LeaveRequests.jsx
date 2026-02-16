@@ -11,18 +11,21 @@ import {
 } from 'lucide-react';
 
 const LeaveRequests = () => {
-    const [leaves, setLeaves] = useState([]);
+    const [leaves, setLeaves] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_leave_requests');
+        return cached ? JSON.parse(cached) : [];
+    });
     const [filteredLeaves, setFilteredLeaves] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(leaves.length === 0);
     const [rejectionReason, setRejectionReason] = useState('');
     const [selectedId, setSelectedId] = useState(null);
     const [statusFilter, setStatusFilter] = useState('pending');
 
     const fetchRequests = async () => {
-        setLoading(true);
         try {
             const { data } = await API.get('/admin/leaves');
             setLeaves(data);
+            localStorage.setItem('ls_admin_leave_requests', JSON.stringify(data));
         } catch (err) {
             console.error('Failed to fetch requests');
         } finally {
