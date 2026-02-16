@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-    User,
     Mail,
     Phone,
     Briefcase,
@@ -24,6 +23,7 @@ const Profile = () => {
     const { user: authUser } = useAuth();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -39,6 +39,29 @@ const Profile = () => {
         };
         fetchProfile();
     }, []);
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('profilePicture', file);
+
+        setUploading(true);
+        try {
+            const { data } = await API.put('/auth/profile', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            // Update profile with new image (backend returns updated user object)
+            setProfile(prev => ({ ...prev, profilePicture: data.profilePicture }));
+            // Optionally update global auth context if needed, but for now local state is enough for visual feedback
+        } catch (error) {
+            console.error("Error uploading image:", error);
+            alert("Failed to upload image. Please try again.");
+        } finally {
+            setUploading(false);
+        }
+    };
 
     if (loading) return (
         <div className="p-8 animate-pulse space-y-12">
@@ -63,18 +86,31 @@ const Profile = () => {
                     {/* Avatar Section */}
                     <div className="relative group">
                         <div className="w-48 h-48 rounded-[48px] bg-slate-100 border-8 border-white shadow-2xl overflow-hidden relative transform group-hover:scale-105 transition-all duration-500">
-                            {profile?.profilePicture ? (
+                            {uploading ? (
+                                <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                    <div className="w-8 h-8 border-4 border-[#0B3C5D] border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                            ) : profile?.profilePicture ? (
                                 <img src={profile.profilePicture} alt={profile.name} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 text-7xl font-black text-[#0B3C5D] uppercase">
                                     {profile?.name?.charAt(0)}
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-[#0B3C5D]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-sm">
+
+                            {/* Upload Overlay */}
+                            <label className="absolute inset-0 bg-[#0B3C5D]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-sm z-10">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleImageUpload}
+                                    disabled={uploading}
+                                />
                                 <Camera className="text-white" size={32} />
-                            </div>
+                            </label>
                         </div>
-                        <div className="absolute -bottom-2 -right-2 w-14 h-14 bg-[#63C132] rounded-2xl border-4 border-white flex items-center justify-center text-white shadow-xl animate-bounce-subtle">
+                        <div className="absolute -bottom-2 -right-2 w-14 h-14 bg-[#63C132] rounded-2xl border-4 border-white flex items-center justify-center text-white shadow-xl animate-bounce-subtle z-20">
                             <Shield size={24} />
                         </div>
                     </div>

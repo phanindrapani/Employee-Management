@@ -38,7 +38,7 @@ const Topbar = () => {
     };
 
     return (
-        <div className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10">
+        <div className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-50">
             <div className="flex items-center gap-4">
                 <div className="flex items-center mr-6 py-2 border-r border-slate-100 pr-6">
                     <img src={manuenSquare} alt="Logo" className="h-8 w-8 relative z-10" />
