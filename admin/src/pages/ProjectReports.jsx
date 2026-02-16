@@ -6,8 +6,12 @@ import {
     CheckCircle2,
     Clock,
     AlertOctagon,
-    PieChart
+    PieChart as PieChartIcon
 } from 'lucide-react';
+import {
+    Tooltip, ResponsiveContainer,
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, FunnelChart, Funnel, LabelList
+} from 'recharts';
 
 const ProjectReports = () => {
     const [projects, setProjects] = useState([]);
@@ -15,7 +19,8 @@ const ProjectReports = () => {
         total: 0,
         completed: 0,
         ongoing: 0,
-        delayed: 0
+        delayed: 0,
+        upcoming: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -30,8 +35,9 @@ const ProjectReports = () => {
                 const completed = data.filter(p => p.status === 'completed').length;
                 const ongoing = data.filter(p => p.status === 'ongoing').length;
                 const delayed = data.filter(p => new Date(p.endDate) < new Date() && p.status !== 'completed').length;
+                const upcoming = data.filter(p => p.status === 'upcoming').length;
 
-                setStats({ total, completed, ongoing, delayed });
+                setStats({ total, completed, ongoing, delayed, upcoming });
             } catch (err) {
                 console.error('Failed to fetch project stats');
             } finally {
@@ -43,11 +49,29 @@ const ProjectReports = () => {
 
     if (loading) return <div className="text-center py-10 text-slate-400">Loading analytics...</div>;
 
+    const statusData = [
+        { name: 'Completed', value: stats.completed, fill: '#22c55e' },
+        { name: 'Ongoing', value: stats.ongoing, fill: '#3b82f6' },
+        { name: 'Delayed', value: stats.delayed, fill: '#8b5cf6' },
+        { name: 'Upcoming', value: stats.upcoming, fill: '#ef4444' },
+        { name: 'On Hold', value: projects.filter(p => p.status === 'on-hold').length, fill: '#f59e0b' }
+    ].filter(item => item.value > 0);
+
+    const progressData = projects
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)) // Recent first
+        .slice(0, 5)
+        .map(p => ({
+            name: p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name,
+            progress: p.progress,
+            status: p.status,
+            fill: p.status === 'completed' ? '#22c55e' : p.status === 'delayed' ? '#ef4444' : '#0B3C5D'
+        }));
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-[#0B3C5D]">
             <div className="flex items-center gap-4">
                 <div className="p-3 bg-[#F0F7FF] rounded-xl text-[#0B3C5D]">
-                    <PieChart size={32} />
+                    <PieChartIcon size={32} />
                 </div>
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight">Project Analytics</h1>
@@ -59,54 +83,55 @@ const ProjectReports = () => {
                 <StatCard title="Total Projects" value={stats.total} icon={FolderKanban} colorClass="bg-blue-50 text-blue-600" />
                 <StatCard title="Completed" value={stats.completed} icon={CheckCircle2} colorClass="bg-green-50 text-green-600" />
                 <StatCard title="Ongoing" value={stats.ongoing} icon={Clock} colorClass="bg-amber-50 text-amber-600" />
+                <StatCard title="Upcoming" value={stats.upcoming} icon={Clock} colorClass="bg-purple-50 text-purple-600" />
                 <StatCard title="Delayed" value={stats.delayed} icon={AlertOctagon} colorClass="bg-red-50 text-red-600" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-100">
+                {/* Status Distribution Chart */}
+                <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-100 flex flex-col">
                     <h3 className="text-lg font-bold mb-6">Status Distribution</h3>
-                    <div className="space-y-4">
-                        {['completed', 'ongoing', 'on-hold', 'cancelled'].map(status => {
-                            const count = projects.filter(p => p.status === status).length;
-                            const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0;
-                            return (
-                                <div key={status} className="space-y-2">
-                                    <div className="flex justify-between text-sm uppercase font-bold text-slate-500">
-                                        <span>{status}</span>
-                                        <span>{count}</span>
-                                    </div>
-                                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full transition-all duration-1000 ${status === 'completed' ? 'bg-green-500' :
-                                                    status === 'ongoing' ? 'bg-blue-500' :
-                                                        status === 'on-hold' ? 'bg-amber-500' : 'bg-red-500'
-                                                }`}
-                                            style={{ width: `${percentage}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                    <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <FunnelChart>
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Funnel
+                                    dataKey="value"
+                                    data={statusData}
+                                    isAnimationActive
+                                >
+                                    <LabelList position="right" fill="#000" stroke="none" dataKey="name" />
+                                </Funnel>
+                            </FunnelChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-100">
-                    <h3 className="text-lg font-bold mb-6">High Priority Projects</h3>
-                    <div className="space-y-4">
-                        {projects.filter(p => p.priority === 'high').slice(0, 5).map(p => (
-                            <div key={p._id} className="flex justify-between items-center p-3 bg-red-50 rounded-xl border border-red-100">
-                                <div>
-                                    <div className="font-bold text-[#0B3C5D]">{p.name}</div>
-                                    <div className="text-xs text-red-600 font-bold uppercase">{p.status}</div>
-                                </div>
-                                <div className="text-sm font-bold text-[#0B3C5D]">
-                                    {p.progress}%
-                                </div>
-                            </div>
-                        ))}
-                        {projects.filter(p => p.priority === 'high').length === 0 && (
-                            <p className="text-slate-400 italic">No high priority projects</p>
-                        )}
+                {/* Project Progress Chart */}
+                <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-100 flex flex-col">
+                    <h3 className="text-lg font-bold mb-6">Recent Projects Progress</h3>
+                    <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={progressData} layout="vertical" margin={{ left: 20 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                                <XAxis type="number" domain={[0, 100]} hide />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    width={100}
+                                    tick={{ fill: '#64748b', fontSize: 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: '#f1f5f9' }}
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Bar dataKey="progress" fill="#0B3C5D" radius={[0, 4, 4, 0]} barSize={20} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
             </div>

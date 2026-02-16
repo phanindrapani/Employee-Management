@@ -192,17 +192,7 @@ const CreateProject = () => {
                                             <option value="cancelled">Cancelled</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <label className="label">Progress ({formData.progress}%)</label>
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="100"
-                                            className="w-full h-10 accent-[#0B3C5D]"
-                                            value={formData.progress}
-                                            onChange={(e) => setFormData({ ...formData, progress: parseInt(e.target.value) })}
-                                        />
-                                    </div>
+
                                 </div>
                             )}
                         </div>
