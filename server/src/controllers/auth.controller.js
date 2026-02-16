@@ -57,19 +57,23 @@ export const loginUser = async (req, res) => {
 };
 
 export const getUserProfile = async (req, res) => {
-    const user = await User.findById(req.user._id);
+    try {
+        const user = await User.findById(req.user._id)
+            .populate('department', 'name')
+            .populate('team', 'name')
+            .populate('reportingManager', 'name profilePicture')
+            .lean();
 
-    if (user) {
-        res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            leaveBalance: user.leaveBalance,
-            phone: user.phone
-        });
-    } else {
-        res.status(404).json({ message: 'User not found' });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log(`[DEBUG] Profile fetched for ${user.email}, Role: ${user.role}, Experience: ${user.experienceLevel}, Leadership: ${user.leadershipLevel}`);
+
+        res.json(user);
+    } catch (error) {
+        console.error("Get Profile Error:", error);
+        res.status(500).json({ message: "Failed to fetch profile" });
     }
 };
 
