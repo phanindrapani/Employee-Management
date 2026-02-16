@@ -9,8 +9,8 @@ import { protect, authorizeRole } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// All routes require Team Lead or Admin
-router.use(protect, authorizeRole(['team-lead', 'admin']));
+// All routes require Team Member, Team Lead or Admin
+router.use(protect, authorizeRole(['employee', 'team-lead', 'admin']));
 
 router.get('/stats', getTeamDashboardStats);
 router.get('/members', getTeamMembers);

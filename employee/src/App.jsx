@@ -10,6 +10,9 @@ import HolidayCalendar from './pages/Employee/HolidayCalendar';
 import Notifications from './pages/Employee/Notifications';
 import ChangePassword from './pages/ChangePassword';
 import Unauthorized from './pages/Unauthorized';
+import MyProjects from './pages/Employee/MyProjects';
+import MyTasks from './pages/Employee/MyTasks';
+import Profile from './pages/Employee/Profile';
 
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
@@ -42,6 +45,9 @@ function App() {
             <Route path="leave-history" element={<LeaveHistory />} />
             <Route path="holidays" element={<HolidayCalendar />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="projects" element={<MyProjects />} />
+            <Route path="tasks" element={<MyTasks />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="change-password" element={<ChangePassword />} />
           </Route>
         </Routes>

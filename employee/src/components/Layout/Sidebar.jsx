@@ -10,19 +10,40 @@ import {
     History,
     Calendar,
     Bell,
-    LayoutTemplate
+    LayoutTemplate,
+    FolderKanban,
+    ClipboardList,
+    UserCircle
 } from 'lucide-react';
 
 const Sidebar = () => {
     const { user, logout } = useAuth();
 
-    const navItems = [
-        { name: 'Dashboard', path: '/', icon: Home },
-        { name: 'Apply for Leave', path: '/apply-leave', icon: FilePlus2 },
-        { name: 'History', path: '/leave-history', icon: History },
-        { name: 'Holidays', path: '/holidays', icon: Calendar },
-        { name: 'Notifications', path: '/notifications', icon: Bell },
-        { name: 'Security', path: '/change-password', icon: KeyRound },
+    const navSections = [
+        {
+            title: 'DASHBOARD',
+            items: [
+                { name: 'Summary', path: '/', icon: Home },
+                { name: 'My Tasks', path: '/tasks', icon: ClipboardList },
+                { name: 'My Projects', path: '/projects', icon: FolderKanban },
+                { name: 'Notifications', path: '/notifications', icon: Bell },
+            ]
+        },
+        {
+            title: 'LEAVE MANAGEMENT',
+            items: [
+                { name: 'Apply Leave', path: '/apply-leave', icon: FilePlus2 },
+                { name: 'Leave History', path: '/leave-history', icon: History },
+                { name: 'Holidays', path: '/holidays', icon: Calendar },
+            ]
+        },
+        {
+            title: 'PERSONAL',
+            items: [
+                { name: 'My Profile', path: '/profile', icon: UserCircle },
+                { name: 'Security', path: '/change-password', icon: KeyRound },
+            ]
+        }
     ];
 
     return (
@@ -31,35 +52,40 @@ const Sidebar = () => {
                 <span className="text-xl font-black tracking-tighter text-[#63C132]">EMPLOYEE</span>
             </div>
 
-            <nav className="flex-1 px-4 py-4 space-y-1">
-                {navItems.map((item) => (
-                    <NavLink
-                        key={item.name}
-                        to={item.path}
-                        className={({ isActive }) => `
-              flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors
-              ${isActive
-                                ? 'bg-[#1A4B6D] text-white font-medium border-l-4 border-[#63C132]'
-                                : 'text-gray-300 hover:bg-[#1A4B6D] hover:text-white'}
-            `}
-                    >
-                        <div className="flex items-center gap-3">
-                            <item.icon size={20} />
-                            {item.name}
+            <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+                {navSections.map((section) => (
+                    <div key={section.title} className="space-y-1">
+                        <h4 className="px-3 text-[10px] font-bold !text-slate-300 uppercase tracking-[0.2em] mb-2">
+                            {section.title}
+                        </h4>
+                        <div className="space-y-1">
+                            {section.items.map((item) => (
+                                <NavLink
+                                    key={item.name}
+                                    to={item.path}
+                                    className={({ isActive }) => `
+                                        flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+                                        ${isActive
+                                            ? 'bg-[#1A4B6D] text-white font-bold border-l-4 border-[#63C132] shadow-lg shadow-black/10'
+                                            : 'text-gray-300 hover:bg-[#1A4B6D]/50 hover:text-white'}
+                                    `}
+                                >
+                                    <item.icon size={20} />
+                                    <span className="text-sm font-medium">{item.name}</span>
+                                </NavLink>
+                            ))}
                         </div>
-                    </NavLink>
+                    </div>
                 ))}
 
                 {/* Switch to Team Portal for Team Leads */}
                 {user?.role === 'team-lead' && (
                     <button
                         onClick={() => window.location.href = TEAM_PORTAL_URL}
-                        className="flex items-center justify-between px-3 py-2.5 rounded-lg transition-all w-full mt-4 bg-[#63C132]/10 text-[#63C132] font-bold border border-[#63C132]/20 hover:bg-[#63C132] hover:text-white group"
+                        className="flex items-center gap-2 px-2.5 py-2.5 rounded-lg transition-all w-full mt-4 bg-[#63C132]/10 text-[#63C132] font-black uppercase text-[9px] tracking-widest border border-[#63C132]/20 hover:bg-[#63C132] hover:text-white shadow-sm overflow-hidden whitespace-nowrap"
                     >
-                        <div className="flex items-center gap-3">
-                            <LayoutTemplate size={20} className="group-hover:scale-110 transition-transform" />
-                            Switch to Team Portal
-                        </div>
+                        <LayoutTemplate size={16} className="shrink-0" />
+                        <span className="flex-1 text-left">Switch to Team Portal</span>
                     </button>
                 )}
             </nav>
