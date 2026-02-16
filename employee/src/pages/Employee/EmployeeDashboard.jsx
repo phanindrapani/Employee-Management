@@ -8,7 +8,9 @@ import {
     Plane,
     History,
     Clock,
-    Bell
+    Bell,
+    CheckCircle2,
+    XCircle
 } from 'lucide-react';
 
 const EmployeeDashboard = () => {

@@ -10,6 +10,7 @@ import Project from '../models/project.model.js';
 import Leave from '../models/leave.model.js';
 import Holiday from '../models/holiday.model.js';
 import bcrypt from 'bcryptjs';
+import { promoteUser } from '../services/promotion.service.js';
 
 dotenv.config();
 
@@ -62,38 +63,46 @@ const seedData = async () => {
         const beTeam = teams[1];
         const hrTeam = teams[2];
 
-        console.log('🌱 Seeding Team Leads...');
-        // Frontend TL
-        const feLead = await TeamLead.create({
+        console.log('🌱 Seeding Employees (Initial leads)...');
+        // Frontend TL (Created as Employee first)
+        const SarahEmp = await Employee.create({
             name: 'Sarah Jenkins',
             email: 'sarah.tl@ems.com',
             phone: '9876543210',
             password: 'password123',
-            role: 'team-lead',
+            role: 'employee',
             department: engDept._id,
             team: feTeam._id,
             reportingManager: admin._id,
             skills: ['React', 'Leadership', 'Agile'],
-            leadershipLevel: 'Senior',
-            teamPerformanceScore: 85,
-            qualification: 'B.Tech in Computer Science'
+            experienceLevel: 'Senior',
+            qualification: 'B.Tech in Computer Science',
+            leaveBalance: { cl: 12, sl: 10, el: 15 }
         });
 
-        // Backend TL
-        const beLead = await TeamLead.create({
+        // Backend TL (Created as Employee first)
+        const MikeEmp = await Employee.create({
             name: 'Mike Ross',
             email: 'mike.tl@ems.com',
             phone: '9876543211',
             password: 'password123',
-            role: 'team-lead',
+            role: 'employee',
             department: engDept._id,
             team: beTeam._id,
             reportingManager: admin._id,
             skills: ['Node.js', 'MongoDB', 'Architecture'],
-            leadershipLevel: 'Mid',
-            teamPerformanceScore: 90,
-            qualification: 'M.Tech in Software Engineering'
+            experienceLevel: 'Mid',
+            qualification: 'M.Tech in Software Engineering',
+            leaveBalance: { cl: 12, sl: 10, el: 15 }
         });
+
+        console.log('🚀 Promoting Sarah and Mike to Team Leads...');
+        const feLead = await promoteUser(SarahEmp._id, 'team-lead');
+        const beLead = await promoteUser(MikeEmp._id, 'team-lead');
+
+        // Fine-tune TL properties that might differ from defaults
+        await User.findByIdAndUpdate(feLead._id, { leadershipLevel: 'Senior', teamPerformanceScore: 85 });
+        await User.findByIdAndUpdate(beLead._id, { leadershipLevel: 'Mid', teamPerformanceScore: 90 });
 
         // Update Teams with Team Leads
         feTeam.teamLead = feLead._id;
@@ -114,7 +123,7 @@ const seedData = async () => {
                 reportingManager: feLead._id,
                 skills: ['HTML', 'CSS', 'React'],
                 experienceLevel: 'Junior',
-                leaveBalance: { casual: 10, sick: 10, earned: 15 },
+                leaveBalance: { cl: 10, sl: 10, el: 15 },
                 qualification: 'B.E. in Information Technology'
             },
             {
@@ -128,7 +137,7 @@ const seedData = async () => {
                 reportingManager: feLead._id,
                 skills: ['Vue', 'Design'],
                 experienceLevel: 'Mid',
-                leaveBalance: { casual: 12, sick: 8, earned: 10 },
+                leaveBalance: { cl: 12, sl: 8, el: 10 },
                 qualification: 'B.Des in Interaction Design'
             },
             {
@@ -142,7 +151,7 @@ const seedData = async () => {
                 reportingManager: beLead._id,
                 skills: ['Express', 'SQL'],
                 experienceLevel: 'Senior',
-                leaveBalance: { casual: 5, sick: 5, earned: 20 },
+                leaveBalance: { cl: 5, sl: 5, el: 20 },
                 qualification: 'B.Tech in Computer Science'
             }
         ]);
@@ -195,7 +204,7 @@ const seedData = async () => {
                 leaveType: 'CL',
                 fromDate: new Date('2026-02-10'),
                 toDate: new Date('2026-02-12'),
-                totalDays: 2,
+                totalDays: 3,
                 status: 'approved',
                 appliedAt: new Date('2026-02-05')
             },

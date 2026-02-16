@@ -266,9 +266,9 @@ export const createEmployee = async (req, res) => {
             skills: parseSkills(skills),
             experienceLevel,
             leaveBalance: {
-                casual: req.body.casual ? parseInt(req.body.casual) : 12,
-                sick: req.body.sick ? parseInt(req.body.sick) : 10,
-                earned: req.body.earned ? parseInt(req.body.earned) : 15
+                cl: req.body.cl ? parseInt(req.body.cl) : 12,
+                sl: req.body.sl ? parseInt(req.body.sl) : 10,
+                el: req.body.el ? parseInt(req.body.el) : 15
             },
             qualification: req.body.qualification || ''
         });
@@ -324,11 +324,11 @@ export const updateEmployee = async (req, res) => {
         }
 
         // Handle Leave Balance
-        if (updateData.casual !== undefined || updateData.sick !== undefined || updateData.earned !== undefined) {
+        if (updateData.cl !== undefined || updateData.sl !== undefined || updateData.el !== undefined) {
             updateData.leaveBalance = {
-                casual: updateData.casual !== undefined ? parseInt(updateData.casual) : user.leaveBalance?.casual || 12,
-                sick: updateData.sick !== undefined ? parseInt(updateData.sick) : user.leaveBalance?.sick || 10,
-                earned: updateData.earned !== undefined ? parseInt(updateData.earned) : user.leaveBalance?.earned || 15
+                cl: updateData.cl !== undefined ? parseInt(updateData.cl) : user.leaveBalance?.cl || 12,
+                sl: updateData.sl !== undefined ? parseInt(updateData.sl) : user.leaveBalance?.sl || 10,
+                el: updateData.el !== undefined ? parseInt(updateData.el) : user.leaveBalance?.el || 15
             };
         }
 

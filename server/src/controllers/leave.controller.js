@@ -26,9 +26,9 @@ export const applyLeave = async (req, res) => {
 
     // 3. Balance check
     const user = await User.findById(userId);
-    const type = leaveType.toLowerCase();
+    const balanceKey = leaveType.toLowerCase();
 
-    if (type !== 'lop' && user.leaveBalance[type] < totalDays) {
+    if (balanceKey !== 'lop' && user.leaveBalance[balanceKey] < totalDays) {
         return res.status(400).json({ message: `Insufficient ${leaveType} balance` });
     }
 
@@ -92,18 +92,18 @@ export const updateLeaveStatus = async (req, res) => {
     // Deduct balance if approved
     if (status === 'approved') {
         const user = await User.findById(leave.user._id);
-        const type = leave.leaveType.toLowerCase(); // cl, sl, el, lop
+        const balanceKey = leave.leaveType.toLowerCase(); // cl, sl, el
 
-        if (type !== 'lop') {
-            const currentBalance = user.leaveBalance[type] || 0;
+        if (balanceKey !== 'lop') {
+            const currentBalance = user.leaveBalance[balanceKey] || 0;
             if (currentBalance >= leave.totalDays) {
-                user.leaveBalance[type] = currentBalance - leave.totalDays;
+                user.leaveBalance[balanceKey] = currentBalance - leave.totalDays;
                 await user.save();
 
                 // Also update Employee model for consistency in Admin view
                 await (await import('../models/employee.model.js')).default.findOneAndUpdate(
                     { email: user.email },
-                    { [`leaveBalance.${type}`]: user.leaveBalance[type] }
+                    { [`leaveBalance.${balanceKey}`]: user.leaveBalance[balanceKey] }
                 );
             } else {
                 // This shouldn't happen due to frontend validation, but stay safe

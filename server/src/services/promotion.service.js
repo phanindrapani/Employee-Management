@@ -47,7 +47,6 @@ export const promoteUser = async (id, targetRole, session = null) => {
                 teamPerformanceScore: 0
             };
             unset = {
-                leaveBalance: "",
                 experienceLevel: ""
             };
         }
@@ -56,7 +55,7 @@ export const promoteUser = async (id, targetRole, session = null) => {
         else if (targetRole === 'employee') {
             update = {
                 ...update,
-                leaveBalance: user.leaveBalance || { casual: 12, sick: 10, earned: 15 },
+                leaveBalance: user.leaveBalance || { cl: 12, sl: 10, el: 15 },
                 experienceLevel: user.experienceLevel || 'Junior'
             };
             unset = {

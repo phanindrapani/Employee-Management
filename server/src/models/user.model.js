@@ -61,6 +61,11 @@ const userSchema = new mongoose.Schema({
     qualification: {
         type: String,
         default: ''
+    },
+    leaveBalance: {
+        cl: { type: Number, default: 12 },
+        sl: { type: Number, default: 10 },
+        el: { type: Number, default: 15 }
     }
 }, baseOptions);
 
@@ -123,11 +128,6 @@ const TeamLead = User.discriminator('team-lead', new mongoose.Schema({
 
 // EMPLOYEE DISCRIMINATOR
 const Employee = User.discriminator('employee', new mongoose.Schema({
-    leaveBalance: {
-        casual: { type: Number, default: 12 },
-        sick: { type: Number, default: 10 },
-        earned: { type: Number, default: 15 }
-    },
     skills: [{
         type: String
     }],
