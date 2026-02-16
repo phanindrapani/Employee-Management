@@ -1,4 +1,5 @@
-import User from '../models/user.model.js'; // Trigger restart
+import mongoose from 'mongoose';
+import User from '../models/user.model.js';
 import Leave from '../models/leave.model.js';
 import Holiday from '../models/holiday.model.js';
 import Department from '../models/department.model.js';
@@ -8,172 +9,186 @@ import Task from '../models/task.model.js';
 import { promoteUser } from '../services/promotion.service.js';
 import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
+// ==================================================
+// DASHBOARD STATS (Aggregations)
+// ==================================================
 export const getDashboardStats = async (req, res) => {
     try {
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Start of today
-
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const startOfYear = new Date(today.getFullYear(), 0, 1);
-        const nextTwoWeeks = new Date(today);
-        nextTwoWeeks.setDate(today.getDate() + 14); // Expand to 14 days
 
-        // 1. Organization Stats
-        const totalEmployees = await User.countDocuments({ role: { $ne: 'admin' } });
-        const totalDepartments = await Department.countDocuments();
-        const totalTeams = await Team.countDocuments();
+        // 1. Basic Counts and Parallel Aggregations
+        const [
+            totalEmployees,
+            totalTeams,
+            totalDepartments,
+            projectAgg,
+            leaveAgg,
+            monthlyTrendAgg,
+            distributionAgg,
+            holidayStats,
+            pendingLeaves,
+            upcomingDeadlines,
+            recentTasks
+        ] = await Promise.all([
+            User.countDocuments({ role: { $ne: 'admin' } }),
+            Team.countDocuments(),
+            Department.countDocuments(),
+            Project.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        total: { $sum: 1 },
+                        upcoming: { $sum: { $cond: [{ $eq: ["$status", "upcoming"] }, 1, 0] } },
+                        ongoing: { $sum: { $cond: [{ $eq: ["$status", "ongoing"] }, 1, 0] } },
+                        completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
+                        onHold: { $sum: { $cond: [{ $eq: ["$status", "on-hold"] }, 1, 0] } }
+                    }
+                }
+            ]),
+            Leave.aggregate([
+                {
+                    $facet: {
+                        pending: [{ $match: { status: 'pending' } }, { $count: "count" }],
+                        approvedThisMonth: [
+                            {
+                                $match: {
+                                    status: 'approved',
+                                    fromDate: { $gte: startOfMonth }
+                                }
+                            },
+                            { $count: "count" }
+                        ],
+                        rejectedThisMonth: [
+                            {
+                                $match: {
+                                    status: 'rejected',
+                                    updatedAt: { $gte: startOfMonth }
+                                }
+                            },
+                            { $count: "count" }
+                        ]
+                    }
+                }
+            ]),
+            Leave.aggregate([
+                { $match: { fromDate: { $gte: startOfYear }, status: 'approved' } },
+                {
+                    $group: {
+                        _id: { $month: "$fromDate" },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { "_id": 1 } }
+            ]),
+            Leave.aggregate([
+                {
+                    $group: {
+                        _id: "$leaveType",
+                        value: { $sum: 1 }
+                    }
+                },
+                {
+                    $project: {
+                        label: "$_id",
+                        value: 1,
+                        _id: 0
+                    }
+                }
+            ]),
+            Holiday.aggregate([
+                {
+                    $facet: {
+                        upcoming: [
+                            { $match: { date: { $gte: today } } },
+                            { $sort: { date: 1 } },
+                            { $limit: 1 }
+                        ],
+                        total: [
+                            { $match: { date: { $gte: startOfYear, $lte: new Date(today.getFullYear(), 11, 31) } } },
+                            { $count: "count" }
+                        ]
+                    }
+                }
+            ]),
+            Leave.find({ status: 'pending' }).populate('user', 'name profilePicture').limit(5).sort({ createdAt: -1 }).lean(),
+            Project.find({ status: 'ongoing', endDate: { $gte: today } }).populate('assignedTeam', 'name').sort({ endDate: 1 }).limit(5).lean(),
+            Task.find().sort({ createdAt: -1 }).limit(5).populate('assignedTo', 'name').lean()
+        ]);
 
-        // 2. Project Stats
-        const projects = await Project.find();
-        const projectStats = {
-            total: projects.length,
-            ongoing: projects.filter(p => p.status === 'ongoing').length,
-            completed: projects.filter(p => p.status === 'completed').length,
-            upcoming: projects.filter(p => p.status === 'upcoming' || p.status === 'planning').length,
-            onHold: projects.filter(p => p.status === 'on-hold').length
+        // 2. Data Formatting
+        const projectStats = projectAgg[0] || { total: 0, upcoming: 0, ongoing: 0, completed: 0, onHold: 0 };
+        const leavesSummary = {
+            pending: leaveAgg[0].pending[0]?.count || 0,
+            approvedThisMonth: leaveAgg[0].approvedThisMonth[0]?.count || 0,
+            rejectedThisMonth: leaveAgg[0].rejectedThisMonth[0]?.count || 0
         };
 
-        // 3. Leave Stats
-        const leaveStats = {
-            pending: await Leave.countDocuments({ status: 'pending' }),
-            approvedThisMonth: await Leave.countDocuments({
-                status: 'approved',
-                updatedAt: { $gte: firstDayOfMonth }
-            }),
-            rejectedThisMonth: await Leave.countDocuments({
-                status: 'rejected',
-                updatedAt: { $gte: firstDayOfMonth }
-            })
+        const holidayInfo = {
+            upcoming: holidayStats[0].upcoming[0] || null,
+            total: holidayStats[0].total[0]?.count || 0
         };
 
-        // 4. Holiday Stats
-        const holidayStats = {
-            total: await Holiday.countDocuments({ date: { $gte: startOfYear } }),
-            upcoming: await Holiday.findOne({ date: { $gte: today } }).sort({ date: 1 })
-        };
+        // Initialize 12 months with 0
+        const monthlyTrend = Array(12).fill(0);
+        monthlyTrendAgg.forEach(item => {
+            monthlyTrend[item._id - 1] = item.count;
+        });
 
-        // 5. Pending Actions (Critical)
-        const pendingLeavesRaw = await Leave.find({ status: 'pending' })
-            .populate('user', 'name profilePicture')
-            .limit(10)
-            .sort({ appliedAt: -1 });
+        const activityFeed = recentTasks.map(task => ({
+            message: `${task.assignedTo?.name || 'System'} was assigned to "${task.title}"`,
+            time: task.createdAt,
+            type: 'task'
+        }));
 
-        const upcomingDeadlinesRaw = await Project.find({
-            endDate: { $gte: today, $lte: nextTwoWeeks },
-            status: { $ne: 'completed' }
-        }).select('name endDate status assignedTeam').populate('assignedTeam', 'name').limit(10);
-
-        // Filter out records where mandatory populated relations are null (e.g., deleted users)
-        const pendingLeaves = pendingLeavesRaw.filter(l => l.user);
-        const upcomingDeadlines = upcomingDeadlinesRaw;
-
-        // 6. Team Performance Snapshot
-        // Aggregate projects by team to calculate average progress
+        // Get team performance snapshot
         const teams = await Team.find().populate('teamLead', 'name').lean();
-        const teamPerformance = await Promise.all(teams.map(async (team) => {
-            const teamProjects = await Project.find({ assignedTeam: team._id, status: 'ongoing' });
-            const avgProgress = teamProjects.length > 0
-                ? teamProjects.reduce((acc, curr) => acc + curr.progress, 0) / teamProjects.length
+        const teamPerformance = await Promise.all(teams.map(async team => {
+            const projects = await Project.find({ assignedTeam: team._id });
+            const avgProgress = projects.length > 0
+                ? Math.round(projects.reduce((acc, p) => acc + (p.progress || 0), 0) / projects.length)
                 : 0;
+            const activeProjects = projects.filter(p => ['ongoing', 'upcoming'].includes(p.status)).length;
 
             return {
                 _id: team._id,
                 name: team.name,
-                lead: team.teamLead?.name || 'Unassigned',
-                activeProjects: teamProjects.length,
+                lead: team.teamLead?.name || 'No Lead',
                 members: team.members.length,
-                avgProgress: Math.round(avgProgress)
+                activeProjects,
+                avgProgress
             };
-        }));
-
-        // 7. Recent Activity Feed (Synthesized)
-        // Fetch latest 5 from multiple collections and sort
-        const recentLeaves = await Leave.find().sort({ updatedAt: -1 }).limit(5).populate('user', 'name');
-        const recentProjects = await Project.find().sort({ updatedAt: -1 }).limit(5);
-        const newEmployees = await User.find({ role: { $ne: 'admin' } }).sort({ createdAt: -1 }).limit(3);
-
-        const activities = [
-            ...recentLeaves.map(l => ({
-                id: l._id,
-                type: 'leave',
-                message: `${l.user?.name || 'Unknown User'} leave request ${l.status}`,
-                time: l.updatedAt
-            })),
-            ...recentProjects.map(p => ({
-                id: p._id,
-                type: 'project',
-                message: `Project "${p.name}" updated to ${p.status}`,
-                time: p.updatedAt
-            })),
-            ...newEmployees.map(u => ({
-                id: u._id,
-                type: 'employee',
-                message: `New employee ${u.name} joined`,
-                time: u.createdAt
-            }))
-        ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 10);
-
-        // 8. Monthly Leave Trend (Current Year)
-        const currentYear = new Date().getFullYear();
-        const startOfYearDate = new Date(currentYear, 0, 1);
-        const endOfYearDate = new Date(currentYear, 11, 31);
-
-        const monthlyLeaves = await Leave.aggregate([
-            {
-                $match: {
-                    appliedAt: { $gte: startOfYearDate, $lte: endOfYearDate }
-                }
-            },
-            {
-                $group: {
-                    _id: { $month: "$appliedAt" }, // 1-12
-                    count: { $sum: 1 }
-                }
-            },
-            { $sort: { "_id": 1 } }
-        ]);
-
-        // Initialize array with 0s for all 12 months
-        const monthlyTrend = Array(12).fill(0);
-        monthlyLeaves.forEach(item => {
-            monthlyTrend[item._id - 1] = item.count;
-        });
-
-        // 9. Leave Type Distribution
-        const leaveDistribution = await Leave.aggregate([
-            {
-                $group: {
-                    _id: "$leaveType", // CL, SL, EL, LOP
-                    count: { $sum: 1 }
-                }
-            }
-        ]);
-
-        // Calculate percentages
-        const totalLeavesCount = leaveDistribution.reduce((acc, curr) => acc + curr.count, 0);
-        const distribution = leaveDistribution.map(item => ({
-            label: item._id,
-            count: totalLeavesCount > 0 ? Math.round((item.count / totalLeavesCount) * 100) : 0,
-            value: item.count
         }));
 
         res.json({
             summary: {
                 employees: totalEmployees,
-                departments: totalDepartments,
                 teams: totalTeams,
-                projects: projectStats,
-                leaves: leaveStats,
-                holidays: holidayStats
+                departments: totalDepartments,
+                projects: {
+                    upcoming: projectStats.upcoming,
+                    ongoing: projectStats.ongoing,
+                    completed: projectStats.completed,
+                    onHold: projectStats.onHold,
+                    total: projectStats.total
+                },
+                leaves: leavesSummary,
+                holidays: holidayInfo
             },
             pendingActions: {
                 leaves: pendingLeaves,
-                deadlines: upcomingDeadlines
+                deadlines: upcomingDeadlines.map(p => ({
+                    _id: p._id,
+                    name: p.name,
+                    endDate: p.endDate,
+                    assignedTeam: p.assignedTeam
+                }))
             },
             teamPerformance,
-            recentActivity: activities,
+            recentActivity: activityFeed,
             monthlyTrend,
-            distribution
+            distribution: distributionAgg
         });
 
     } catch (error) {
@@ -184,16 +199,11 @@ export const getDashboardStats = async (req, res) => {
 
 export const getReportStats = async (req, res) => {
     try {
-        const currentYear = new Date().getFullYear();
-        const startOfYear = new Date(currentYear, 0, 1);
-        const endOfYear = new Date(currentYear, 11, 31);
-
         const approvedLeaves = await Leave.find({ status: 'approved' });
         const allEmployees = await User.find({ role: 'employee' }).select('name _id');
 
-        // 1. Summary Metrics
+        // Summary Metrics
         const totalLeavesCount = approvedLeaves.length;
-
         let totalDays = 0;
         const typeCounts = {};
 
@@ -203,7 +213,6 @@ export const getReportStats = async (req, res) => {
         });
 
         const avgDuration = totalLeavesCount > 0 ? (totalDays / totalLeavesCount).toFixed(1) : 0;
-
         let mostCommonType = 'N/A';
         let maxCount = 0;
         for (const [type, count] of Object.entries(typeCounts)) {
@@ -213,44 +222,8 @@ export const getReportStats = async (req, res) => {
             }
         }
 
-        const totalQuota = allEmployees.length * 24; // Assuming 24 days yearly quota
+        const totalQuota = allEmployees.length * 24;
         const utilizationRate = totalQuota > 0 ? ((totalDays / totalQuota) * 100).toFixed(1) : 0;
-
-
-        // 2. Monthly Data (Recalculate or reuse aggregate)
-        const monthlyLeaves = await Leave.aggregate([
-            {
-                $match: {
-                    status: 'approved',
-                    appliedAt: { $gte: startOfYear, $lte: endOfYear }
-                }
-            },
-            { $group: { _id: { $month: "$appliedAt" }, count: { $sum: 1 } } },
-            { $sort: { "_id": 1 } }
-        ]);
-
-        const monthlyData = Array(12).fill(0);
-        monthlyLeaves.forEach(item => monthlyData[item._id - 1] = item.count);
-
-
-        // 3. Employee Stats
-        // We need to group leaves by user and sum totalDays
-        const empStatsMap = {};
-        allEmployees.forEach(emp => {
-            empStatsMap[emp._id.toString()] = { name: emp.name, leaves: 0, days: 0 };
-        });
-
-        approvedLeaves.forEach(leave => {
-            const uid = leave.user.toString();
-            if (empStatsMap[uid]) {
-                empStatsMap[uid].leaves += 1;
-                empStatsMap[uid].days += leave.totalDays;
-            }
-        });
-
-        const employeeStats = Object.values(empStatsMap)
-            .sort((a, b) => b.days - a.days)
-            .slice(0, 5);
 
         res.json({
             summary: {
@@ -259,51 +232,37 @@ export const getReportStats = async (req, res) => {
                 mostCommonType,
                 utilizationRate
             },
-            monthlyData,
-            employeeStats
+            monthlyData: [],
+            employeeStats: []
         });
-
     } catch (error) {
-        console.error("Report Stats Error:", error);
         res.status(500).json({ message: "Failed to fetch report stats" });
     }
 };
 
-// Employee Management
+// ==================================================
+// EMPLOYEE MANAGEMENT
+// ==================================================
+
 export const createEmployee = async (req, res) => {
     try {
         const { name, email, phone, role, department, team, reportingManager, skills, experienceLevel } = req.body;
 
         const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.status(400).json({ message: "Employee already exists with this email" });
-        }
+        if (userExists) return res.status(400).json({ message: "User already exists" });
 
-        // Generate default password: firstname + 123
         const firstName = name.split(' ')[0].toLowerCase();
         const defaultPassword = `${firstName}123`;
 
-        // Handle File Uploads
-
-
         const parseSkills = (skillsData) => {
             if (!skillsData) return [];
-            try {
-                return JSON.parse(skillsData);
-            } catch (e) {
-                return skillsData.split(',').map(s => s.trim());
-            }
+            try { return JSON.parse(skillsData); } catch (e) { return skillsData.split(',').map(s => s.trim()); }
         };
 
         const newUser = await User.create({
-            name,
-            email,
-            phone,
-            password: defaultPassword,
+            name, email, phone, password: defaultPassword,
             role: role || 'employee',
-            department,
-            team,
-            reportingManager,
+            department, team, reportingManager,
             skills: parseSkills(skills),
             experienceLevel,
             leaveBalance: {
@@ -314,19 +273,8 @@ export const createEmployee = async (req, res) => {
             qualification: req.body.qualification || ''
         });
 
-        res.status(201).json({
-            message: "Employee created successfully",
-            user: {
-                id: newUser._id,
-                name: newUser.name,
-                email: newUser.email,
-                role: newUser.role,
-                password: defaultPassword // Return for admin visibility
-            }
-        });
-
+        res.status(201).json({ message: "Employee created", user: newUser });
     } catch (error) {
-        console.error("Create Employee error:", error);
         res.status(500).json({ message: error.message || "Failed to create employee" });
     }
 };
@@ -334,8 +282,7 @@ export const createEmployee = async (req, res) => {
 export const getAllEmployees = async (req, res) => {
     try {
         const employees = await User.find({ role: { $ne: 'admin' } })
-            .populate('reportingManager', 'name email')
-            .sort({ createdAt: -1 });
+            .populate('reportingManager', 'name').populate('department', 'name').populate('team', 'name').sort({ createdAt: -1 });
         res.json(employees);
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch employees" });
@@ -344,143 +291,302 @@ export const getAllEmployees = async (req, res) => {
 
 export const getEmployeeById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id)
-            .populate('reportingManager', 'name email')
-            .populate('department', 'name');
-
+        const user = await User.findById(req.params.id).populate('reportingManager', 'name').populate('department', 'name').populate('team', 'name');
         if (!user) return res.status(404).json({ message: "Employee not found" });
         res.json(user);
     } catch (error) {
-        res.status(500).json({ message: "Failed to fetch employee details" });
+        res.status(500).json({ message: "Failed to fetch employee" });
+    }
+};
+
+export const updateEmployee = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        const { id } = req.params;
+        const { role, ...updateData } = req.body;
+
+        const user = await User.findById(id).session(session);
+        if (!user) throw new Error("Employee not found");
+
+        // 1. Handle Role Change via Service
+        if (role && role !== user.role) {
+            console.log(`[DEBUG] updateEmployee: Role change detected for ${id} from ${user.role} to ${role}`);
+            await promoteUser(id, role, session);
+        } else if (role) {
+            console.log(`[DEBUG] updateEmployee: Role match (${role}), skipping promotion.`);
+        }
+
+        // 2. Formatting
+        if (updateData.skills) {
+            try { updateData.skills = JSON.parse(updateData.skills); }
+            catch (e) { updateData.skills = updateData.skills.split(',').map(s => s.trim()); }
+        }
+
+        // Handle Leave Balance
+        if (updateData.casual !== undefined || updateData.sick !== undefined || updateData.earned !== undefined) {
+            updateData.leaveBalance = {
+                casual: updateData.casual !== undefined ? parseInt(updateData.casual) : user.leaveBalance?.casual || 12,
+                sick: updateData.sick !== undefined ? parseInt(updateData.sick) : user.leaveBalance?.sick || 10,
+                earned: updateData.earned !== undefined ? parseInt(updateData.earned) : user.leaveBalance?.earned || 15
+            };
+        }
+
+        // Use findByIdAndUpdate to allow discriminator key (role) update
+        const updatedUser = await User.findByIdAndUpdate(
+            id, { $set: updateData }, { new: true, runValidators: true, session }
+        );
+
+        await session.commitTransaction();
+        res.json({ message: "Employee updated successfully", user: updatedUser });
+    } catch (error) {
+        await session.abortTransaction();
+        console.error("Update Employee Error:", error);
+        res.status(500).json({ message: error.message || "Update failed" });
+    } finally {
+        session.endSession();
     }
 };
 
 export const deleteEmployee = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
-        if (!user) return res.status(404).json({ message: "Employee not found" });
-
         await User.findByIdAndDelete(req.params.id);
-        res.json({ message: "Employee removed successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to delete employee" });
-    }
+        res.json({ message: "Employee deleted" });
+    } catch (e) { res.status(500).json({ message: "Failed to delete" }); }
 };
 
-export const updateEmployee = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, email, phone, role, department, team, reportingManager, skills, experienceLevel, casual, sick, earned } = req.body;
-
-        const user = await User.findById(id);
-        if (!user) return res.status(404).json({ message: "Employee not found" });
-
-        if (name) user.name = name;
-        if (email) user.email = email;
-        if (phone) user.phone = phone;
-        if (role) user.role = role;
-        if (department) user.department = department;
-        if (team !== undefined) user.team = team;
-        if (reportingManager) user.reportingManager = reportingManager;
-        if (experienceLevel) user.experienceLevel = experienceLevel;
-        if (req.body.qualification) user.qualification = req.body.qualification;
-
-        // Update leave balance if provided
-        if (casual !== undefined || sick !== undefined || earned !== undefined) {
-            user.leaveBalance = {
-                casual: casual !== undefined ? parseInt(casual) : user.leaveBalance.casual,
-                sick: sick !== undefined ? parseInt(sick) : user.leaveBalance.sick,
-                earned: earned !== undefined ? parseInt(earned) : user.leaveBalance.earned
-            };
-        }
-
-        if (skills) {
-            try {
-                user.skills = JSON.parse(skills);
-            } catch (e) {
-                user.skills = skills.split(',').map(s => s.trim());
-            }
-        }
-
-
-
-        await user.save();
-        res.json({ message: "Employee updated successfully", user });
-    } catch (error) {
-        console.error("Update Employee error:", error);
-        res.status(500).json({ message: error.message || "Failed to update employee" });
-    }
-};
-
-// Department Management
+// ==================================================
+// DEPARTMENT MANAGEMENT
+// ==================================================
 export const createDepartment = async (req, res) => {
     try {
-        const { name, description } = req.body;
-        const dept = await Department.create({ name, description, createdBy: req.user._id });
+        const dept = await Department.create(req.body);
         res.status(201).json(dept);
-    } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to create department" });
-    }
+    } catch (e) { res.status(500).json({ msg: e.message }); }
 };
 
 export const getAllDepartments = async (req, res) => {
     try {
-        const departments = await Department.find();
-        res.json(departments);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch departments" });
-    }
+        const depts = await Department.find();
+        res.json(depts);
+    } catch (e) { res.status(500).json({ msg: e.message }); }
+};
+
+export const updateDepartment = async (req, res) => {
+    try {
+        const dept = await Department.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json(dept);
+    } catch (e) { res.status(500).json({ msg: e.message }); }
 };
 
 export const deleteDepartment = async (req, res) => {
     try {
         await Department.findByIdAndDelete(req.params.id);
-        res.json({ message: "Department deleted" });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to delete department" });
-    }
+        res.json({ msg: "Deleted" });
+    } catch (e) { res.status(500).json({ msg: e.message }); }
 };
 
-export const updateDepartment = async (req, res) => {
-    try {
-        const { name, description } = req.body;
-        const dept = await Department.findByIdAndUpdate(
-            req.params.id,
-            { name, description },
-            { new: true, runValidators: true }
-        );
-        if (!dept) return res.status(404).json({ message: "Department not found" });
-        res.json(dept);
-    } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to update department" });
-    }
-};
 
-// Team Management
+// ==================================================
+// TEAM MANAGEMENT (TRANSACTIONS)
+// ==================================================
+
 export const createTeam = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         const { name, department, teamLead, members = [] } = req.body;
-        const team = await Team.create({ name, department, teamLead, members });
 
-        // If team lead is assigned, update user role to team-lead and set their team
+        // 1. Create Team
+        const [team] = await Team.create([{ name, department, teamLead, members }], { session });
+
+        // 2. Promote Lead (if assigned)
         if (teamLead) {
-            await User.findByIdAndUpdate(teamLead, {
-                role: 'team-lead',
-                team: team._id
-            });
-        }
-
-        // Update all members to point to this team
-        if (members.length > 0) {
-            await User.updateMany(
-                { _id: { $in: members } },
-                { team: team._id }
+            console.log(`[DEBUG] createTeam: Promoting lead ${teamLead}`);
+            await promoteUser(teamLead, 'team-lead', session);
+            // Use native driver for consistency
+            await User.collection.updateOne(
+                { _id: new mongoose.Types.ObjectId(teamLead) },
+                { $set: { team: team._id } },
+                { session }
             );
         }
 
+        // 3. Update Members
+        if (members.length > 0) {
+            await User.updateMany(
+                { _id: { $in: members } },
+                { team: team._id },
+                { session }
+            );
+        }
+
+        await session.commitTransaction();
         res.status(201).json(team);
     } catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message || "Failed to create team" });
+    } finally {
+        session.endSession();
+    }
+};
+
+export const updateTeam = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        const { id } = req.params;
+        const { name, department, teamLead, members = [] } = req.body;
+
+        const team = await Team.findById(id).session(session);
+        if (!team) throw new Error("Team not found");
+
+        const oldLeadId = team.teamLead ? team.teamLead.toString() : null;
+        const newLeadId = teamLead || null;
+
+        // 1. Handle Lead Swap
+        if (newLeadId !== oldLeadId) {
+            console.log(`[DEBUG] Step 1: Lead change detected. Old: ${oldLeadId}, New: ${newLeadId}`);
+
+            // Demote Old
+            if (oldLeadId) {
+                console.log(`[DEBUG] Step 1a: Demoting old lead ${oldLeadId}`);
+                try {
+                    await promoteUser(oldLeadId, 'employee', session);
+                } catch (e) {
+                    console.error("[DEBUG] Step 1a FAILED (promoteUser):", e);
+                    throw e;
+                }
+
+                console.log(`[DEBUG] Step 1b: Unsetting team for old lead ${oldLeadId}`);
+                try {
+                    await User.collection.updateOne(
+                        { _id: new mongoose.Types.ObjectId(oldLeadId) },
+                        { $set: { team: null } },
+                        { session }
+                    );
+                } catch (e) {
+                    console.error("[DEBUG] Step 1b FAILED (updateOne):", e);
+                    throw e;
+                }
+
+                // VERIFICATION
+                const debugOldUser = await User.collection.findOne(
+                    { _id: new mongoose.Types.ObjectId(oldLeadId) },
+                    { session }
+                );
+                console.log(`[DEBUG] Verify Old Lead Role in DB (pre-commit): ${debugOldUser?.role}, Team: ${debugOldUser?.team}`);
+            }
+
+            // Promote New
+            if (newLeadId) {
+                console.log(`[DEBUG] Step 1c: Promoting new lead ${newLeadId}`);
+                try {
+                    await promoteUser(newLeadId, 'team-lead', session);
+                } catch (e) {
+                    console.error("[DEBUG] Step 1c FAILED (promoteUser):", e);
+                    throw e;
+                }
+
+                console.log(`[DEBUG] Step 1d: Setting team for new lead ${newLeadId}`);
+                try {
+                    await User.collection.updateOne(
+                        { _id: new mongoose.Types.ObjectId(newLeadId) },
+                        { $set: { team: id } },
+                        { session }
+                    );
+                } catch (e) {
+                    console.error("[DEBUG] Step 1d FAILED (updateOne):", e);
+                    throw e;
+                }
+            }
+        } else {
+            console.log(`[DEBUG] Step 1: No lead change detected.`);
+        }
+
+        // 2. Update Members
+        console.log(`[DEBUG] Step 2: Updating Members...`);
+        try {
+            const oldMembers = team.members.map(m => m.toString());
+            const newMembers = members.map(m => m.toString());
+            const membersToRemove = oldMembers.filter(m => !newMembers.includes(m));
+            const membersToAdd = newMembers.filter(m => !oldMembers.includes(m));
+
+            if (membersToRemove.length > 0) {
+                await User.updateMany({ _id: { $in: membersToRemove } }, { team: null }, { session });
+            }
+            if (membersToAdd.length > 0) {
+                await User.updateMany({ _id: { $in: membersToAdd } }, { team: id }, { session });
+            }
+        } catch (e) {
+            console.error("[DEBUG] Step 2 FAILED (Member Update):", e);
+            throw e;
+        }
+
+        // 3. Update Team Doc
+        console.log(`[DEBUG] Step 3: Updating Team Doc...`);
+        try {
+            // Use findByIdAndUpdate to avoid validation conflicts with native driver updates
+            await Team.findByIdAndUpdate(
+                id,
+                {
+                    $set: {
+                        name: name || team.name,
+                        department: department || team.department,
+                        teamLead: newLeadId,
+                        members: members
+                    }
+                },
+                { session, new: true, runValidators: false }
+            );
+        } catch (e) {
+            console.error("[DEBUG] Step 3 FAILED (Team Update):", e);
+            throw e;
+        }
+
+        console.log(`[DEBUG] Committing Transaction for Team ${id}...`);
+        await session.commitTransaction();
+        console.log(`[DEBUG] Transaction Committed Successfully.`);
+
+        // Return updated team
+        const updatedTeam = await Team.findById(id).populate('department').populate('teamLead', 'name email');
+        res.json(updatedTeam);
+    } catch (error) {
+        await session.abortTransaction();
+        console.error("Update Team Transaction Error:", error);
+        res.status(500).json({ message: error.message || "Failed to update team" });
+    } finally {
+        session.endSession();
+    }
+};
+
+export const deleteTeam = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        const { id } = req.params;
+        const team = await Team.findById(id).session(session);
+
+        if (team && team.teamLead) {
+            console.log(`[DEBUG] deleteTeam: Demoting lead ${team.teamLead}`);
+            await promoteUser(team.teamLead, 'employee', session);
+            await User.collection.updateOne(
+                { _id: new mongoose.Types.ObjectId(team.teamLead) },
+                { $set: { team: null } },
+                { session }
+            );
+        }
+
+        await User.updateMany({ team: id }, { team: null }, { session });
+        await Team.findByIdAndDelete(id).session(session);
+
+        await session.commitTransaction();
+        res.json({ message: "Team deleted" });
+    } catch (error) {
+        await session.abortTransaction();
+        res.status(500).json({ message: error.message || "Failed to delete team" });
+    } finally {
+        session.endSession();
     }
 };
 
@@ -488,236 +594,112 @@ export const getAllTeams = async (req, res) => {
     try {
         const teams = await Team.find().populate('department').populate('teamLead', 'name email');
         res.json(teams);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch teams" });
-    }
+    } catch (error) { res.status(500).json({ msg: "Failed to fetch" }); }
 };
 
 export const manageTeamMembers = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
-        const { teamId, memberId, action } = req.body; // action: 'add' or 'remove'
-        const team = await Team.findById(teamId);
-        if (!team) return res.status(404).json({ message: "Team not found" });
+        const { teamId, memberId, action } = req.body;
+        const team = await Team.findById(teamId).session(session);
+        if (!team) throw new Error("Team not found");
 
         if (action === 'add') {
             if (!team.members.includes(memberId)) {
                 team.members.push(memberId);
-                await User.findByIdAndUpdate(memberId, { team: teamId });
+                await User.findByIdAndUpdate(memberId, { team: teamId }, { session });
             }
         } else {
             team.members = team.members.filter(m => m.toString() !== memberId);
-            await User.findByIdAndUpdate(memberId, { team: null });
+            await User.findByIdAndUpdate(memberId, { team: null }, { session });
         }
 
-        await team.save();
+        await team.save({ session });
+        await session.commitTransaction();
         res.json(team);
     } catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: "Failed to manage team members" });
-    }
+    } finally { session.endSession(); }
 };
 
-export const deleteTeam = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        // Remove team reference from all users in this team
-        await User.updateMany({ team: id }, { team: null });
-
-        await Team.findByIdAndDelete(id);
-        res.json({ message: "Team deleted and members updated" });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to delete team" });
-    }
-};
-
-export const updateTeam = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, department, teamLead, members = [] } = req.body;
-
-        const team = await Team.findById(id);
-        if (!team) return res.status(404).json({ message: "Team not found" });
-
-        // If team lead is changing
-        if (teamLead && team.teamLead?.toString() !== teamLead) {
-            // Update new lead's role
-            await User.findByIdAndUpdate(teamLead, {
-                role: 'team-lead',
-                team: id
-            });
-        }
-
-        // Identify members to remove and members to add
-        const oldMembers = team.members.map(m => m.toString());
-        const newMembers = members.map(m => m.toString());
-
-        const membersToRemove = oldMembers.filter(m => !newMembers.includes(m));
-        const membersToAdd = newMembers.filter(m => !oldMembers.includes(m));
-
-        if (membersToRemove.length > 0) {
-            await User.updateMany({ _id: { $in: membersToRemove } }, { team: null });
-        }
-        if (membersToAdd.length > 0) {
-            await User.updateMany({ _id: { $in: membersToAdd } }, { team: id });
-        }
-
-        team.name = name || team.name;
-        team.department = department || team.department;
-        team.teamLead = teamLead || team.teamLead;
-        team.members = members;
-
-        await team.save();
-        res.json(team);
-    } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to update team" });
-    }
-};
-
-// Project Management
+// ==================================================
+// PROJECT & HOLIDAY & LEAVE (Standard)
+// ==================================================
 export const createProject = async (req, res) => {
     try {
-        const { name, description, priority, startDate, endDate, assignedTeam } = req.body;
-        const project = await Project.create({
-            name,
-            description,
-            priority,
-            startDate,
-            endDate,
-            assignedTeam,
-            createdBy: req.user._id
-        });
+        const project = await Project.create({ ...req.body, createdBy: req.user._id });
         res.status(201).json(project);
-    } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to create project" });
-    }
+    } catch (e) { res.status(500).json({ msg: e.message }); }
 };
-
 export const getAllProjects = async (req, res) => {
     try {
-        const projects = await Project.find()
-            .populate({
-                path: 'assignedTeam',
-                populate: { path: 'department' }
-            })
-            .sort({ createdAt: -1 });
+        const projects = await Project.find().populate({ path: 'assignedTeam', populate: { path: 'department' } }).sort({ createdAt: -1 });
         res.json(projects);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch projects" });
-    }
+    } catch (e) { res.status(500).json({ msg: "Failed to fetch" }); }
 };
-
-export const updateProjectStatus = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status, progress } = req.body;
-        const project = await Project.findByIdAndUpdate(id, { status, progress }, { new: true });
-        res.json(project);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to update project" });
-    }
-};
-
 export const updateProject = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { name, description, priority, startDate, endDate, assignedTeam, status, progress } = req.body;
-
-        const project = await Project.findByIdAndUpdate(
-            id,
-            { name, description, priority, startDate, endDate, assignedTeam, status, progress },
-            { new: true, runValidators: true }
-        );
-
-        if (!project) return res.status(404).json({ message: "Project not found" });
+        const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(project);
-    } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to update project" });
-    }
+    } catch (e) { res.status(500).json({ msg: e.message }); }
 };
-
+export const updateProjectStatus = async (req, res) => {
+    try {
+        const project = await Project.findByIdAndUpdate(req.params.id, { status: req.body.status, progress: req.body.progress }, { new: true });
+        res.json(project);
+    } catch (e) { res.status(500).json({ msg: "Failed" }); }
+};
 export const deleteProject = async (req, res) => {
     try {
         await Project.findByIdAndDelete(req.params.id);
-        // Also delete associated tasks? Usually yes for cleanup
         await Task.deleteMany({ project: req.params.id });
-        res.json({ message: "Project and associated tasks deleted" });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to delete project" });
-    }
+        res.json({ msg: "Deleted" });
+    } catch (e) { res.status(500).json({ msg: "Failed" }); }
 };
 
-// Holiday Management
 export const createHoliday = async (req, res) => {
     try {
-        const { name, date, type, description } = req.body;
-        const holiday = await Holiday.create({ name, date, type, description });
+        const holiday = await Holiday.create(req.body);
         res.status(201).json(holiday);
-    } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to create holiday" });
-    }
+    } catch (e) { res.status(500).json({ msg: e.message }); }
 };
-
 export const getAllHolidays = async (req, res) => {
     try {
         const holidays = await Holiday.find().sort({ date: 1 });
         res.json(holidays);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch holidays" });
-    }
+    } catch (e) { res.status(500).json({ msg: "Failed" }); }
 };
-
 export const deleteHoliday = async (req, res) => {
     try {
         await Holiday.findByIdAndDelete(req.params.id);
-        res.json({ message: "Holiday deleted" });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to delete holiday" });
-    }
+        res.json({ msg: "Deleted" });
+    } catch (e) { res.status(500).json({ msg: "Failed" }); }
 };
 
-// Leave Management
 export const getAllLeaves = async (req, res) => {
     try {
-        const leaves = await Leave.find()
-            .populate('user', 'name email department role')
-            .sort({ createdAt: -1 });
+        const leaves = await Leave.find().populate('user', 'name email department role').sort({ createdAt: -1 });
         res.json(leaves);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch leaves" });
-    }
+    } catch (e) { res.status(500).json({ msg: "Failed" }); }
 };
 
 export const updateLeaveStatus = async (req, res) => {
     try {
-        const { id } = req.params;
         const { status, rejectionReason } = req.body;
         const leave = await Leave.findByIdAndUpdate(
-            id,
+            req.params.id,
             { status, rejectionReason: status === 'rejected' ? rejectionReason : undefined },
             { new: true }
         );
-
-        // Logic to deduct leave balance if approved could go here or in a separate hook
-        // For now complex balance logic is omitted, but can be added later
-
         res.json(leave);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to update leave status" });
-    }
+    } catch (e) { res.status(500).json({ msg: "Failed" }); }
 };
 
 export const promoteUserAccount = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { role } = req.body;
-
-        const updatedUser = await promoteUser(id, role);
-
-        res.json({
-            message: `User promoted to ${role} successfully. User must re-login.`,
-            user: updatedUser
-        });
-    } catch (error) {
-        res.status(400).json({ message: error.message || "Promotion failed" });
-    }
+        const updatedUser = await promoteUser(req.params.id, req.body.role);
+        res.json({ message: `Promoted to ${req.body.role}`, user: updatedUser });
+    } catch (e) { res.status(400).json({ message: e.message }); }
 };

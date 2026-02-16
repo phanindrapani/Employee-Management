@@ -379,12 +379,18 @@ const EmployeeCRUD = () => {
                                 </div>
                                 <div>
                                     <label className="label">Experience Level</label>
-                                    <input
-                                        type="text"
+                                    <select
                                         className="input-field"
                                         value={formData.experienceLevel}
                                         onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })}
-                                    />
+                                        required
+                                    >
+                                        <option value="">Select Level</option>
+                                        <option value="Junior">Junior</option>
+                                        <option value="Mid">Mid</option>
+                                        <option value="Senior">Senior</option>
+                                        <option value="Intern">Intern</option>
+                                    </select>
                                 </div>
                             </div>
 

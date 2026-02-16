@@ -1,47 +1,104 @@
+import mongoose from 'mongoose';
 import User from '../models/user.model.js';
 
 /**
- * Service to handle safe role promotion/demotion between Employee and Team Lead
+ * Promotes or Demotes a user with Transaction support.
+ * @param {string} id - User ID
+ * @param {string} targetRole - 'employee' | 'team-lead'
+ * @param {mongoose.ClientSession} session - Optional mongoose session
+ * @returns {Promise<Object>} Updated User
  */
-export const promoteUser = async (id, targetRole) => {
-    const user = await User.findById(id);
-    if (!user) throw new Error('User not found');
+export const promoteUser = async (id, targetRole, session = null) => {
+    console.log(`[DEBUG] promoteUser called for ${id} to ${targetRole}`);
+    // If no external session is provided, start a new one for atomicity of this operation
+    const localSession = session || await mongoose.startSession();
+    if (!session) localSession.startTransaction();
 
-    const currentRole = user.role;
+    try {
+        const user = await User.findById(id).session(localSession);
+        if (!user) throw new Error('User not found');
 
-    // Prevent invalid role transitions (e.g., promoting an Admin or redundant changes)
-    if (currentRole === 'admin' || targetRole === 'admin') {
-        throw new Error('Admin role management must be handled separately for security');
+        const currentRole = user.role;
+        console.log(`[DEBUG] promoteUser: Current role is ${currentRole}`);
+
+        // Security: Prevent Admin manipulation via this service (Admins have separate flows)
+        if (currentRole === 'admin' || targetRole === 'admin') {
+            throw new Error('Admin role management must be handled separately');
+        }
+
+        // Idempotency: If already in role, just return user (or throw if strictness required, but better to be idempotent)
+        if (currentRole === targetRole) {
+            console.log(`[DEBUG] promoteUser: User already in role ${targetRole}. Skipping.`);
+            if (!session) {
+                await localSession.commitTransaction();
+                localSession.endSession();
+            }
+            return user;
+        }
+
+        let update = { role: targetRole };
+        let unset = {};
+
+        // CASE 1: Promoting Employee -> Team Lead
+        if (targetRole === 'team-lead') {
+            update = {
+                ...update,
+                leadershipLevel: 'Junior', // Default
+                teamPerformanceScore: 0
+            };
+            unset = {
+                leaveBalance: "",
+                experienceLevel: ""
+            };
+        }
+
+        // CASE 2: Demoting Team Lead -> Employee
+        else if (targetRole === 'employee') {
+            update = {
+                ...update,
+                leaveBalance: user.leaveBalance || { casual: 12, sick: 10, earned: 15 },
+                experienceLevel: user.experienceLevel || 'Junior'
+            };
+            unset = {
+                leadershipLevel: "",
+                teamPerformanceScore: ""
+            };
+            // Note: We keep 'skills' as it is shared
+        }
+
+        console.log(`[DEBUG] promoteUser: Applying update`, JSON.stringify(update));
+        console.log(`[DEBUG] promoteUser: Applying unset`, JSON.stringify(unset));
+
+        const result = await User.collection.findOneAndUpdate(
+            { _id: new mongoose.Types.ObjectId(id) },
+            {
+                $set: update,
+                $unset: unset
+            },
+            {
+                session: localSession,
+                returnDocument: 'after' // Return updated doc
+            }
+        );
+        const updatedUser = result.value || result;
+
+        console.log(`[DEBUG] promoteUser: Update result role: ${updatedUser?.role}`);
+
+        // Commit if we started the session
+        if (!session) {
+            await localSession.commitTransaction();
+            localSession.endSession();
+        }
+
+        return updatedUser;
+
+    } catch (error) {
+        console.error(`[DEBUG] promoteUser Error: ${error.message}`);
+        // Abort if we started the session
+        if (!session) {
+            await localSession.abortTransaction();
+            localSession.endSession();
+        }
+        throw error;
     }
-    if (currentRole === targetRole) {
-        throw new Error(`User is already a ${targetRole}`);
-    }
-
-    let update = { role: targetRole };
-    let unset = {};
-
-    // Logic for Promoting Employee to Team Lead
-    if (currentRole === 'employee' && targetRole === 'team-lead') {
-        unset = {
-            leaveBalance: "",
-            experienceLevel: ""
-        };
-    }
-
-    // Logic for Demoting Team Lead to Employee
-    else if (currentRole === 'team-lead' && targetRole === 'employee') {
-        unset = {
-            leadershipLevel: "",
-            teamPerformanceScore: ""
-        };
-        // Note: skills are kept since they exist in both roles
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
-        id,
-        { ...update, $unset: unset },
-        { new: true, runValidators: true }
-    );
-
-    return updatedUser;
 };
