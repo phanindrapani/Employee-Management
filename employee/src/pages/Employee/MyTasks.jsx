@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     ClipboardList,
     Calendar,
@@ -6,7 +6,8 @@ import {
     Search,
     FolderKanban,
     X,
-    MessageCircle
+    MessageCircle,
+    RefreshCw
 } from 'lucide-react';
 import API from '../../api';
 
@@ -150,6 +151,8 @@ const MyTasks = () => {
     const [selectedTask, setSelectedTask] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const [activeTab, setActiveTab] = useState('All Tasks');
+
     useEffect(() => {
         const fetchTasks = async () => {
             try {
@@ -184,10 +187,17 @@ const MyTasks = () => {
         }
     };
 
-    const filteredTasks = tasks.filter(task =>
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.project?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredTasks = tasks.filter(task => {
+        const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            task.project?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesTab =
+            activeTab === 'All Tasks' ? true :
+                activeTab === 'Pending' ? task.status !== 'done' :
+                    activeTab === 'Completed' ? task.status === 'done' : true;
+
+        return matchesSearch && matchesTab;
+    });
 
     if (loading) return <div className="p-8 animate-pulse space-y-4">
         <div className="h-10 w-48 bg-slate-200 rounded-lg"></div>
@@ -220,9 +230,13 @@ const MyTasks = () => {
 
             {/* Task Filters */}
             <div className="flex gap-4 p-1.5 bg-slate-100 rounded-2xl w-fit">
-                {['All Tasks', 'Pending', 'Completed'].map((filter, i) => (
-                    <button key={i} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${i === 0 ? 'bg-white text-[#0B3C5D] shadow-sm' : 'text-slate-500 hover:text-[#0B3C5D]'}`}>
-                        {filter}
+                {['All Tasks', 'Pending', 'Completed'].map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-[#0B3C5D] shadow-sm' : 'text-slate-500 hover:text-[#0B3C5D]'}`}
+                    >
+                        {tab}
                     </button>
                 ))}
             </div>

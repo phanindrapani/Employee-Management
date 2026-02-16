@@ -106,6 +106,7 @@ export const getTeamProjects = async (req, res) => {
     try {
         const teamId = req.user.team;
         const projects = await Project.find({ assignedTeam: teamId })
+            .populate('assignedTeam', 'name')
             .sort({ endDate: 1 });
         res.json(projects);
     } catch (error) {
