@@ -41,6 +41,7 @@ import {
     getAdminPerformanceStats,
     getEmployeePerformanceProfile
 } from '../controllers/performance.controller.js';
+import { getLeaveSettings, updateLeaveSettings } from '../controllers/settings.controller.js';
 import { uploadDocuments } from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
@@ -105,6 +106,8 @@ router.get('/performance/reviews', protect, authorizeRole(['admin', 'team-lead',
 // Advanced Analytics
 router.post('/performance/calculate', protect, authorizeRole(['admin']), triggerCalculation);
 router.get('/performance/dashboard', protect, authorizeRole(['admin']), getAdminPerformanceStats);
-router.get('/performance/employee/:id', protect, authorizeRole(['admin', 'team-lead', 'employee']), getEmployeePerformanceProfile);
+// Global Settings
+router.get('/settings/leave', protect, authorizeRole(['admin']), getLeaveSettings);
+router.put('/settings/leave', protect, authorizeRole(['admin']), updateLeaveSettings);
 
 export default router;

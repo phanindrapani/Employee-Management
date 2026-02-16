@@ -11,6 +11,8 @@ import Leave from '../models/leave.model.js';
 import Holiday from '../models/holiday.model.js';
 import bcrypt from 'bcryptjs';
 import { promoteUser } from '../services/promotion.service.js';
+import { getLeaveQuotas } from '../services/settings.service.js';
+
 
 dotenv.config();
 
@@ -64,6 +66,8 @@ const seedData = async () => {
         const hrTeam = teams[2];
 
         console.log('🌱 Seeding Employees (Initial leads)...');
+        const quotas = await getLeaveQuotas();
+
         // Frontend TL (Created as Employee first)
         const SarahEmp = await Employee.create({
             name: 'Sarah Jenkins',
@@ -77,7 +81,7 @@ const seedData = async () => {
             skills: ['React', 'Leadership', 'Agile'],
             experienceLevel: 'Senior',
             qualification: 'B.Tech in Computer Science',
-            leaveBalance: { cl: 12, sl: 10, el: 15 }
+            leaveBalance: quotas
         });
 
         // Backend TL (Created as Employee first)
@@ -93,7 +97,7 @@ const seedData = async () => {
             skills: ['Node.js', 'MongoDB', 'Architecture'],
             experienceLevel: 'Mid',
             qualification: 'M.Tech in Software Engineering',
-            leaveBalance: { cl: 12, sl: 10, el: 15 }
+            leaveBalance: quotas
         });
 
         console.log('🚀 Promoting Sarah and Mike to Team Leads...');
@@ -123,7 +127,7 @@ const seedData = async () => {
                 reportingManager: feLead._id,
                 skills: ['HTML', 'CSS', 'React'],
                 experienceLevel: 'Junior',
-                leaveBalance: { cl: 10, sl: 10, el: 15 },
+                leaveBalance: { cl: 10, sl: 10, el: 15 }, // Keep specific for testing
                 qualification: 'B.E. in Information Technology'
             },
             {
@@ -137,7 +141,7 @@ const seedData = async () => {
                 reportingManager: feLead._id,
                 skills: ['Vue', 'Design'],
                 experienceLevel: 'Mid',
-                leaveBalance: { cl: 12, sl: 8, el: 10 },
+                leaveBalance: { cl: 12, sl: 8, el: 10 }, // Keep specific for testing
                 qualification: 'B.Des in Interaction Design'
             },
             {
@@ -151,7 +155,7 @@ const seedData = async () => {
                 reportingManager: beLead._id,
                 skills: ['Express', 'SQL'],
                 experienceLevel: 'Senior',
-                leaveBalance: { cl: 5, sl: 5, el: 20 },
+                leaveBalance: { cl: 5, sl: 5, el: 20 }, // Keep specific for testing
                 qualification: 'B.Tech in Computer Science'
             }
         ]);

@@ -7,6 +7,7 @@ import Team from '../models/team.model.js';
 import Project from '../models/project.model.js';
 import Task from '../models/task.model.js';
 import { promoteUser } from '../services/promotion.service.js';
+import { getLeaveQuotas } from '../services/settings.service.js';
 
 // ==================================================
 // DASHBOARD STATS (Aggregations)
@@ -353,6 +354,8 @@ export const createEmployee = async (req, res) => {
             }
         }
 
+        const quotas = await getLeaveQuotas();
+
         const newUser = await User.create({
             name, email, phone, password: defaultPassword,
             role: resolvedRole,
@@ -360,9 +363,9 @@ export const createEmployee = async (req, res) => {
             skills: parseSkills(skills),
             experienceLevel,
             leaveBalance: {
-                cl: req.body.cl ? parseInt(req.body.cl) : 12,
-                sl: req.body.sl ? parseInt(req.body.sl) : 10,
-                el: req.body.el ? parseInt(req.body.el) : 15
+                cl: req.body.cl ? parseInt(req.body.cl) : quotas.cl,
+                sl: req.body.sl ? parseInt(req.body.sl) : quotas.sl,
+                el: req.body.el ? parseInt(req.body.el) : quotas.el
             },
             qualification: req.body.qualification || ''
         });

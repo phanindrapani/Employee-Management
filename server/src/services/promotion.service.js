@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
 import User from '../models/user.model.js';
+import { getLeaveQuotas } from './settings.service.js';
 
 /**
  * Promotes or Demotes a user with Transaction support.
@@ -62,9 +62,10 @@ export const promoteUser = async (id, targetRole, session = null) => {
 
         // CASE 2: Demoting Team Lead -> Employee
         else if (targetRole === 'employee') {
+            const quotas = await getLeaveQuotas();
             update = {
                 ...update,
-                leaveBalance: user.leaveBalance || { cl: 12, sl: 10, el: 15 },
+                leaveBalance: user.leaveBalance || quotas,
                 experienceLevel: user.experienceLevel || 'Junior'
             };
             unset = {

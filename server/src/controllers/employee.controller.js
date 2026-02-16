@@ -1,6 +1,7 @@
 import Employee from "../models/employee.model.js";
 import User from "../models/user.model.js";
 import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
+import { getLeaveQuotas } from "../services/settings.service.js";
 
 const fieldToFolder = {
   tenth: "10th",
@@ -78,6 +79,8 @@ export const addEmployee = async (req, res) => {
     // Initial upload of profile picture if provided
     const profilePictureUrl = await uploadProfilePicture(req.files);
 
+    const quotas = await getLeaveQuotas();
+
     const user = await User.create({
       name,
       email,
@@ -86,9 +89,9 @@ export const addEmployee = async (req, res) => {
       phone,
       profilePicture: profilePictureUrl,
       leaveBalance: {
-        cl: parseInt(cl) || 12,
-        sl: parseInt(sl) || 10,
-        el: parseInt(el) || 15
+        cl: parseInt(cl) || quotas.cl,
+        sl: parseInt(sl) || quotas.sl,
+        el: parseInt(el) || quotas.el
       }
     });
 
@@ -104,9 +107,9 @@ export const addEmployee = async (req, res) => {
         documents,
         profilePicture: profilePictureUrl,
         leaveBalance: {
-          cl: parseInt(cl) || 12,
-          sl: parseInt(sl) || 10,
-          el: parseInt(el) || 15
+          cl: parseInt(cl) || quotas.cl,
+          sl: parseInt(sl) || quotas.sl,
+          el: parseInt(el) || quotas.el
         }
       });
     } catch (error) {
