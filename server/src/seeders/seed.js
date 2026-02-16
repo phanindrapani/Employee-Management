@@ -48,8 +48,6 @@ const seedData = async () => {
             password: 'adminpassword', // Will be hashed by hook
             role: 'admin',
             isActive: true,
-            permissions: ['all'],
-            systemAccessLevel: 'full',
             qualification: 'Master of Computer Applications (MCA)'
         });
 

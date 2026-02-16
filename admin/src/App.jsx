@@ -19,7 +19,7 @@ import EmployeePerformance from './pages/EmployeePerformance';
 import PerformanceDashboard from './pages/PerformanceDashboard';
 import LeaveSettings from './pages/LeaveSettings';
 import Profile from './pages/Profile';
-import RolesPermissions from './pages/RolesPermissions';
+
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -63,8 +63,8 @@ function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="performance-dashboard" element={<PerformanceDashboard />} />
             <Route path="leave-settings" element={<LeaveSettings />} />
-            <Route path="settings/roles" element={<RolesPermissions />} />
             <Route path="settings/profile" element={<Profile />} />
+
             <Route path="change-password" element={<ChangePassword />} />
           </Route>
         </Routes>

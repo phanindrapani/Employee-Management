@@ -99,16 +99,8 @@ const User = mongoose.model('User', userSchema);
 // ==================================================
 
 // ADMIN DISCRIMINATOR
-const Admin = User.discriminator('admin', new mongoose.Schema({
-    permissions: [{
-        type: String
-    }],
-    systemAccessLevel: {
-        type: String,
-        enum: ['full', 'restricted', 'viewer'],
-        default: 'full'
-    }
-}));
+const Admin = User.discriminator('admin', new mongoose.Schema({}));
+
 
 // TEAM LEAD DISCRIMINATOR
 const TeamLead = User.discriminator('team-lead', new mongoose.Schema({
