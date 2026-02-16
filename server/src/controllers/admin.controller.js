@@ -727,7 +727,9 @@ export const manageTeamMembers = async (req, res) => {
 // ==================================================
 export const createProject = async (req, res) => {
     try {
-        const project = await Project.create({ ...req.body, createdBy: req.user._id });
+        // Enforce progress: 0 on creation
+        const { progress, ...projectData } = req.body;
+        const project = await Project.create({ ...projectData, progress: 0, createdBy: req.user._id });
         res.status(201).json(project);
     } catch (e) { res.status(500).json({ msg: e.message }); }
 };
@@ -739,7 +741,9 @@ export const getAllProjects = async (req, res) => {
 };
 export const updateProject = async (req, res) => {
     try {
-        const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        // Prevent manual progress update by Admin. Progress is driven by tasks.
+        const { progress, ...updateData } = req.body;
+        const project = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
         res.json(project);
     } catch (e) { res.status(500).json({ msg: e.message }); }
 };
