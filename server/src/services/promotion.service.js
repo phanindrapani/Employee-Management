@@ -49,6 +49,15 @@ export const promoteUser = async (id, targetRole, session = null) => {
             unset = {
                 experienceLevel: ""
             };
+            if (user.team) {
+                const Team = mongoose.model('Team');
+                await Team.updateOne(
+                    { _id: user.team },
+                    { $pull: { members: user._id } },
+                    { session: localSession }
+                );
+                console.log(`[DEBUG] promoteUser: Removed user ${user._id} from members of team ${user.team}`);
+            }
         }
 
         // CASE 2: Demoting Team Lead -> Employee

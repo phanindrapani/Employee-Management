@@ -259,10 +259,22 @@ export const createEmployee = async (req, res) => {
             try { return JSON.parse(skillsData); } catch (e) { return skillsData.split(',').map(s => s.trim()); }
         };
 
+        const resolvedRole = role || 'employee';
+        let resolvedReportingManager = reportingManager || null;
+
+        if (resolvedRole !== 'team-lead') {
+            if (team) {
+                const selectedTeam = await Team.findById(team).select('teamLead');
+                resolvedReportingManager = selectedTeam?.teamLead || null;
+            } else {
+                resolvedReportingManager = null;
+            }
+        }
+
         const newUser = await User.create({
             name, email, phone, password: defaultPassword,
-            role: role || 'employee',
-            department, team, reportingManager,
+            role: resolvedRole,
+            department, team, reportingManager: resolvedReportingManager,
             skills: parseSkills(skills),
             experienceLevel,
             leaveBalance: {
@@ -272,6 +284,11 @@ export const createEmployee = async (req, res) => {
             },
             qualification: req.body.qualification || ''
         });
+
+        // Team leads should always report to themselves.
+        if (newUser.role === 'team-lead') {
+            await User.findByIdAndUpdate(newUser._id, { reportingManager: newUser._id });
+        }
 
         res.status(201).json({ message: "Employee created", user: newUser });
     } catch (error) {
@@ -317,6 +334,8 @@ export const updateEmployee = async (req, res) => {
             console.log(`[DEBUG] updateEmployee: Role match (${role}), skipping promotion.`);
         }
 
+        const effectiveRole = role || user.role;
+
         // 2. Formatting
         if (updateData.skills) {
             try { updateData.skills = JSON.parse(updateData.skills); }
@@ -332,7 +351,22 @@ export const updateEmployee = async (req, res) => {
             };
         }
 
-        // Use findByIdAndUpdate to allow discriminator key (role) update
+        // 3. Enforce reporting manager rules:
+        // - team-lead -> self
+        // - employee in a team -> that team's lead
+        if (effectiveRole === 'team-lead') {
+            updateData.reportingManager = id;
+        } else {
+            const effectiveTeamId = updateData.team || user.team;
+            if (effectiveTeamId) {
+                const selectedTeam = await Team.findById(effectiveTeamId).select('teamLead').session(session);
+                updateData.reportingManager = selectedTeam?.teamLead || null;
+            } else {
+                updateData.reportingManager = null;
+            }
+        }
+
+        // 4. Use findByIdAndUpdate to allow discriminator key (role) update
         const updatedUser = await User.findByIdAndUpdate(
             id, { $set: updateData }, { new: true, runValidators: true, session }
         );
@@ -407,7 +441,7 @@ export const createTeam = async (req, res) => {
             // Use native driver for consistency
             await User.collection.updateOne(
                 { _id: new mongoose.Types.ObjectId(teamLead) },
-                { $set: { team: team._id } },
+                { $set: { team: team._id, reportingManager: new mongoose.Types.ObjectId(teamLead) } },
                 { session }
             );
         }
@@ -416,7 +450,12 @@ export const createTeam = async (req, res) => {
         if (members.length > 0) {
             await User.updateMany(
                 { _id: { $in: members } },
-                { team: team._id },
+                {
+                    $set: {
+                        team: team._id,
+                        ...(teamLead ? { reportingManager: teamLead } : {})
+                    }
+                },
                 { session }
             );
         }
@@ -492,13 +531,26 @@ export const updateTeam = async (req, res) => {
                 try {
                     await User.collection.updateOne(
                         { _id: new mongoose.Types.ObjectId(newLeadId) },
-                        { $set: { team: id } },
+                        {
+                            $set: {
+                                team: id,
+                                reportingManager: new mongoose.Types.ObjectId(newLeadId)
+                            }
+                        },
                         { session }
                     );
                 } catch (e) {
                     console.error("[DEBUG] Step 1d FAILED (updateOne):", e);
                     throw e;
                 }
+
+                // Step 1e: Sync Reporting Manager for all team members
+                // If a new lead is assigned, all CURRENT members + NEW members should report to them.
+                // We'll filter this list in Step 2, but we can also just update anyone whose 'team' is this team ID
+                // to have the new reporting manager.
+                // However, Step 2 hasn't run yet, so 'members' array in body + existing members might be the target.
+                // Safest approach: Update logic in Step 2 (membersToAdd) and also update existing members.
+                // For simplicity/robustness: After Step 2 (Member Update), run a sweeping update for all users in this team.
             }
         } else {
             console.log(`[DEBUG] Step 1: No lead change detected.`);
@@ -510,17 +562,63 @@ export const updateTeam = async (req, res) => {
             const oldMembers = team.members.map(m => m.toString());
             const newMembers = members.map(m => m.toString());
             const membersToRemove = oldMembers.filter(m => !newMembers.includes(m));
-            const membersToAdd = newMembers.filter(m => !oldMembers.includes(m));
 
             if (membersToRemove.length > 0) {
-                await User.updateMany({ _id: { $in: membersToRemove } }, { team: null }, { session });
+                await User.updateMany(
+                    { _id: { $in: membersToRemove } },
+                    { $set: { team: null, reportingManager: null } },
+                    { session }
+                );
             }
-            if (membersToAdd.length > 0) {
-                await User.updateMany({ _id: { $in: membersToAdd } }, { team: id }, { session });
+
+            // Always enforce team linkage for submitted members.
+            // This repairs stale data where user.team became null but member is still listed in Team.members.
+            if (newMembers.length > 0) {
+                await User.updateMany(
+                    { _id: { $in: newMembers } },
+                    {
+                        $set: {
+                            team: id,
+                            ...(newLeadId ? { reportingManager: newLeadId } : { reportingManager: null })
+                        }
+                    },
+                    { session }
+                );
             }
         } catch (e) {
             console.error("[DEBUG] Step 2 FAILED (Member Update):", e);
             throw e;
+        }
+
+        // Step 2b: Always sync reporting manager for current team members
+        if (newLeadId) {
+            console.log(`[DEBUG] Step 2b: Syncing Reporting Manager for all team members to ${newLeadId}`);
+            try {
+                // Non-leads report to the team lead
+                await User.updateMany(
+                    { team: id, _id: { $ne: newLeadId } },
+                    { $set: { reportingManager: newLeadId } },
+                    { session }
+                );
+
+                // Team lead reports to themselves
+                await User.updateOne(
+                    { _id: newLeadId },
+                    { $set: { reportingManager: newLeadId, team: id } },
+                    { session }
+                );
+
+            } catch (e) {
+                console.error("[DEBUG] Step 2b/2c FAILED (Reporting Manager Sync):", e);
+                throw e;
+            }
+        } else {
+            console.log(`[DEBUG] Step 2b: No team lead assigned, clearing reporting manager for this team.`);
+            await User.updateMany(
+                { team: id },
+                { $set: { reportingManager: null } },
+                { session }
+            );
         }
 
         // 3. Update Team Doc

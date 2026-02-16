@@ -158,7 +158,7 @@ const TeamManagement = () => {
                                 <div className="flex items-center justify-between text-xs px-1">
                                     <span className="text-slate-400 font-semibold">Members</span>
                                     <span className="text-[#0B3C5D] font-bold bg-[#F0F7FF] px-2 py-1 rounded-md">
-                                        {team.members?.length || 0} Employees
+                                        {team.members?.filter(m => (m._id || m) !== (team.teamLead?._id || team.teamLead)).length || 0} Employees
                                     </span>
                                 </div>
                             </div>
@@ -227,7 +227,7 @@ const TeamManagement = () => {
                                 <label className="label mb-2 block">Select Team Members</label>
                                 <div className="border border-slate-100 rounded-xl max-h-48 overflow-y-auto p-2 bg-slate-50/30">
                                     {employees
-                                        .filter(emp => (!formData.department || emp.department?._id === formData.department || emp.department === formData.department) && emp._id !== formData.teamLead)
+                                        .filter(emp => (!formData.department || emp.department?._id === formData.department || emp.department === formData.department) && emp._id !== formData.teamLead && (emp._id || emp) !== (formData.teamLead?._id || formData.teamLead))
                                         .map(emp => (
                                             <label key={emp._id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
                                                 <input
