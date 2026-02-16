@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import StatCard from '../../components/StatCard';
 import {
     CalendarClock,
-    Stethoscope,
-    Plane,
     History,
     Clock,
     Bell,
     CheckCircle2,
     XCircle,
     FolderKanban,
-    ClipboardList,
-    TrendingUp
+    ClipboardList
 } from 'lucide-react';
 
 const EmployeeDashboard = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [leaves, setLeaves] = useState([]);
     const [balance, setBalance] = useState({ cl: 0, sl: 0, el: 0 });
     const [notifications, setNotifications] = useState([]);
@@ -96,7 +95,10 @@ const EmployeeDashboard = () => {
 
             {/* Main KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                <div
+                    onClick={() => navigate('/leave-history')}
+                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                >
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:scale-110 transition-transform">
                             <CalendarClock size={24} />
@@ -109,7 +111,10 @@ const EmployeeDashboard = () => {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                <div
+                    onClick={() => navigate('/tasks')}
+                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                >
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform">
                             <ClipboardList size={24} />
@@ -122,7 +127,10 @@ const EmployeeDashboard = () => {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                <div
+                    onClick={() => navigate('/projects')}
+                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                >
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-3 bg-purple-50 rounded-2xl text-purple-600 group-hover:scale-110 transition-transform">
                             <FolderKanban size={24} />
@@ -135,7 +143,10 @@ const EmployeeDashboard = () => {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                <div
+                    onClick={() => navigate('/notifications')}
+                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                >
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:scale-110 transition-transform">
                             <Bell size={24} />
@@ -159,7 +170,12 @@ const EmployeeDashboard = () => {
                                 <ClipboardList size={22} className="text-[#63C132]" />
                                 Recent Tasks
                             </h3>
-                            <button className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#0B3C5D] transition-colors">View All</button>
+                            <button
+                                onClick={() => navigate('/tasks')}
+                                className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#0B3C5D] transition-colors"
+                            >
+                                View All
+                            </button>
                         </div>
                         <div className="space-y-4">
                             {tasks.length === 0 ? (
@@ -244,7 +260,10 @@ const EmployeeDashboard = () => {
                                 <p className="text-sm text-slate-400 text-center italic py-4">No active projects</p>
                             )}
                         </div>
-                        <button className="w-full mt-6 py-3 bg-[#F0F7FF] text-[#0B3C5D] text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-[#0B3C5D] hover:text-white transition-all">
+                        <button
+                            onClick={() => navigate('/projects')}
+                            className="w-full mt-6 py-3 bg-[#F0F7FF] text-[#0B3C5D] text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-[#0B3C5D] hover:text-white transition-all"
+                        >
                             View All Projects
                         </button>
                     </div>

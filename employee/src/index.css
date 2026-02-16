@@ -127,9 +127,9 @@ h6 {
 }
 
 .leave-tile {
-  @apply !bg-[#F0FFF4] !text-[#166534] !font-black !relative;
+  @apply !bg-[#15803D] !text-white !font-black !relative;
 }
 
 .leave-indicator {
-  @apply absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#16A34A];
+  @apply absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white;
 }

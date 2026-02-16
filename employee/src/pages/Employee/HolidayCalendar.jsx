@@ -151,7 +151,7 @@ const HolidayCalendar = () => {
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Holiday</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-[#F0FFF4] border border-[#16A34A] rounded-lg"></div>
+                        <div className="w-4 h-4 bg-[#15803D] border border-green-800 rounded-lg shadow-sm"></div>
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Leave</span>
                     </div>
                 </div>
@@ -194,9 +194,9 @@ const HolidayCalendar = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="p-3 bg-[#F0FFF4] rounded-xl border border-[#16A34A]/20">
-                                        <p className="text-xs font-bold text-[#166534] uppercase tracking-wider mb-1">Pass Type</p>
-                                        <p className="font-bold text-[#0B3C5D]">{selectedEvent.data.leaveType}</p>
+                                    <div className="p-3 bg-[#15803D] rounded-xl border border-green-900/20 text-white shadow-lg shadow-green-900/10">
+                                        <p className="text-xs font-bold text-green-100 uppercase tracking-wider mb-1">Pass Type</p>
+                                        <p className="font-black text-white">{selectedEvent.data.leaveType}</p>
                                     </div>
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm">
