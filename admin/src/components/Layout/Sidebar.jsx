@@ -61,7 +61,7 @@ const Sidebar = () => {
         {
             title: 'Reports & Analytics',
             items: [
-                { name: 'Employee Performance', path: '/employee-performance', icon: Users, roles: ['admin'] },
+                { name: 'Performance Dashboard', path: '/performance-dashboard', icon: Activity, roles: ['admin'] },
             ]
         },
         {

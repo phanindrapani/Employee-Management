@@ -16,6 +16,7 @@ import Reports from './pages/Reports';
 import ChangePassword from './pages/ChangePassword';
 import ProjectReports from './pages/ProjectReports';
 import EmployeePerformance from './pages/EmployeePerformance';
+import PerformanceDashboard from './pages/PerformanceDashboard';
 import LeaveSettings from './pages/LeaveSettings';
 import Profile from './pages/Profile';
 import RolesPermissions from './pages/RolesPermissions';
@@ -60,7 +61,7 @@ function App() {
             <Route path="projects/edit/:id" element={<CreateProject />} />
             <Route path="projects/reports" element={<ProjectReports />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="employee-performance" element={<EmployeePerformance />} />
+            <Route path="performance-dashboard" element={<PerformanceDashboard />} />
             <Route path="leave-settings" element={<LeaveSettings />} />
             <Route path="settings/roles" element={<RolesPermissions />} />
             <Route path="settings/profile" element={<Profile />} />

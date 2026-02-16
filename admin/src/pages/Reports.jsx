@@ -2,15 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import {
-    BarChart3,
-    PieChart,
     Download,
     TrendingUp,
     Users,
     Calendar,
     ArrowUpRight,
-    ArrowDownRight
+    ArrowDownRight,
+    PieChart as PieChartIcon
 } from 'lucide-react';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell,
+    Legend
+} from 'recharts';
 
 const Reports = () => {
     const navigate = useNavigate();
@@ -22,7 +34,8 @@ const Reports = () => {
             utilizationRate: 0
         },
         monthlyData: [],
-        employeeStats: []
+        employeeStats: [],
+        leaveDistribution: []
     });
     const [loading, setLoading] = useState(true);
 
@@ -129,72 +142,118 @@ const Reports = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <div className="lg:col-span-2 bg-white rounded-[32px] p-10 shadow-sm border border-slate-50">
-                    <div className="flex items-center justify-between mb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Monthly Trends */}
+                <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-50 flex flex-col">
+                    <div className="flex items-center justify-between mb-8">
                         <h3 className="text-xl font-black text-[#0B3C5D] tracking-tight flex items-center gap-3">
-                            <BarChart3 size={24} className="text-[#63C132]" />
+                            <TrendingUp size={24} className="text-[#63C132]" />
                             Monthly Trends
                         </h3>
                         <div className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-full text-[10px] font-black text-slate-400 border border-slate-100 uppercase tracking-widest">
                             <Calendar size={14} />
-                            Year 2026
+                            2026
                         </div>
                     </div>
-
-                    <div className="h-72 flex items-end gap-3 px-2">
-                        {reportData.monthlyData.map((val, i) => (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                                <div
-                                    className="w-full bg-[#E0E7FF] rounded-t-lg group-hover:bg-[#0B3C5D] transition-all duration-300 relative"
-                                    style={{ height: `${val > 0 ? val * 12 : 4}px`, minHeight: '4px' }}
-                                >
-                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#0B3C5D] text-white text-[10px] px-2 py-1 rounded hidden group-hover:block transition-all shadow-lg font-bold">
-                                        {val}
-                                    </span>
-                                </div>
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]}
-                                </span>
-                            </div>
-                        ))}
+                    <div className="h-80 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={reportData.monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                <XAxis
+                                    dataKey="name"
+                                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    allowDecimals={false}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: '#f1f5f9', radius: 4 }}
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Bar dataKey="leaves" fill="#0B3C5D" radius={[4, 4, 0, 0]} barSize={24} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[32px] p-10 shadow-sm border border-slate-50">
+                {/* Leave Distribution */}
+                <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-50 flex flex-col">
                     <h3 className="text-xl font-black mb-8 text-[#0B3C5D] tracking-tight flex items-center gap-3">
-                        <Users size={24} className="text-[#63C132]" />
-                        Top Employees
+                        <PieChartIcon size={24} className="text-[#8b5cf6]" />
+                        Leave Distribution
                     </h3>
+                    <div className="h-80 w-full flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={reportData.leaveDistribution}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={80}
+                                    outerRadius={110}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {reportData.leaveDistribution?.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={['#0B3C5D', '#63C132', '#F59E0B', '#EF4444'][index % 4]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    iconType="circle"
+                                    wrapperStyle={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            </div>
 
-                    <div className="space-y-5">
-                        {reportData.employeeStats.map((emp, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-[#F8FAFC] border border-slate-50 hover:border-[#F0F7FF] hover:bg-white transition-all duration-300 group">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-[#0B3C5D] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-[#0B3C5D]/10 group-hover:scale-110 transition-transform">
-                                        {emp.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-[#0B3C5D] text-sm tracking-tight">{emp.name}</div>
-                                        <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">{emp.leaves} Requests</div>
-                                    </div>
+            {/* Top Employees */}
+            <div className="bg-white rounded-[32px] p-10 shadow-sm border border-slate-50">
+                <h3 className="text-xl font-black mb-8 text-[#0B3C5D] tracking-tight flex items-center gap-3">
+                    <Users size={24} className="text-[#3b82f6]" />
+                    Top Employees
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {reportData.employeeStats.map((emp, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-[#F8FAFC] border border-slate-50 hover:border-[#F0F7FF] hover:bg-white transition-all duration-300 group">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-[#0B3C5D] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-[#0B3C5D]/10 group-hover:scale-110 transition-transform">
+                                    {emp.name.charAt(0)}
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-lg font-black text-[#0B3C5D]">{emp.days}</div>
-                                    <div className="text-[10px] text-slate-300 font-black uppercase tracking-tighter">Day(s)</div>
+                                <div>
+                                    <div className="font-bold text-[#0B3C5D] text-sm tracking-tight">{emp.name}</div>
+                                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">{emp.leaves} Requests</div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-
-                    <button
-                        onClick={() => navigate('/employees')}
-                        className="w-full mt-10 py-5 text-[10px] font-black text-[#0B3C5D] hover:bg-[#F0F7FF] flex items-center justify-center gap-3 border border-dashed border-slate-200 rounded-2xl transition-all uppercase tracking-[0.2em]"
-                    >
-                        View Comprehensive List
-                        <ArrowUpRight size={14} className="animate-bounce" />
-                    </button>
+                            <div className="text-right">
+                                <div className="text-lg font-black text-[#0B3C5D]">{emp.days}</div>
+                                <div className="text-[10px] text-slate-300 font-black uppercase tracking-tighter">Day(s)</div>
+                            </div>
+                        </div>
+                    ))}
+                    {reportData.employeeStats.length === 0 && (
+                        <div className="col-span-full py-10 text-center text-slate-400 font-medium italic">No employee leave data available yet.</div>
+                    )}
                 </div>
+
+                <button
+                    onClick={() => navigate('/employees')}
+                    className="w-full mt-10 py-5 text-[10px] font-black text-[#0B3C5D] hover:bg-[#F0F7FF] flex items-center justify-center gap-3 border border-dashed border-slate-200 rounded-2xl transition-all uppercase tracking-[0.2em]"
+                >
+                    View Comprehensive List
+                    <ArrowUpRight size={14} className="animate-bounce" />
+                </button>
             </div>
         </div>
     );

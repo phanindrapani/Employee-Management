@@ -16,7 +16,8 @@ const taskSchema = new mongoose.Schema({
         enum: ['low', 'medium', 'high', 'urgent'],
         default: 'medium'
     },
-    weight: { type: Number, default: 1, min: 1 }
+    weight: { type: Number, default: 1, min: 1 },
+    completedAt: { type: Date }
 }, { timestamps: true });
 
 const Task = mongoose.model('Task', taskSchema);

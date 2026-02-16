@@ -7,7 +7,6 @@ import Team from '../models/team.model.js';
 import Project from '../models/project.model.js';
 import Task from '../models/task.model.js';
 import { promoteUser } from '../services/promotion.service.js';
-import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 // ==================================================
 // DASHBOARD STATS (Aggregations)
@@ -199,7 +198,71 @@ export const getDashboardStats = async (req, res) => {
 
 export const getReportStats = async (req, res) => {
     try {
-        const approvedLeaves = await Leave.find({ status: 'approved' });
+        const currentYear = new Date().getFullYear();
+        const startOfYear = new Date(currentYear, 0, 1);
+        const endOfYear = new Date(currentYear, 11, 31);
+
+        const [
+            approvedLeaves,
+            monthlyAgg,
+            distributionAgg,
+            employeeAgg
+        ] = await Promise.all([
+            Leave.find({ status: 'approved' }),
+            Leave.aggregate([
+                {
+                    $match: {
+                        status: 'approved',
+                        fromDate: { $gte: startOfYear, $lte: endOfYear }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $month: "$fromDate" },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { "_id": 1 } }
+            ]),
+            Leave.aggregate([
+                { $match: { status: 'approved' } },
+                {
+                    $group: {
+                        _id: "$leaveType",
+                        value: { $sum: 1 }
+                    }
+                }
+            ]),
+            Leave.aggregate([
+                { $match: { status: 'approved' } },
+                {
+                    $group: {
+                        _id: "$user",
+                        leaves: { $sum: 1 },
+                        days: { $sum: "$totalDays" }
+                    }
+                },
+                { $sort: { days: -1 } },
+                { $limit: 5 },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "_id",
+                        foreignField: "_id",
+                        as: "userInfo"
+                    }
+                },
+                { $unwind: "$userInfo" },
+                {
+                    $project: {
+                        name: "$userInfo.name",
+                        leaves: 1,
+                        days: 1
+                    }
+                }
+            ])
+        ]);
+
         const allEmployees = await User.find({ role: 'employee' }).select('name _id');
 
         // Summary Metrics
@@ -213,6 +276,7 @@ export const getReportStats = async (req, res) => {
         });
 
         const avgDuration = totalLeavesCount > 0 ? (totalDays / totalLeavesCount).toFixed(1) : 0;
+
         let mostCommonType = 'N/A';
         let maxCount = 0;
         for (const [type, count] of Object.entries(typeCounts)) {
@@ -225,6 +289,22 @@ export const getReportStats = async (req, res) => {
         const totalQuota = allEmployees.length * 24;
         const utilizationRate = totalQuota > 0 ? ((totalDays / totalQuota) * 100).toFixed(1) : 0;
 
+        // Process formatted data
+        // Monthly Data (Ensure 12 months)
+        const monthlyData = Array(12).fill(0).map((_, i) => {
+            const found = monthlyAgg.find(item => item._id === (i + 1));
+            return {
+                name: new Date(0, i).toLocaleString('default', { month: 'short' }),
+                leaves: found ? found.count : 0
+            };
+        });
+
+        // Distribution Data for Pie Chart
+        const leaveDistribution = distributionAgg.map(item => ({
+            name: item._id,
+            value: item.value
+        }));
+
         res.json({
             summary: {
                 totalLeaves: totalLeavesCount,
@@ -232,10 +312,12 @@ export const getReportStats = async (req, res) => {
                 mostCommonType,
                 utilizationRate
             },
-            monthlyData: [],
-            employeeStats: []
+            monthlyData,
+            employeeStats: employeeAgg,
+            leaveDistribution
         });
     } catch (error) {
+        console.error("Report Stats Error:", error);
         res.status(500).json({ message: "Failed to fetch report stats" });
     }
 };
@@ -543,14 +625,6 @@ export const updateTeam = async (req, res) => {
                     console.error("[DEBUG] Step 1d FAILED (updateOne):", e);
                     throw e;
                 }
-
-                // Step 1e: Sync Reporting Manager for all team members
-                // If a new lead is assigned, all CURRENT members + NEW members should report to them.
-                // We'll filter this list in Step 2, but we can also just update anyone whose 'team' is this team ID
-                // to have the new reporting manager.
-                // However, Step 2 hasn't run yet, so 'members' array in body + existing members might be the target.
-                // Safest approach: Update logic in Step 2 (membersToAdd) and also update existing members.
-                // For simplicity/robustness: After Step 2 (Member Update), run a sweeping update for all users in this team.
             }
         } else {
             console.log(`[DEBUG] Step 1: No lead change detected.`);
@@ -571,8 +645,6 @@ export const updateTeam = async (req, res) => {
                 );
             }
 
-            // Always enforce team linkage for submitted members.
-            // This repairs stale data where user.team became null but member is still listed in Team.members.
             if (newMembers.length > 0) {
                 await User.updateMany(
                     { _id: { $in: newMembers } },

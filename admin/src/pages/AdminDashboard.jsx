@@ -249,48 +249,7 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* 3. TEAM PERFORMANCE SNAPSHOT */}
-            <div className="card">
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-bold text-[#0B3C5D] flex items-center gap-2">
-                        <Layers size={18} /> Team Performance Snapshot
-                    </h3>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
-                                <th className="pb-3 pl-2">Team Name</th>
-                                <th className="pb-3">Team Lead</th>
-                                <th className="pb-3 text-center">Members</th>
-                                <th className="pb-3 text-center">Active Projects</th>
-                                <th className="pb-3 w-1/3">Avg. Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-sm">
-                            {teamPerformance.map(team => (
-                                <tr key={team._id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
-                                    <td className="py-4 pl-2 font-bold text-[#0B3C5D]">{team.name}</td>
-                                    <td className="py-4 text-slate-600">{team.lead}</td>
-                                    <td className="py-4 text-center font-bold">{team.members}</td>
-                                    <td className="py-4 text-center font-bold text-[#0B3C5D]">{team.activeProjects}</td>
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                                                    style={{ width: `${team.avgProgress}%` }}
-                                                ></div>
-                                            </div>
-                                            <span className="text-xs font-bold text-slate-500 w-8">{team.avgProgress}%</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
 
             {/* 4. ACTIVITY FEED & QUICK ACTIONS */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

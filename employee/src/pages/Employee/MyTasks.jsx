@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import API from '../../api';
 
-const TaskDetailsModal = ({ task, onClose }) => {
+const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
     if (!task) return null;
 
     const getStatusStyles = (status) => {
