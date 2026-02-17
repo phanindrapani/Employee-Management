@@ -268,7 +268,7 @@ const Profile = () => {
                     <section className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-10">
                         <div className="flex justify-between items-center mb-10">
                             <h3 className="text-xl font-black text-[#0B3C5D] flex items-center gap-3">
-                                <Code className="text-[#63C132]" /> Technical Arsenal
+                                <Code className="text-[#63C132]" /> Technical Skills
                             </h3>
                             <div className="flex items-center gap-3 relative z-20">
                                 {isEditingSkills ? (

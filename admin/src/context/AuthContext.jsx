@@ -5,6 +5,11 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
+        // Clear old generic keys to ensure migration to prefixed keys
+        if (localStorage.getItem('token')) localStorage.removeItem('token');
+        if (localStorage.getItem('user')) localStorage.removeItem('user');
+        if (localStorage.getItem('profile')) localStorage.removeItem('profile');
+
         const cached = localStorage.getItem('ls_admin_profile');
         return cached ? JSON.parse(cached) : null;
     });
@@ -12,14 +17,14 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const checkLoggedIn = async () => {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('ls_admin_token');
             if (token) {
                 try {
                     const { data } = await API.get('/auth/profile');
                     setUser(data);
                     localStorage.setItem('ls_admin_profile', JSON.stringify(data));
                 } catch (error) {
-                    localStorage.removeItem('token');
+                    localStorage.removeItem('ls_admin_token');
                     localStorage.removeItem('ls_admin_profile');
                 }
             }
@@ -30,13 +35,13 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const { data } = await API.post('/auth/login', { email, password });
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('ls_admin_token', data.token);
         localStorage.setItem('ls_admin_profile', JSON.stringify(data));
         setUser(data);
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('ls_admin_token');
         localStorage.removeItem('ls_admin_profile');
         setUser(null);
     };

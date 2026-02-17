@@ -19,6 +19,11 @@ import {
 
 const Sidebar = () => {
     const { user, logout } = useAuth();
+    const handleSwitchToTeamPortal = () => {
+        // localStorage is origin-scoped, so employee portal cannot clear teamlead storage directly.
+        // Send a flag so teamlead app clears its own auth and forces fresh login.
+        window.location.href = `${TEAM_PORTAL_URL}?forceLogin=1`;
+    };
 
     const navSections = [
         {
@@ -82,7 +87,7 @@ const Sidebar = () => {
                 {/* Switch to Team Portal for Team Leads */}
                 {user?.role === 'team-lead' && (
                     <button
-                        onClick={() => window.location.href = TEAM_PORTAL_URL}
+                        onClick={handleSwitchToTeamPortal}
                         className="flex items-center gap-2 px-2.5 py-2.5 rounded-lg transition-all w-full mt-4 bg-[#63C132]/10 text-[#63C132] font-black uppercase text-[9px] tracking-widest border border-[#63C132]/20 hover:bg-[#63C132] hover:text-white shadow-sm overflow-hidden whitespace-nowrap"
                     >
                         <LayoutTemplate size={16} className="shrink-0" />
