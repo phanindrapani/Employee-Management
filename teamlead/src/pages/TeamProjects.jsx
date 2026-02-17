@@ -26,7 +26,7 @@ const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
         setIsUpdating(true);
         setError(null);
         try {
-            const { data } = await API.put(`/team/projects/${project._id}/progress`, {
+            const { data } = await API.put(`/team-lead/projects/${project._id}/progress`, {
                 progress: mode === 'manual' ? tempProgress : undefined,
                 mode: mode
             });
@@ -172,7 +172,7 @@ const TeamProjects = () => {
 
     const fetchTeamProjects = async () => {
         try {
-            const { data } = await API.get('/team/projects');
+            const { data } = await API.get('/team-lead/projects');
             setProjects(data);
             localStorage.setItem('ls_tl_projects_list', JSON.stringify(data));
             setLoading(false);

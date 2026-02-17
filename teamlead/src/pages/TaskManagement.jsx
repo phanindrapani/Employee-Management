@@ -15,7 +15,8 @@ import {
     Scale,
     Briefcase,
     ChevronRight,
-    AlertCircle
+    AlertCircle,
+    RefreshCw
 } from 'lucide-react';
 import API from '../api';
 
@@ -49,9 +50,9 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members, taskToEdit }) 
         setError(null);
         try {
             if (taskToEdit) {
-                await API.put(`/tasks/${taskToEdit._id}`, formData);
+                await API.put(`/team-lead/tasks/${taskToEdit._id}`, formData);
             } else {
-                await API.post('/tasks', formData);
+                await API.post('/team-lead/tasks', formData);
             }
             onSuccess();
         } catch (err) {
@@ -336,9 +337,9 @@ const TaskManagement = () => {
     const fetchData = async () => {
         try {
             const [tasksRes, projectsRes, membersRes] = await Promise.all([
-                API.get('/tasks/team'),
-                API.get('/team/projects'),
-                API.get('/team/members')
+                API.get('/team-lead/tasks'),
+                API.get('/team-lead/projects'),
+                API.get('/team-lead/team')
             ]);
             setTasks(tasksRes.data);
             setProjects(projectsRes.data);

@@ -213,7 +213,7 @@ const MyProjects = () => {
         const fetchProjects = async () => {
             try {
                 // Fetch projects assigned to the employee's team
-                const { data } = await API.get('/team/projects');
+                const { data } = await API.get('/employee/projects');
                 setProjects(data);
                 localStorage.setItem('ls_emp_projects_list', JSON.stringify(data));
                 setLoading(false);

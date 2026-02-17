@@ -73,6 +73,14 @@ const userSchema = new mongoose.Schema({
         cl: { type: Number },
         sl: { type: Number },
         el: { type: Number }
+    },
+    documents: {
+        tenth: { type: String },
+        twelfth: { type: String },
+        degree: { type: String },
+        offerletter: { type: String },
+        joiningletter: { type: String },
+        resume: { type: String },
     }
 }, baseOptions);
 

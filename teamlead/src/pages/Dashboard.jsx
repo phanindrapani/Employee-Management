@@ -43,7 +43,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const { data } = await API.get('/team/stats');
+                const { data } = await API.get('/team-lead/stats');
                 setStats(data);
                 localStorage.setItem('ls_tl_stats', JSON.stringify(data));
                 setLoading(false);

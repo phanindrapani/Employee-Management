@@ -10,8 +10,10 @@ export const AuthProvider = ({ children }) => {
         if (localStorage.getItem('user')) localStorage.removeItem('user');
         if (localStorage.getItem('profile')) localStorage.removeItem('profile');
 
+        const token = localStorage.getItem('ls_emp_token');
         const cached = localStorage.getItem('ls_emp_profile');
-        return cached ? JSON.parse(cached) : null;
+        // Prevent stale-login state: profile without token should not be treated as authenticated.
+        return token && cached ? JSON.parse(cached) : null;
     });
     const [loading, setLoading] = useState(!user);
 
@@ -26,7 +28,11 @@ export const AuthProvider = ({ children }) => {
                 } catch (error) {
                     localStorage.removeItem('ls_emp_token');
                     localStorage.removeItem('ls_emp_profile');
+                    setUser(null);
                 }
+            } else {
+                localStorage.removeItem('ls_emp_profile');
+                setUser(null);
             }
             setLoading(false);
         };

@@ -1,13 +1,8 @@
-import Project from '../models/project.model.js';
-import Task from '../models/task.model.js';
-import User from '../models/user.model.js';
-import { syncProjectProgress } from '../services/projectProgress.service.js';
-import { recalculatePerformanceForUser } from './performance.controller.js';
+import Task from '../../models/task.model.js';
+import User from '../../models/user.model.js';
+import { syncProjectProgress } from '../../services/projectProgress.service.js';
 import mongoose from 'mongoose';
 
-/**
- * Assign a new task (Team Lead only)
- */
 export const createTask = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -48,9 +43,6 @@ export const createTask = async (req, res) => {
     }
 };
 
-/**
- * Get all tasks for the Team Lead's team
- */
 export const getTeamTasks = async (req, res) => {
     try {
         const teamId = req.user.team;
@@ -71,92 +63,87 @@ export const getTeamTasks = async (req, res) => {
     }
 };
 
-/**
- * Get tasks assigned to current user
- */
-export const getMyTasks = async (req, res) => {
-    try {
-        const tasks = await Task.find({ assignedTo: req.user._id })
-            .populate('project', 'name')
-            .sort({ deadline: 1 });
-        res.json(tasks);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch your tasks" });
-    }
-};
-
-/**
- * Update task status
- */
-export const updateTaskStatus = async (req, res) => {
+export const updateTask = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
         const { id } = req.params;
-        const { status } = req.body;
-
         const task = await Task.findById(id).session(session);
         if (!task) {
             await session.abortTransaction();
             return res.status(404).json({ message: "Task not found" });
         }
 
-        const isAssigned = task.assignedTo && task.assignedTo.toString() === req.user._id.toString();
-        const worker = task.assignedTo ? await User.findById(task.assignedTo).session(session) : null;
-        const isTL = req.user.role === 'team-lead' && worker && worker.team?.toString() === req.user.team?.toString();
-
-        if (!isAssigned && !isTL) {
+        const oldWorker = task.assignedTo ? await User.findById(task.assignedTo).session(session) : null;
+        if (req.user.role === 'team-lead' && (!oldWorker || oldWorker.team?.toString() !== req.user.team?.toString())) {
             await session.abortTransaction();
-            return res.status(403).json({ message: "Not authorized to update this task" });
+            return res.status(403).json({ message: "You can only update tasks for your team members" });
         }
 
-        if (status === 'done' && task.status !== 'done') {
-            task.completedAt = new Date();
-        } else if (status !== 'done' && task.status === 'done') {
-            task.completedAt = null;
+        const {
+            title,
+            description,
+            project,
+            assignedTo,
+            deadline,
+            priority,
+            weight,
+            status
+        } = req.body;
+
+        let newWorker = oldWorker;
+        if (assignedTo && assignedTo.toString() !== task.assignedTo?.toString()) {
+            newWorker = await User.findById(assignedTo).session(session);
+            if (!newWorker) {
+                await session.abortTransaction();
+                return res.status(404).json({ message: "Assigned user not found" });
+            }
+            if (req.user.role === 'team-lead' && newWorker.team?.toString() !== req.user.team?.toString()) {
+                await session.abortTransaction();
+                return res.status(403).json({ message: "You can only assign tasks to your own team members" });
+            }
+            task.assignedTo = assignedTo;
         }
 
-        task.status = status;
+        const oldProjectId = task.project?.toString();
+
+        if (title !== undefined) task.title = title;
+        if (description !== undefined) task.description = description;
+        if (project !== undefined) task.project = project;
+        if (deadline !== undefined) task.deadline = deadline;
+        if (priority !== undefined) task.priority = priority;
+        if (weight !== undefined) task.weight = weight;
+
+        if (status !== undefined) {
+            if (status === 'done' && task.status !== 'done') {
+                task.completedAt = new Date();
+            } else if (status !== 'done' && task.status === 'done') {
+                task.completedAt = null;
+            }
+            task.status = status;
+        }
+
         await task.save({ session });
 
-        // Trigger auto-sync for project
+        // Keep project progress in sync for updated task/project.
         await syncProjectProgress(task.project, req.user._id, session);
-        const shouldRecalculateEmployeeScore = Boolean(
-            worker &&
-            ['employee', 'team-lead'].includes(worker.role) &&
-            task.assignedTo &&
-            status !== undefined
-        );
-
-        console.log(`[DEBUG][TaskStatus] Task ${task._id} status ${task.status} updated by ${req.user._id} (${req.user.role}). AssignedTo=${task.assignedTo}. Recalc=${shouldRecalculateEmployeeScore}`);
-
-        await session.commitTransaction();
-
-        // Run after commit so scoring sees the latest persisted task status.
-        if (shouldRecalculateEmployeeScore) {
-            const now = new Date();
-            const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            try {
-                const metric = await recalculatePerformanceForUser(task.assignedTo, period);
-                console.log(`[DEBUG][TaskStatus] Recalculated metric user=${task.assignedTo} period=${period} total=${metric?.totalScore} completed=${metric?.tasksCompleted}/${metric?.tasksAssigned} onTime=${metric?.onTimeTasks}`);
-            } catch (scoreError) {
-                console.error("Performance Recalculation Error:", scoreError);
-            }
+        if (project && oldProjectId && project.toString() !== oldProjectId) {
+            await syncProjectProgress(oldProjectId, req.user._id, session);
         }
 
-        res.json(task);
+        await session.commitTransaction();
+        const updatedTask = await Task.findById(id)
+            .populate('project', 'name')
+            .populate('assignedTo', 'name email profilePicture');
+        res.json(updatedTask);
     } catch (error) {
         await session.abortTransaction();
-        console.error("Task Update Error:", error);
         res.status(500).json({ message: error.message || "Failed to update task" });
     } finally {
         session.endSession();
     }
 };
 
-/**
- * Delete task (TL only)
- */
 export const deleteTask = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();

@@ -11,7 +11,7 @@ const Notifications = () => {
 
     const fetchNotifications = async () => {
         try {
-            const { data } = await API.get('/notifications');
+            const { data } = await API.get('/employee/notifications');
             setNotifications(data);
             localStorage.setItem('ls_emp_notifications', JSON.stringify(data));
         } catch (err) {
@@ -27,7 +27,7 @@ const Notifications = () => {
 
     const markAsRead = async (id) => {
         try {
-            await API.put(`/notifications/${id}/read`);
+            await API.put(`/employee/notifications/${id}/read`);
             setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
         } catch (err) {
             console.error('Failed to mark as read');

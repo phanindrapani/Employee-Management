@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/user.model.js';
 import { getLeaveQuotas } from './settings.service.js';
 

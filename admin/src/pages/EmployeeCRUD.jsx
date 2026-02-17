@@ -7,6 +7,19 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const EmployeeCRUD = () => {
+    const initialFormData = {
+        name: '',
+        email: '',
+        role: 'employee',
+        department: '',
+        team: '',
+        reportingManager: '',
+        skills: '',
+        experienceLevel: '',
+        phone: '',
+        qualification: ''
+    };
+
     const navigate = useNavigate();
     const [employees, setEmployees] = useState(() => {
         const cached = localStorage.getItem('ls_admin_employees_list');
@@ -25,18 +38,7 @@ const EmployeeCRUD = () => {
     const [editingEmployee, setEditingEmployee] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        role: 'employee',
-        department: '',
-        team: '',
-        reportingManager: '',
-        skills: '',
-        experienceLevel: '',
-        phone: '',
-        qualification: ''
-    });
+    const [formData, setFormData] = useState(initialFormData);
 
 
 
@@ -86,10 +88,7 @@ const EmployeeCRUD = () => {
             }
             setShowModal(false);
             setEditingEmployee(null);
-            setFormData({
-                name: '', email: '', role: 'employee', department: '', team: '',
-                reportingManager: '', skills: '', experienceLevel: ''
-            });
+            setFormData(initialFormData);
 
             fetchData();
         } catch (err) {
@@ -142,7 +141,7 @@ const EmployeeCRUD = () => {
                 <button
                     onClick={() => {
                         setEditingEmployee(null);
-                        setFormData({ name: '', email: '', phone: '', qualification: '', address: '' });
+                        setFormData(initialFormData);
                         setShowModal(true);
                     }}
                     className="px-6 py-3 bg-[#63C132] text-white rounded-xl font-bold hover:bg-[#52A428] transition-all flex items-center gap-2 shadow-lg shadow-[#63C132]/20"

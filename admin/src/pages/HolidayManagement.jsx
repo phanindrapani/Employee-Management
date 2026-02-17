@@ -22,6 +22,7 @@ const HolidayManagement = () => {
         type: 'public',
         description: ''
     });
+    const [duplicateMessage, setDuplicateMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(holidays.length === 0);
 
@@ -44,15 +45,22 @@ const HolidayManagement = () => {
     const handleAddHoliday = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setDuplicateMessage('');
         try {
+            const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
             await API.post('/admin/holidays', {
                 ...formData,
-                date: selectedDate
+                date: dateKey
             });
             setFormData({ name: '', type: 'public', description: '' });
-            fetchHolidays();
+            await fetchHolidays();
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to add holiday');
+            const message = err.response?.data?.message || err.response?.data?.msg || 'Failed to add holiday';
+            if (String(message).toLowerCase().includes('already exists')) {
+                setDuplicateMessage('A holiday already exists on this date.');
+            } else {
+                alert(message);
+            }
         } finally {
             setLoading(false);
         }
@@ -68,12 +76,19 @@ const HolidayManagement = () => {
         }
     };
 
+    const toLocalDateKey = (date) =>
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+    const toStoredDateKey = (dateLike) => new Date(dateLike).toISOString().slice(0, 10);
+
     const isHoliday = (date) => {
-        return holidays.some(h => new Date(h.date).toDateString() === date.toDateString());
+        const selectedKey = toLocalDateKey(date);
+        return holidays.some(h => toStoredDateKey(h.date) === selectedKey);
     };
 
     const getHolidayDetails = (date) => {
-        return holidays.find(h => new Date(h.date).toDateString() === date.toDateString());
+        const selectedKey = toLocalDateKey(date);
+        return holidays.find(h => toStoredDateKey(h.date) === selectedKey);
     };
 
     return (
@@ -201,11 +216,16 @@ const HolidayManagement = () => {
 
                             <button
                                 type="submit"
-                                disabled={loading || isHoliday(selectedDate)}
+                                disabled={loading}
                                 className="w-full py-4 bg-[#0B3C5D] text-white rounded-xl font-bold hover:bg-[#1A4B6D] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                             >
-                                {loading ? 'Saving...' : isHoliday(selectedDate) ? 'Already Added' : 'Add Holiday'}
+                                {loading ? 'Adding...' : 'Add Holiday'}
                             </button>
+                            {duplicateMessage && !loading && (
+                                <p className="text-xs text-amber-600 font-medium mt-2">
+                                    {duplicateMessage}
+                                </p>
+                            )}
                         </form>
 
                         <div className="mt-6 p-4 bg-primary-50 rounded-lg flex gap-3">

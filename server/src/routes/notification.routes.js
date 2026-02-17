@@ -4,8 +4,10 @@ import { protect } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.get('/', protect, getMyNotifications);
-router.put('/:id/read', protect, markAsRead);
-router.put('/read-all', protect, markAllAsRead);
+router.use(protect);
+
+router.get('/', getMyNotifications);
+router.put('/:id/read', markAsRead);
+router.put('/read-all', markAllAsRead);
 
 export default router;

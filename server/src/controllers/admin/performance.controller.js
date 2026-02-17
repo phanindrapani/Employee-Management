@@ -1,10 +1,10 @@
-import Goal from '../models/goal.model.js';
-import Performance from '../models/performance.model.js';
-import PerformanceMetric from '../models/performanceMetric.model.js';
-import Task from '../models/task.model.js';
-import Attendance from '../models/attendance.model.js';
-import WorkLog from '../models/workLog.model.js';
-import User from '../models/user.model.js';
+import Goal from '../../models/goal.model.js';
+import Performance from '../../models/performance.model.js';
+import PerformanceMetric from '../../models/performanceMetric.model.js';
+import Task from '../../models/task.model.js';
+import Attendance from '../../models/attendance.model.js';
+import WorkLog from '../../models/workLog.model.js';
+import User from '../../models/user.model.js';
 
 // ==================================================
 // GOAL MANAGEMENT

@@ -1,4 +1,4 @@
-import GlobalSetting from '../models/globalSetting.model.js';
+import GlobalSetting from '../../models/globalSetting.model.js';
 
 export const getLeaveSettings = async (req, res) => {
     try {

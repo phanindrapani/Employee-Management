@@ -20,7 +20,7 @@ const HolidayCalendar = () => {
             try {
                 const [holidaysRes, leavesRes] = await Promise.allSettled([
                     API.get('/holidays'),
-                    API.get('/leaves')
+                    API.get('/employee/leaves')
                 ]);
 
                 if (holidaysRes.status === 'fulfilled') {

@@ -20,11 +20,11 @@ const upload = multer({
 
 export const uploadDocuments = upload.fields([
     { name: 'profilePicture', maxCount: 1 },
-    { name: 'tenthMarksheet', maxCount: 1 },
-    { name: 'intermediateMarksheet', maxCount: 1 },
-    { name: 'graduationCertificate', maxCount: 1 },
-    { name: 'offerLetter', maxCount: 1 },
-    { name: 'joiningLetter', maxCount: 1 },
+    { name: 'tenth', maxCount: 1 },
+    { name: 'twelfth', maxCount: 1 },
+    { name: 'degree', maxCount: 1 },
+    { name: 'offerletter', maxCount: 1 },
+    { name: 'joiningletter', maxCount: 1 },
     { name: 'resume', maxCount: 1 }
 ]);
 

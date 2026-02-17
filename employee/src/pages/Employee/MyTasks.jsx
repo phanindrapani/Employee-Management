@@ -40,7 +40,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
         setIsUpdating(true);
         setError(null);
         try {
-            const { data } = await API.patch(`/tasks/${task._id}/status`, { status: newStatus });
+            const { data } = await API.patch(`/employee/tasks/${task._id}/status`, { status: newStatus });
             onUpdate(data);
             setIsUpdating(false);
             onClose();
@@ -160,7 +160,7 @@ const MyTasks = () => {
         const fetchTasks = async () => {
             try {
                 // Fetch tasks assigned to the current employee
-                const { data } = await API.get('/tasks/my');
+                const { data } = await API.get('/employee/tasks');
                 setTasks(data);
                 localStorage.setItem('ls_emp_my_tasks', JSON.stringify(data));
                 setLoading(false);

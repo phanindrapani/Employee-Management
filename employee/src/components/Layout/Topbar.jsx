@@ -15,7 +15,7 @@ const Topbar = () => {
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                const { data } = await API.get('/notifications');
+                const { data } = await API.get('/employee/notifications');
                 setNotifications(data);
             } catch (err) {
                 console.error('Failed to fetch notifications');
@@ -30,7 +30,7 @@ const Topbar = () => {
 
     const markAllRead = async () => {
         try {
-            await API.put('/notifications/read-all');
+            await API.put('/employee/notifications/read-all');
             setNotifications(notifications.map(n => ({ ...n, isRead: true })));
         } catch (err) {
             console.error('Failed to mark all read');

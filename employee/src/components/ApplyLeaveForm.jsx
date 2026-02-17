@@ -20,7 +20,7 @@ const ApplyLeaveForm = ({ onLeaveApplied }) => {
         setSuccess('');
 
         try {
-            await API.post('/leaves', formData);
+            await API.post('/employee/leaves', formData);
             setSuccess('Leave application submitted successfully!');
             setFormData({
                 leaveType: 'CL',

@@ -31,11 +31,11 @@ const EmployeeDashboard = () => {
     const fetchDashboardData = async () => {
         try {
             const [leavesResult, notifResult, userResult, tasksResult, projectsResult] = await Promise.allSettled([
-                API.get('/leaves'),
-                API.get('/notifications'),
+                API.get('/employee/leaves'),
+                API.get('/employee/notifications'),
                 API.get('/auth/profile'),
-                API.get('/tasks/my'),
-                API.get('/team/projects')
+                API.get('/employee/tasks'),
+                API.get('/employee/projects')
             ]);
 
             const freshCache = {

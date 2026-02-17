@@ -1,11 +1,18 @@
-import Project from '../models/project.model.js';
-import User from '../models/user.model.js';
-import { overrideProjectProgress, setProgressMode } from '../services/projectProgress.service.js';
-import mongoose from 'mongoose';
+import Project from '../../models/project.model.js';
+import { overrideProjectProgress, setProgressMode } from '../../services/projectProgress.service.js';
 
-/**
- * Handle manual progress override (Admin / Team Lead)
- */
+export const getTeamProjects = async (req, res) => {
+    try {
+        const teamId = req.user.team;
+        const projects = await Project.find({ assignedTeam: teamId })
+            .populate('assignedTeam', 'name')
+            .sort({ endDate: 1 });
+        res.json(projects);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch team projects" });
+    }
+};
+
 export const updateProjectProgress = async (req, res) => {
     try {
         const { id } = req.params;
@@ -15,10 +22,9 @@ export const updateProjectProgress = async (req, res) => {
         if (!project) return res.status(404).json({ message: "Project not found" });
 
         // Authorization check
-        const isAdmin = req.user.role === 'admin';
         const isTLForTeam = req.user.role === 'team-lead' && project.assignedTeam?.toString() === req.user.team?.toString();
 
-        if (!isAdmin && !isTLForTeam) {
+        if (!isTLForTeam) {
             return res.status(403).json({ message: "Not authorized to override progress for this project" });
         }
 

@@ -63,7 +63,7 @@ const DocumentManager = ({ targetUserId }) => {
         if (!effectiveUserId) return;
         try {
             const params = targetUserId ? { userId: targetUserId } : {};
-            const { data } = await API.get('/documents', { params });
+            const { data } = await API.get('/employee/documents', { params });
             setDocuments(data);
             localStorage.setItem(`ls_docs_${effectiveUserId}`, JSON.stringify(data));
         } catch (err) {
@@ -89,7 +89,7 @@ const DocumentManager = ({ targetUserId }) => {
 
         try {
             setUploading(true);
-            await API.post('/documents/upload', formData, {
+            await API.post('/employee/documents/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             await fetchDocuments();
@@ -103,7 +103,7 @@ const DocumentManager = ({ targetUserId }) => {
     const handleDelete = async (docId) => {
         if (!confirm("Are you sure you want to delete this document?")) return;
         try {
-            await API.delete(`/documents/${docId}`);
+            await API.delete(`/employee/documents/${docId}`);
             setDocuments(prev => prev.filter(d => d._id !== docId));
         } catch (err) {
             console.error("Failed to delete document", err);

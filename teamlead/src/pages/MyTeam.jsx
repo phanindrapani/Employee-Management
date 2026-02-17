@@ -26,7 +26,7 @@ const MyTeam = () => {
     useEffect(() => {
         const fetchTeamMembers = async () => {
             try {
-                const { data: responseData } = await API.get('/team/members');
+                const { data: responseData } = await API.get('/team-lead/team');
                 // Support both old array and new object format for transition
                 const formattedData = responseData.members ? responseData : {
                     members: responseData,

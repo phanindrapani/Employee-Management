@@ -3,26 +3,25 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Load env vars immediately
+dotenv.config();
+
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middlewares/error.middleware.js";
 
 // Routes
 import authRoutes from "./routes/auth.routes.js";
-import leaveRoutes from "./routes/leave.routes.js";
-import holidayRoutes from "./routes/holiday.routes.js";
+import adminHolidayRoutes from "./routes/admin/holiday.routes.js";
+import adminRoutes from "./routes/admin/index.js";
+import employeeRoutes from "./routes/employee/index.js";
+import teamLeadRoutes from "./routes/team-lead/index.js";
 import notificationRoutes from "./routes/notification.routes.js";
-import employeeRoutes from "./routes/employee.routes.js";
-import teamRoutes from "./routes/team.routes.js";
-import adminRoutes from "./routes/admin.routes.js";
-import taskRoutes from "./routes/task.routes.js";
-import documentRoutes from "./routes/employeeDocument.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Assets (public, uploads) and .env are in the parent directory of src
 const rootDir = path.join(__dirname, '..');
-
-dotenv.config();
 
 connectDB();
 
@@ -39,14 +38,11 @@ app.use('/uploads', express.static(path.join(rootDir, 'uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/leaves', leaveRoutes);
-app.use('/api/holidays', holidayRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/employees', employeeRoutes);
+app.use('/api/holidays', adminHolidayRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/team', teamRoutes);
-app.use('/api/documents', documentRoutes);
+app.use('/api/employee', employeeRoutes);
+app.use('/api/team-lead', teamLeadRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

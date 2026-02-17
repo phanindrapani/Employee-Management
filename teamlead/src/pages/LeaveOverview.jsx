@@ -20,7 +20,7 @@ const LeaveOverview = () => {
 
     const fetchTeamLeaves = async () => {
         try {
-            const { data } = await API.get('/team/leaves');
+            const { data } = await API.get('/team-lead/leaves');
             setLeaves(data);
             localStorage.setItem('ls_tl_leave_requests', JSON.stringify(data));
             setLoading(false);

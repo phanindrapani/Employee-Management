@@ -20,7 +20,7 @@ const LeaveHistory = () => {
 
     const fetchLeaves = async () => {
         try {
-            const { data } = await API.get('/leaves');
+            const { data } = await API.get('/employee/leaves');
             setLeaves(data);
             localStorage.setItem('ls_emp_leaves_history', JSON.stringify(data));
         } catch (err) {

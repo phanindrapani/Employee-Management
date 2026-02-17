@@ -63,7 +63,7 @@ const DocumentManager = ({ targetUserId }) => {
         try {
             setLoading(true);
             const params = targetUserId ? { userId: targetUserId } : {};
-            const { data } = await API.get('/documents', { params });
+            const { data } = await API.get('/admin/documents', { params });
             setDocuments(data);
         } catch (err) {
             console.error("Failed to load documents", err);
@@ -88,7 +88,7 @@ const DocumentManager = ({ targetUserId }) => {
 
         try {
             setUploading(true);
-            await API.post('/documents/upload', formData, {
+            await API.post('/admin/documents/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             await fetchDocuments();
@@ -102,7 +102,7 @@ const DocumentManager = ({ targetUserId }) => {
     const handleDelete = async (docId) => {
         if (!confirm("Are you sure you want to delete this document?")) return;
         try {
-            await API.delete(`/documents/${docId}`);
+            await API.delete(`/admin/documents/${docId}`);
             setDocuments(prev => prev.filter(d => d._id !== docId));
         } catch (err) {
             console.error("Failed to delete document", err);
@@ -114,7 +114,7 @@ const DocumentManager = ({ targetUserId }) => {
             setDocuments(prev => prev.map(d =>
                 d._id === docId ? { ...d, verificationStatus: 'verified' } : d
             ));
-            await API.put(`/documents/${docId}/verify`);
+            await API.put(`/admin/documents/${docId}/verify`);
             await fetchDocuments();
         } catch (err) {
             console.error("Verification failed", err);
@@ -139,7 +139,7 @@ const DocumentManager = ({ targetUserId }) => {
             setDocuments(prev => prev.map(d =>
                 d._id === docId ? { ...d, verificationStatus: 'rejected', rejectionReason: rejectionReason } : d
             ));
-            await API.put(`/documents/${docId}/reject`, { reason: rejectionReason });
+            await API.put(`/admin/documents/${docId}/reject`, { reason: rejectionReason });
             await fetchDocuments();
             setRejectingDocId(null);
             setRejectionReason('');

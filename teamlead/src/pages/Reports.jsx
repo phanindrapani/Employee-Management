@@ -34,7 +34,7 @@ const Reports = () => {
 
     const fetchReports = async () => {
         try {
-            const { data } = await API.get('/team/reports');
+            const { data } = await API.get('/team-lead/reports');
             setReportData(data);
             localStorage.setItem('ls_tl_reports_data', JSON.stringify(data));
             setLoading(false);

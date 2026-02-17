@@ -1,5 +1,5 @@
-import EmployeeDocument from '../models/employeeDocument.model.js';
-import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
+import EmployeeDocument from '../../models/employeeDocument.model.js';
+import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
 
 // Upload a document
 export const uploadDocument = async (req, res) => {
