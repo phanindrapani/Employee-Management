@@ -27,6 +27,44 @@ const Profile = () => {
     });
     const [loading, setLoading] = useState(!profile);
     const [uploading, setUploading] = useState(false);
+    const [isEditingBio, setIsEditingBio] = useState(false);
+    const [bioContent, setBioContent] = useState('');
+    const [isEditingSkills, setIsEditingSkills] = useState(false);
+    const [skillsContent, setSkillsContent] = useState('');
+    const [isEditingEdu, setIsEditingEdu] = useState(false);
+    const [eduContent, setEduContent] = useState('');
+    const [isEditingPhone, setIsEditingPhone] = useState(false);
+    const [phoneContent, setPhoneContent] = useState('');
+
+    useEffect(() => {
+        if (profile?.bio) setBioContent(profile.bio);
+        if (profile?.skills) setSkillsContent(profile.skills.join(', '));
+        if (profile?.qualification) setEduContent(profile.qualification);
+        if (profile?.phone) setPhoneContent(profile.phone);
+    }, [profile]);
+
+    const handleSave = async (field, value) => {
+        try {
+            const payload = field === 'skills' ? { skills: value.split(',').map(s => s.trim()).filter(s => s !== '') } : { [field]: value };
+            const { data } = await API.put('/auth/profile', payload);
+            setProfile(prev => ({ ...prev, ...payload, completeness: data.completeness }));
+            if (field === 'bio') setIsEditingBio(false);
+            if (field === 'skills') setIsEditingSkills(false);
+            if (field === 'qualification') setIsEditingEdu(false);
+            if (field === 'phone') setIsEditingPhone(false);
+
+            // Update cache
+            localStorage.setItem('ls_emp_profile', JSON.stringify({ ...profile, ...payload, completeness: data.completeness }));
+        } catch (error) {
+            console.error(`Error updating ${field}:`, error);
+            alert(`Failed to update ${field}.`);
+        }
+    };
+
+    const handleBioSave = () => handleSave('bio', bioContent);
+    const handleSkillsSave = () => handleSave('skills', skillsContent);
+    const handleEduSave = () => handleSave('qualification', eduContent);
+    const handlePhoneSave = () => handleSave('phone', phoneContent);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -146,13 +184,30 @@ const Profile = () => {
                                     <p className="text-xs font-bold text-[#0B3C5D]">{profile?.email}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 group/phone">
                                 <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center">
                                     <Phone size={16} className="text-[#0B3C5D]" />
                                 </div>
-                                <div className="text-left">
+                                <div className="text-left flex-1">
                                     <p className="text-[9px] font-black text-slate-400 uppercase">Phone Number</p>
-                                    <p className="text-xs font-bold text-[#0B3C5D]">{profile?.phone || 'Not provided'}</p>
+                                    {isEditingPhone ? (
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={phoneContent}
+                                                onChange={(e) => setPhoneContent(e.target.value)}
+                                                className="text-xs font-bold text-[#0B3C5D] border-b border-slate-200 focus:border-[#63C132] outline-none bg-transparent w-24"
+                                            />
+                                            <button onClick={handlePhoneSave} className="text-[#63C132] font-black text-[9px] uppercase">Save</button>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs font-bold text-[#0B3C5D] flex items-center gap-2">
+                                            {profile?.phone || 'Not provided'}
+                                            <button onClick={() => setIsEditingPhone(true)} className="opacity-0 group-hover/phone:opacity-100 text-slate-400 hover:text-[#0B3C5D] transition-opacity">
+                                                <Settings2 size={12} />
+                                            </button>
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -167,12 +222,46 @@ const Profile = () => {
                     {/* Professional Bio */}
                     <section className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-10 relative overflow-hidden group hover:shadow-xl transition-all duration-500">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full translate-x-16 -translate-y-16 group-hover:bg-[#63C132]/5 transition-colors"></div>
-                        <h3 className="text-xl font-black text-[#0B3C5D] mb-6 flex items-center gap-3 relative z-10">
-                            <Activity className="text-[#63C132]" /> Professional Summary
-                        </h3>
-                        <p className="text-slate-500 font-medium leading-relaxed relative z-10">
-                            {profile?.bio || `Dedicated ${profile?.role} at Corporate ERP, focused on ${profile?.skills?.slice(0, 3).join(', ') || 'delivering high-quality solutions'}. Committed to operational excellence and team collaboration.`}
-                        </p>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-black text-[#0B3C5D] flex items-center gap-3 relative z-10">
+                                <Activity className="text-[#63C132]" /> Professional Summary
+                            </h3>
+                            {isEditingBio ? (
+                                <div className="flex gap-2 relative z-20">
+                                    <button
+                                        onClick={() => setIsEditingBio(false)}
+                                        className="px-4 py-1.5 bg-slate-100 text-slate-500 text-[10px] font-black uppercase rounded-full hover:bg-slate-200 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleBioSave}
+                                        className="px-4 py-1.5 bg-[#63C132] text-white text-[10px] font-black uppercase rounded-full hover:bg-[#52a129] transition-colors"
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setIsEditingBio(true)}
+                                    className="px-4 py-1.5 bg-blue-50 text-[#0B3C5D] text-[10px] font-black uppercase rounded-full hover:bg-blue-100 transition-colors relative z-20"
+                                >
+                                    Edit Summary
+                                </button>
+                            )}
+                        </div>
+                        {isEditingBio ? (
+                            <textarea
+                                value={bioContent}
+                                onChange={(e) => setBioContent(e.target.value)}
+                                className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#63C132] focus:border-transparent outline-none text-slate-600 font-medium resize-none relative z-10"
+                                placeholder="Describe your professional journey, skills, and goals..."
+                            />
+                        ) : (
+                            <p className="text-slate-500 font-medium leading-relaxed relative z-10">
+                                {profile?.bio || `Dedicated ${profile?.role} at Corporate ERP, focused on ${profile?.skills?.slice(0, 3).join(', ') || 'delivering high-quality solutions'}. Committed to operational excellence and team collaboration.`}
+                            </p>
+                        )}
                     </section>
 
                     {/* Skills Grid */}
@@ -181,24 +270,59 @@ const Profile = () => {
                             <h3 className="text-xl font-black text-[#0B3C5D] flex items-center gap-3">
                                 <Code className="text-[#63C132]" /> Technical Arsenal
                             </h3>
-                            <span className="px-4 py-1.5 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
-                                {profile?.skills?.length || 0} Specializations
-                            </span>
+                            <div className="flex items-center gap-3 relative z-20">
+                                {isEditingSkills ? (
+                                    <>
+                                        <button
+                                            onClick={() => setIsEditingSkills(false)}
+                                            className="px-4 py-1.5 bg-slate-100 text-slate-500 text-[10px] font-black uppercase rounded-full"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleSkillsSave}
+                                            className="px-4 py-1.5 bg-[#63C132] text-white text-[10px] font-black uppercase rounded-full"
+                                        >
+                                            Save
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsEditingSkills(true)}
+                                        className="px-4 py-1.5 bg-blue-50 text-[#0B3C5D] text-[10px] font-black uppercase rounded-full hover:bg-blue-100 transition-colors"
+                                    >
+                                        Edit Skills
+                                    </button>
+                                )}
+                                <span className="px-4 py-1.5 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
+                                    {profile?.skills?.length || 0} Specializations
+                                </span>
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {profile?.skills?.map((skill, i) => (
-                                <div key={i} className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex items-center gap-4 group hover:bg-[#0B3C5D] transition-all duration-300">
-                                    <div className="w-2 h-2 bg-[#63C132] rounded-full group-hover:scale-150 transition-transform"></div>
-                                    <span className="text-[10px] font-black text-[#0B3C5D] group-hover:text-white uppercase tracking-widest">{skill}</span>
-                                </div>
-                            ))}
-                            {(!profile?.skills || profile.skills.length === 0) && (
-                                <div className="col-span-full py-10 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                    <p className="text-slate-400 font-bold italic uppercase text-xs tracking-widest">No technical skills indexed</p>
-                                </div>
-                            )}
-                        </div>
+                        {isEditingSkills ? (
+                            <input
+                                type="text"
+                                value={skillsContent}
+                                onChange={(e) => setSkillsContent(e.target.value)}
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#63C132] outline-none text-slate-600 font-medium mb-6"
+                                placeholder="Enter skills separated by commas (e.g. React, Node, SQL)..."
+                            />
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                {profile?.skills?.map((skill, i) => (
+                                    <div key={i} className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex items-center gap-4 group hover:bg-[#0B3C5D] transition-all duration-300">
+                                        <div className="w-2 h-2 bg-[#63C132] rounded-full group-hover:scale-150 transition-transform"></div>
+                                        <span className="text-[10px] font-black text-[#0B3C5D] group-hover:text-white uppercase tracking-widest">{skill}</span>
+                                    </div>
+                                ))}
+                                {(!profile?.skills || profile.skills.length === 0) && (
+                                    <div className="col-span-full py-10 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                        <p className="text-slate-400 font-bold italic uppercase text-xs tracking-widest">No technical skills indexed</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </section>
 
                     {/* Job Relationship Bridge */}
@@ -259,26 +383,69 @@ const Profile = () => {
                             <div className="pt-6 border-t border-white/10 space-y-4">
                                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#63C132]">
                                     <span>Security & Health</span>
-                                    <span>100%</span>
+                                    <div className="flex gap-2 text-slate-400">
+                                        <span title="Essential Info">E: {profile?.completeness?.breakdown?.essential || 0}</span>
+                                        <span title="Professional Details">P: {profile?.completeness?.breakdown?.professional || 0}</span>
+                                        <span title="Security signals">S: {profile?.completeness?.breakdown?.security || 0}</span>
+                                        <span className="text-[#63C132] ml-1">{profile?.completeness?.totalScore || 0}%</span>
+                                    </div>
                                 </div>
                                 <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="w-full h-full bg-[#63C132] rounded-full shadow-[0_0_10px_#63C132]"></div>
+                                    <div className="h-full bg-[#63C132] rounded-full shadow-[0_0_10px_#63C132] transition-all duration-1000" style={{ width: `${profile?.completeness?.totalScore || 0}%` }}></div>
                                 </div>
+                                <p className="text-[8px] text-white/40 font-bold uppercase tracking-widest text-center mt-2">
+                                    Update bio, skills, qualification & phone to reach 100%
+                                </p>
                             </div>
                         </div>
                     </section>
 
                     {/* Professional Qualifications */}
                     <section className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-10 hover:shadow-xl transition-all duration-500">
-                        <h3 className="text-xl font-black text-[#0B3C5D] mb-8 flex items-center gap-3">
-                            <GraduationCap className="text-[#63C132]" /> Education
-                        </h3>
+                        <div className="flex justify-between items-center mb-8">
+                            <h3 className="text-xl font-black text-[#0B3C5D] flex items-center gap-3">
+                                <GraduationCap className="text-[#63C132]" /> Education
+                            </h3>
+                            {isEditingEdu ? (
+                                <div className="flex gap-2 relative z-20">
+                                    <button
+                                        onClick={() => setIsEditingEdu(false)}
+                                        className="px-4 py-1.5 bg-slate-100 text-slate-500 text-[10px] font-black uppercase rounded-full"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleEduSave}
+                                        className="px-4 py-1.5 bg-[#63C132] text-white text-[10px] font-black uppercase rounded-full"
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setIsEditingEdu(true)}
+                                    className="px-4 py-1.5 bg-blue-50 text-[#0B3C5D] text-[10px] font-black uppercase rounded-full hover:bg-blue-100 transition-colors relative z-20"
+                                >
+                                    Edit
+                                </button>
+                            )}
+                        </div>
                         <div className="space-y-6">
                             <div className="pl-6 border-l-4 border-[#F8FAFC] group-hover:border-[#63C132] transition-colors">
                                 <h4 className="text-sm font-black text-[#0B3C5D] uppercase tracking-wider mb-1">Primary Qualification</h4>
-                                <p className="text-xs text-slate-500 font-medium italic">
-                                    {profile?.qualification || 'Highest degree not specified on record.'}
-                                </p>
+                                {isEditingEdu ? (
+                                    <input
+                                        type="text"
+                                        value={eduContent}
+                                        onChange={(e) => setEduContent(e.target.value)}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#63C132] outline-none text-slate-600 font-medium text-xs mt-2"
+                                        placeholder="e.g. B.Tech in Computer Science"
+                                    />
+                                ) : (
+                                    <p className="text-xs text-slate-500 font-medium italic">
+                                        {profile?.qualification || 'Highest degree not specified on record.'}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </section>

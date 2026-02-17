@@ -7,6 +7,46 @@ const generateToken = (id, role) => {
     });
 };
 
+const calculateCompleteness = (user) => {
+    const scoring = {
+        essential: { score: 0, items: ['name', 'email', 'phone', 'department'] },
+        professional: { score: 0, items: ['bio', 'skills', 'qualification', 'profilePicture'] },
+        security: { score: 0, items: ['lastLogin', 'passwordSet'] }
+    };
+
+    // 1. Essentials (40%)
+    let essentialCount = 0;
+    scoring.essential.items.forEach(item => {
+        if (user[item]) essentialCount++;
+    });
+    scoring.essential.score = (essentialCount / scoring.essential.items.length) * 40;
+
+    // 2. Professional (40%)
+    let profCount = 0;
+    if (user.bio && user.bio.length >= 20) profCount++;
+    if (user.skills && user.skills.length > 0) profCount++;
+    if (user.qualification) profCount++;
+    if (user.profilePicture) profCount++;
+    scoring.professional.score = (profCount / scoring.professional.items.length) * 40;
+
+    // 3. Security (20%)
+    let secCount = 0;
+    if (user.lastLogin) secCount++;
+    secCount++; // Password is set (checked by login/protect)
+    scoring.security.score = (secCount / scoring.security.items.length) * 20;
+
+    const totalScore = Math.min(100, Math.round(scoring.essential.score + scoring.professional.score + scoring.security.score));
+
+    return {
+        totalScore,
+        breakdown: {
+            essential: Math.round(scoring.essential.score),
+            professional: Math.round(scoring.professional.score),
+            security: Math.round(scoring.security.score)
+        }
+    };
+};
+
 export const registerUser = async (req, res) => {
     const { name, email, password, role, phone } = req.body;
 
@@ -44,6 +84,10 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.comparePassword(password))) {
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
+
         res.json({
             _id: user._id,
             name: user.name,
@@ -68,9 +112,14 @@ export const getUserProfile = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        console.log(`[DEBUG] Profile fetched for ${user.email}, Role: ${user.role}, Experience: ${user.experienceLevel}, Leadership: ${user.leadershipLevel}`);
+        const completeness = calculateCompleteness({ ...user, lastLogin: user.lastLogin || new Date() });
 
-        res.json(user);
+        console.log(`[DEBUG] Profile fetched for ${user.email}, Role: ${user.role}, Completeness: ${completeness.totalScore}%`);
+
+        res.json({
+            ...user,
+            completeness
+        });
     } catch (error) {
         console.error("Get Profile Error:", error);
         res.status(500).json({ message: "Failed to fetch profile" });
@@ -86,6 +135,9 @@ export const updateProfile = async (req, res) => {
         if (user) {
             user.name = req.body.name || user.name;
             user.phone = req.body.phone || user.phone;
+            user.bio = req.body.bio || user.bio;
+            user.qualification = req.body.qualification || user.qualification;
+            if (req.body.skills) user.skills = req.body.skills;
 
             if (req.file) {
                 const firstName = user.name.split(' ')[0].toLowerCase();
@@ -93,6 +145,7 @@ export const updateProfile = async (req, res) => {
             }
 
             const updatedUser = await user.save();
+            const completeness = calculateCompleteness({ ...updatedUser.toObject(), lastLogin: updatedUser.lastLogin || new Date() });
 
             res.json({
                 _id: updatedUser._id,
@@ -101,7 +154,11 @@ export const updateProfile = async (req, res) => {
                 role: updatedUser.role,
                 phone: updatedUser.phone,
                 leaveBalance: updatedUser.leaveBalance,
-                profilePicture: updatedUser.profilePicture, // Add this
+                profilePicture: updatedUser.profilePicture,
+                bio: updatedUser.bio,
+                skills: updatedUser.skills,
+                qualification: updatedUser.qualification,
+                completeness: completeness,
                 token: generateToken(updatedUser._id),
             });
         } else {

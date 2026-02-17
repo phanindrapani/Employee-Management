@@ -58,6 +58,13 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    bio: {
+        type: String,
+        default: ''
+    },
+    lastLogin: {
+        type: Date
+    },
     qualification: {
         type: String,
         default: ''
