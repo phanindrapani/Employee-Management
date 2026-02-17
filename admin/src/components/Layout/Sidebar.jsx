@@ -68,7 +68,7 @@ const Sidebar = () => {
             title: 'Settings',
             items: [
                 { name: 'Leave Settings', path: '/leave-settings', icon: Sliders, roles: ['admin'] },
-                { name: 'My Profile', path: '/settings/profile', icon: UserCircle, roles: ['admin', 'employee'] },
+                { name: 'My Profile', path: '/profile', icon: UserCircle, roles: ['admin', 'employee'] },
 
                 { name: 'Security', path: '/change-password', icon: ShieldCheck, roles: ['admin', 'employee'] },
             ]

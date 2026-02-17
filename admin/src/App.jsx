@@ -34,7 +34,7 @@ const PrivateRoute = ({ children }) => {
 const RoleBasedDashboard = () => {
   const { user } = useAuth();
   if (user.role === 'admin') return <AdminDashboard />;
-  return <Navigate to="/settings/profile" replace />;
+  return <Navigate to="/profile" replace />;
 };
 
 function App() {
@@ -63,7 +63,7 @@ function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="performance-dashboard" element={<PerformanceDashboard />} />
             <Route path="leave-settings" element={<LeaveSettings />} />
-            <Route path="settings/profile" element={<Profile />} />
+            <Route path="profile" element={<Profile />} />
 
             <Route path="change-password" element={<ChangePassword />} />
           </Route>

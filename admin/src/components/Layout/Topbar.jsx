@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, User, Check, Trash2 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api';
 import manuenLogo from '../../assets/manuen_logo.png';
@@ -87,7 +87,7 @@ const Topbar = () => {
                     )}
                 </div>
 
-                <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
+                <Link to="/profile" className="flex items-center gap-3 pl-6 border-l border-slate-200 hover:opacity-80 transition-opacity">
                     <div className="text-right">
                         <p className="text-sm font-medium text-slate-900">{user.name}</p>
                         <p className="text-xs text-slate-500 capitalize">{user.role}</p>
@@ -95,7 +95,7 @@ const Topbar = () => {
                     <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600">
                         <User size={20} />
                     </div>
-                </div>
+                </Link>
             </div>
         </div>
     );
