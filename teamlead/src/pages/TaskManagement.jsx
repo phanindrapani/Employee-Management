@@ -19,15 +19,15 @@ import {
 } from 'lucide-react';
 import API from '../api';
 
-const AssignTaskModal = ({ onClose, onSuccess, projects, members }) => {
+const AssignTaskModal = ({ onClose, onSuccess, projects, members, taskToEdit }) => {
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        project: '',
-        assignedTo: '',
-        deadline: '',
-        priority: 'medium',
-        weight: 1
+        title: taskToEdit?.title || '',
+        description: taskToEdit?.description || '',
+        project: taskToEdit?.project?._id || taskToEdit?.project || '',
+        assignedTo: taskToEdit?.assignedTo?._id || taskToEdit?.assignedTo || '',
+        deadline: taskToEdit?.deadline ? new Date(taskToEdit.deadline).toISOString().split('T')[0] : '',
+        priority: taskToEdit?.priority || 'medium',
+        weight: taskToEdit?.weight || 1
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
@@ -37,10 +37,14 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members }) => {
         setIsSubmitting(true);
         setError(null);
         try {
-            await API.post('/tasks', formData);
+            if (taskToEdit) {
+                await API.put(`/tasks/${taskToEdit._id}`, formData);
+            } else {
+                await API.post('/tasks', formData);
+            }
             onSuccess();
         } catch (err) {
-            setError(err.response?.data?.message || "Failed to assign task");
+            setError(err.response?.data?.message || "Failed to save task");
             setIsSubmitting(false);
         }
     };
@@ -52,10 +56,12 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members }) => {
                 <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-white">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-blue-50 rounded-2xl text-[#0B3C5D]">
-                            <Plus size={24} />
+                            {taskToEdit ? <ClipboardList size={24} /> : <Plus size={24} />}
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight">Assign Task</h2>
+                            <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight">
+                                {taskToEdit ? 'Edit Tactical Task' : 'Assign New Task'}
+                            </h2>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Team Deployment Operations</p>
                         </div>
                     </div>
@@ -154,9 +160,9 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members }) => {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Technical Requirements</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Description</label>
                         <textarea
-                            placeholder="Detail task requirements..."
+                            placeholder="Detail the task objectives and requirements..."
                             className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10 min-h-[100px]"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -188,6 +194,108 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members }) => {
     );
 };
 
+const TaskDetailsModal = ({ task, onClose, onEdit }) => {
+    if (!task) return null;
+
+    return (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-[#0B3C5D]/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}></div>
+            <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300 border border-slate-100 p-10 space-y-8">
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-50 rounded-2xl text-[#0B3C5D]">
+                            <ClipboardList size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-[#0B3C5D] tracking-tight">{task.title}</h2>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${task.status === 'done' ? 'bg-[#63C132]/10 text-[#63C132]' :
+                                    task.status === 'in-progress' ? 'bg-blue-50 text-blue-600' :
+                                        'bg-slate-100 text-slate-500'
+                                    }`}>
+                                    {task.status}
+                                </span>
+                                <span className="text-slate-300">•</span>
+                                <span className={`text-[9px] font-black uppercase tracking-widest ${task.priority === 'urgent' ? 'text-rose-500' :
+                                    task.priority === 'high' ? 'text-amber-500' :
+                                        'text-blue-500'
+                                    }`}>
+                                    {task.priority} Priority
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-50 text-slate-300 rounded-full transition-all">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div className="bg-slate-50 p-6 rounded-3xl space-y-3">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <Briefcase size={14} className="text-blue-500" /> Project Context
+                            </div>
+                            <div className="text-sm font-bold text-[#0B3C5D]">{task.project?.name || 'N/A'}</div>
+                        </div>
+                        <div className="bg-slate-50 p-6 rounded-3xl space-y-3">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <User size={14} className="text-[#63C132]" /> Assigned To
+                            </div>
+                            <div className="flex items-center gap-3 font-bold text-[#0B3C5D]">
+                                <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center text-[10px] border border-slate-100 shadow-sm">
+                                    {task.assignedTo?.name?.split(' ').map(n => n[0]).join('')}
+                                </div>
+                                {task.assignedTo?.name}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <div className="bg-slate-50 p-6 rounded-3xl space-y-3">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <Calendar size={14} className="text-rose-500" /> Strategy Deadline
+                            </div>
+                            <div className="text-sm font-bold text-[#0B3C5D]">
+                                {new Date(task.deadline).toLocaleDateString(undefined, { dateStyle: 'long' })}
+                            </div>
+                        </div>
+                        <div className="bg-[#63C132]/5 p-6 rounded-3xl border border-[#63C132]/10 space-y-3">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-[#0B3C5D] uppercase tracking-widest">
+                                <Scale size={14} className="text-[#63C132]" /> Execution Weight
+                            </div>
+                            <div className="text-sm font-bold text-[#0B3C5D]">
+                                {task.weight || 1} Impact Points
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Objectives & Description</div>
+                    <div className="bg-slate-50 p-8 rounded-[32px] text-sm text-slate-600 font-medium leading-relaxed min-h-[120px]">
+                        {task.description || "No description provided."}
+                    </div>
+                </div>
+
+                <div className="flex gap-4">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-4 bg-slate-100 text-[#0B3C5D] rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200"
+                    >
+                        Close Details
+                    </button>
+                    <button
+                        onClick={() => onEdit(task)}
+                        className="flex-1 py-4 bg-[#0B3C5D] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#1A4B6D] transition-all shadow-xl shadow-[#0B3C5D]/20"
+                    >
+                        Edit Task
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const TaskManagement = () => {
@@ -204,12 +312,16 @@ const TaskManagement = () => {
     });
     const [members, setMembers] = useState(() => {
         const cached = localStorage.getItem('ls_tl_team_members');
-        return cached ? JSON.parse(cached) : [];
+        if (!cached) return [];
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) ? parsed : (parsed.members || []);
     });
+    const [selectedTask, setSelectedTask] = useState(null);
     const [loading, setLoading] = useState(tasks.length === 0 && projects.length === 0);
     const [filter, setFilter] = useState('all'); // all, todo, in-progress, done, overdue
     const [searchQuery, setSearchQuery] = useState(location.state?.assigneeName || '');
     const [showAssignModal, setShowAssignModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -220,10 +332,14 @@ const TaskManagement = () => {
             ]);
             setTasks(tasksRes.data);
             setProjects(projectsRes.data);
-            setMembers(membersRes.data);
+
+            // Extract members array from potential object response
+            const membersData = membersRes.data.members || membersRes.data;
+            setMembers(membersData);
 
             localStorage.setItem('ls_tl_tasks_list', JSON.stringify(tasksRes.data));
             localStorage.setItem('ls_tl_projects_brief', JSON.stringify(projectsRes.data));
+            // Keep the full object in localStorage if it exists for MyTeam.jsx consistency
             localStorage.setItem('ls_tl_team_members', JSON.stringify(membersRes.data));
 
             setLoading(false);
@@ -279,12 +395,48 @@ const TaskManagement = () => {
                     <p className="text-slate-500 font-medium">Daily Control • Team Assignment & Execution Tracking</p>
                 </div>
                 <button
-                    onClick={() => setShowAssignModal(true)}
+                    onClick={() => {
+                        setSelectedTask(null);
+                        setShowAssignModal(true);
+                    }}
                     className="flex items-center gap-2 px-8 py-4 bg-[#0B3C5D] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#1A4B6D] transition-all transform hover:scale-[1.05] shadow-xl shadow-[#0B3C5D]/20"
                 >
                     <Plus size={18} />
                     Assign New Task
                 </button>
+            </div>
+
+            {/* KPI Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-[#63C132]/5 p-6 rounded-[32px] border border-[#63C132]/10 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#63C132] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-[#63C132]/20">
+                        <CheckCircle2 size={24} />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completed</div>
+                        <div className="text-2xl font-black text-[#0B3C5D]">{tasks.filter(t => t.status === 'done').length}</div>
+                    </div>
+                </div>
+                <div className="bg-blue-50 p-6 rounded-[32px] border border-blue-100 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <Clock size={24} />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">In Progress</div>
+                        <div className="text-2xl font-black text-[#0B3C5D]">{tasks.filter(t => t.status === 'in-progress').length}</div>
+                    </div>
+                </div>
+                <div className="bg-rose-50 p-6 rounded-[32px] border border-rose-100 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-rose-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20">
+                        <AlertTriangle size={24} />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Immediate Attention</div>
+                        <div className="text-2xl font-black text-[#0B3C5D]">
+                            {tasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'done').length}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Toolbar */}
@@ -373,7 +525,13 @@ const TaskManagement = () => {
                                     </span>
                                 </td>
                                 <td className="px-8 py-6 text-right">
-                                    <button className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-white rounded-xl transition-all">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedTask(task);
+                                            setShowDetailsModal(true);
+                                        }}
+                                        className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-white rounded-xl transition-all"
+                                    >
                                         <ChevronRight size={20} />
                                     </button>
                                 </td>
@@ -394,48 +552,36 @@ const TaskManagement = () => {
                 </table>
             </div>
 
-            {/* Simple Stats for filtered view */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#63C132]/5 p-6 rounded-[32px] border border-[#63C132]/10 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#63C132] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-[#63C132]/20">
-                        <CheckCircle2 size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completed</div>
-                        <div className="text-2xl font-black text-[#0B3C5D]">{tasks.filter(t => t.status === 'done').length}</div>
-                    </div>
-                </div>
-                <div className="bg-blue-50 p-6 rounded-[32px] border border-blue-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                        <Clock size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">In Progress</div>
-                        <div className="text-2xl font-black text-[#0B3C5D]">{tasks.filter(t => t.status === 'in-progress').length}</div>
-                    </div>
-                </div>
-                <div className="bg-rose-50 p-6 rounded-[32px] border border-rose-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-rose-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20">
-                        <AlertTriangle size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Immediate Attention</div>
-                        <div className="text-2xl font-black text-[#0B3C5D]">
-                            {tasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'done').length}
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {showAssignModal && (
                 <AssignTaskModal
-                    onClose={() => setShowAssignModal(false)}
+                    onClose={() => {
+                        setShowAssignModal(false);
+                        setSelectedTask(null);
+                    }}
                     onSuccess={() => {
                         setShowAssignModal(false);
+                        setSelectedTask(null);
                         fetchData();
                     }}
                     projects={projects}
                     members={members}
+                    taskToEdit={selectedTask}
+                />
+            )}
+
+            {showDetailsModal && (
+                <TaskDetailsModal
+                    task={selectedTask}
+                    onClose={() => {
+                        setShowDetailsModal(false);
+                        setSelectedTask(null);
+                    }}
+                    onEdit={(task) => {
+                        setShowDetailsModal(false);
+                        setSelectedTask(task);
+                        setShowAssignModal(true);
+                    }}
                 />
             )}
         </div>
