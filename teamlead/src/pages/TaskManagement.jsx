@@ -188,7 +188,12 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members }) => {
     );
 };
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 const TaskManagement = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const [tasks, setTasks] = useState(() => {
         const cached = localStorage.getItem('ls_tl_tasks_list');
         return cached ? JSON.parse(cached) : [];
@@ -203,6 +208,7 @@ const TaskManagement = () => {
     });
     const [loading, setLoading] = useState(tasks.length === 0 && projects.length === 0);
     const [filter, setFilter] = useState('all'); // all, todo, in-progress, done, overdue
+    const [searchQuery, setSearchQuery] = useState(location.state?.assigneeName || '');
     const [showAssignModal, setShowAssignModal] = useState(false);
 
     const fetchData = async () => {
@@ -229,14 +235,24 @@ const TaskManagement = () => {
 
     useEffect(() => {
         fetchData();
+        // Clear location state after reading
+        if (location.state) {
+            window.history.replaceState({}, document.title);
+        }
     }, []);
 
     const filteredTasks = tasks.filter(task => {
-        if (filter === 'all') return true;
-        if (filter === 'overdue') {
-            return new Date(task.deadline) < new Date() && task.status !== 'done';
-        }
-        return task.status === filter;
+        const matchesStatus = filter === 'all'
+            ? true
+            : filter === 'overdue'
+                ? (new Date(task.deadline) < new Date() && task.status !== 'done')
+                : task.status === filter;
+
+        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            task.assignedTo?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            task.project?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return matchesStatus && matchesSearch;
     });
 
     const getStatusStyle = (status) => {
@@ -293,8 +309,18 @@ const TaskManagement = () => {
                         <input
                             type="text"
                             placeholder="Search tasks..."
-                            className="pl-12 pr-6 py-2.5 bg-slate-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#0B3C5D]/10 w-64"
+                            className="pl-12 pr-12 py-2.5 bg-slate-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#0B3C5D]/10 w-64"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500 transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
