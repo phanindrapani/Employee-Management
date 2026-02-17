@@ -5,6 +5,7 @@ import Task from '../../models/task.model.js';
 import Attendance from '../../models/attendance.model.js';
 import WorkLog from '../../models/workLog.model.js';
 import User from '../../models/user.model.js';
+import { getIO } from '../../socket.js';
 
 // ==================================================
 // GOAL MANAGEMENT
@@ -20,6 +21,15 @@ export const createGoal = async (req, res) => {
             assignedTo,
             createdBy: req.user._id
         });
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            const populatedGoal = await Goal.findById(goal._id).populate('assignedTo', 'name').populate('createdBy', 'name');
+            io.to(`user:${assignedTo}`).emit('goal:created', populatedGoal);
+            // Notify creator/admin if needed
+        } catch (e) { console.error('Socket emit error:', e); }
+
         res.status(201).json(goal);
     } catch (error) {
         res.status(500).json({ message: error.message || "Failed to create goal" });
@@ -46,7 +56,16 @@ export const getGoals = async (req, res) => {
 export const updateGoalStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        const goal = await Goal.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        const goal = await Goal.findByIdAndUpdate(req.params.id, { status }, { new: true })
+            .populate('assignedTo', 'name').populate('createdBy', 'name');
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            io.to(`user:${goal.assignedTo._id}`).emit('goal:updated', goal);
+            io.to(`user:${goal.createdBy._id}`).emit('goal:updated', goal); // Notify creator
+        } catch (e) { console.error('Socket emit error:', e); }
+
         res.json(goal);
     } catch (error) {
         res.status(500).json({ message: "Failed to update goal" });
@@ -55,7 +74,17 @@ export const updateGoalStatus = async (req, res) => {
 
 export const deleteGoal = async (req, res) => {
     try {
+        const goal = await Goal.findById(req.params.id);
         await Goal.findByIdAndDelete(req.params.id);
+
+        // Socket Emit
+        try {
+            if (goal) {
+                const io = getIO();
+                io.to(`user:${goal.assignedTo}`).emit('goal:deleted', req.params.id);
+            }
+        } catch (e) { console.error('Socket emit error:', e); }
+
         res.json({ message: "Goal deleted" });
     } catch (error) {
         res.status(500).json({ message: "Failed to delete goal" });
@@ -81,6 +110,13 @@ export const createPerformanceReview = async (req, res) => {
 
         // Update metric manually if exists
         await updatePerformanceMetric(employee, reviewPeriod, { teamContributionScore: rating * 20 }); // simple hook
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            io.to(`user:${employee}`).emit('review:created', review);
+            // Trigger score update notification separately in updatePerformanceMetric?
+        } catch (e) { console.error('Socket emit error:', e); }
 
         res.status(201).json(review);
     } catch (error) {
@@ -233,6 +269,14 @@ export const recalculatePerformanceForUser = async (userId, period) => {
     console.log(
         `[DEBUG][Performance] savedMetric user=${userId} period=${period} total=${savedMetric?.totalScore} tasks=${savedMetric?.tasksCompleted}/${savedMetric?.tasksAssigned} onTime=${savedMetric?.onTimeTasks} attendance=${savedMetric?.attendanceDays}/${savedMetric?.workingDays} logs=${savedMetric?.loggedHours}`
     );
+
+    // Socket Emit
+    try {
+        const io = getIO();
+        io.to(`user:${userId}`).emit('performance:updated', savedMetric);
+        io.to('role:admin').emit('performance:updated', savedMetric);
+    } catch (e) { console.error('Socket emit error:', e); }
+
     return savedMetric;
 };
 

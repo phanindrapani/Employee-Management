@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import User from '../../models/user.model.js';
 import Team from '../../models/team.model.js';
 import { promoteUser } from '../../services/promotion.service.js';
+import { getIO } from '../../socket.js';
 
 // ==================================================
 // TEAM MANAGEMENT (TRANSACTIONS)
@@ -43,6 +44,15 @@ export const createTeam = async (req, res) => {
         }
 
         await session.commitTransaction();
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            const populatedTeam = await Team.findById(team._id).populate('department').populate('teamLead', 'name email');
+            io.to('role:admin').emit('team:created', populatedTeam);
+            if (teamLead) io.to(`user:${teamLead}`).emit('team:assigned', populatedTeam);
+        } catch (e) { console.error('Socket emit error:', e); }
+
         res.status(201).json(team);
     } catch (error) {
         await session.abortTransaction();
@@ -195,6 +205,14 @@ export const updateTeam = async (req, res) => {
 
         // Return updated team
         const updatedTeam = await Team.findById(id).populate('department').populate('teamLead', 'name email');
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            io.to('role:admin').emit('team:updated', updatedTeam);
+            io.to(`team:${id}`).emit('team:updated', updatedTeam);
+        } catch (e) { console.error('Socket emit error:', e); }
+
         res.json(updatedTeam);
     } catch (error) {
         await session.abortTransaction();
@@ -225,6 +243,14 @@ export const deleteTeam = async (req, res) => {
         await Team.findByIdAndDelete(id).session(session);
 
         await session.commitTransaction();
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            io.to('role:admin').emit('team:deleted', id);
+            io.to(`team:${id}`).emit('team:deleted', id);
+        } catch (e) { console.error('Socket emit error:', e); }
+
         res.json({ message: "Team deleted" });
     } catch (error) {
         await session.abortTransaction();

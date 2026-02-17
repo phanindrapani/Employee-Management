@@ -23,6 +23,8 @@ export const getLeaveSettings = async (req, res) => {
     }
 };
 
+import { getIO } from '../../socket.js';
+
 export const updateLeaveSettings = async (req, res) => {
     try {
         const { value } = req.body;
@@ -32,6 +34,12 @@ export const updateLeaveSettings = async (req, res) => {
             { value },
             { new: true, upsert: true }
         );
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            io.to('role:admin').emit('settings:updated', settings);
+        } catch (e) { console.error('Socket emit error:', e); }
 
         res.json(settings);
     } catch (error) {

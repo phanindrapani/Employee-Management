@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useSocketListener from '../hooks/useSocketListener';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import { FolderKanban, Plus, MoreVertical, Calendar, Users2, Activity, Trash2, Pencil } from 'lucide-react';
@@ -26,6 +27,10 @@ const ProjectManagement = () => {
     useEffect(() => {
         fetchProjects();
     }, []);
+
+    useSocketListener('project:created', fetchProjects);
+    useSocketListener('project:updated', fetchProjects); // Covers status/progress changes
+    useSocketListener('project:deleted', fetchProjects);
 
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this project and all its tasks?')) return;

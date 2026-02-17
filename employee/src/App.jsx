@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import Login from './pages/Login';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import EmployeeDashboard from './pages/Employee/EmployeeDashboard';
@@ -28,32 +29,40 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
+import { ToastProvider } from './context/ToastContext';
+import NotificationListener from './components/NotificationListener';
+
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
+      <SocketProvider>
+        <ToastProvider>
+          <NotificationListener />
+          <Router>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
 
-          <Route path="/" element={
-            <PrivateRoute allowedRoles={['employee', 'team-lead']}>
-              <DashboardLayout />
-            </PrivateRoute>
-          }>
-            <Route index element={<EmployeeDashboard />} />
-            <Route path="apply-leave" element={<ApplyLeave />} />
-            <Route path="leave-history" element={<LeaveHistory />} />
-            <Route path="holidays" element={<HolidayCalendar />} />
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="projects" element={<MyProjects />} />
-            <Route path="tasks" element={<MyTasks />} />
-            <Route path="documents" element={<Documents />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="change-password" element={<ChangePassword />} />
-          </Route>
-        </Routes>
-      </Router>
+              <Route path="/" element={
+                <PrivateRoute allowedRoles={['employee', 'team-lead']}>
+                  <DashboardLayout />
+                </PrivateRoute>
+              }>
+                <Route index element={<EmployeeDashboard />} />
+                <Route path="apply-leave" element={<ApplyLeave />} />
+                <Route path="leave-history" element={<LeaveHistory />} />
+                <Route path="holidays" element={<HolidayCalendar />} />
+                <Route path="notifications" element={<Notifications />} />
+                <Route path="projects" element={<MyProjects />} />
+                <Route path="tasks" element={<MyTasks />} />
+                <Route path="documents" element={<Documents />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="change-password" element={<ChangePassword />} />
+              </Route>
+            </Routes>
+          </Router>
+        </ToastProvider>
+      </SocketProvider>
     </AuthProvider>
   );
 }

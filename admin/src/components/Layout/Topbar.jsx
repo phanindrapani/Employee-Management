@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, User, Check, Trash2 } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api';
 import manuenLogo from '../../assets/manuen_logo.png';
 import manuenSquare from '../../assets/manuen_square.png';
+import useSocketListener from '../../hooks/useSocketListener';
 
 const Topbar = () => {
     const { user } = useAuth();
@@ -12,19 +13,26 @@ const Topbar = () => {
     const [notifications, setNotifications] = useState([]);
     const [showNotifications, setShowNotifications] = useState(false);
 
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const { data } = await API.get('/notifications');
+            setNotifications(data);
+        } catch (err) {
+            console.error('Failed to fetch notifications');
+        }
+    }, []);
+
     useEffect(() => {
-        const fetchNotifications = async () => {
-            try {
-                const { data } = await API.get('/notifications');
-                setNotifications(data);
-            } catch (err) {
-                console.error('Failed to fetch notifications');
-            }
-        };
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchNotifications]);
+
+    useSocketListener('notification:new', fetchNotifications);
+    useSocketListener('leave:created', fetchNotifications);
+    useSocketListener('leave:updated', fetchNotifications);
+    useSocketListener('task:assigned', fetchNotifications);
+    useSocketListener('task:updated', fetchNotifications);
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 

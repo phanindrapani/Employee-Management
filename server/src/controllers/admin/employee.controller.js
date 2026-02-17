@@ -3,6 +3,7 @@ import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
 import { getLeaveQuotas } from "../../services/settings.service.js";
 import { promoteUser } from '../../services/promotion.service.js';
 import mongoose from 'mongoose';
+import { getIO } from '../../socket.js';
 
 const fieldToFolder = {
   tenth: "10th",
@@ -119,6 +120,12 @@ export const addEmployee = async (req, res) => {
       await employee.save();
     }
 
+    // Socket Emit
+    try {
+      const io = getIO();
+      io.to('role:admin').emit('employee:created', employee);
+    } catch (e) { console.error('Socket emit error:', e); }
+
     res.status(201).json({
       message: "Employee added successfully",
       employee,
@@ -176,6 +183,15 @@ export const updateEmployee = async (req, res) => {
     );
 
     await session.commitTransaction();
+
+    // Socket Emit
+    try {
+      const io = getIO();
+      io.to('role:admin').emit('employee:updated', updatedEmployee);
+      io.to(`user:${id}`).emit('profile:updated', updatedEmployee);
+      // If team changed, notify old and new teams? (Simplified for now)
+    } catch (e) { console.error('Socket emit error:', e); }
+
     res.json({
       message: "Employee updated",
       employee: updatedEmployee
@@ -197,6 +213,13 @@ export const deleteEmployee = async (req, res) => {
       return res.status(404).json({ message: "Employee not found" });
     }
 
+    // Socket Emit
+    try {
+      const io = getIO();
+      io.to('role:admin').emit('employee:deleted', id);
+      io.to(`user:${id}`).emit('account:deleted'); // Force logout?
+    } catch (e) { console.error('Socket emit error:', e); }
+
     res.json({ message: "Employee removed successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -206,6 +229,14 @@ export const deleteEmployee = async (req, res) => {
 export const promoteUserAccount = async (req, res) => {
   try {
     const updatedUser = await promoteUser(req.params.id, req.body.role);
+
+    // Socket Emit
+    try {
+      const io = getIO();
+      io.to('role:admin').emit('employee:updated', updatedUser);
+      io.to(`user:${req.params.id}`).emit('profile:updated', updatedUser);
+    } catch (e) { console.error('Socket emit error:', e); }
+
     res.json({ message: `Promoted to ${req.body.role}`, user: updatedUser });
   } catch (e) { res.status(400).json({ message: e.message }); }
 };

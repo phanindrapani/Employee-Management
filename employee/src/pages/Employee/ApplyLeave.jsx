@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import API from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Calendar, Clock, AlertCircle, CheckCircle, FilePlus2 } from 'lucide-react';
+import useSocketListener from '../../hooks/useSocketListener';
 
 const ApplyLeave = () => {
     const { user, setUser } = useAuth();
@@ -19,7 +20,7 @@ const ApplyLeave = () => {
     const [success, setSuccess] = useState('');
     const [fetchingBalances, setFetchingBalances] = useState(false);
 
-    const fetchLatestBalance = async () => {
+    const fetchLatestBalance = useCallback(async () => {
         setFetchingBalances(true);
         try {
             const { data } = await API.get('/auth/profile');
@@ -30,17 +31,19 @@ const ApplyLeave = () => {
         } finally {
             setFetchingBalances(false);
         }
-    };
+    }, [setUser]);
 
     useEffect(() => {
         fetchLatestBalance();
-    }, []);
+    }, [fetchLatestBalance]);
+
+    useSocketListener('leave:updated', fetchLatestBalance);
 
     const calculatePreview = async () => {
         if (!formData.fromDate || !formData.toDate) return;
 
         try {
-            const { data } = await API.post('/leaves/calculate', formData);
+            const { data } = await API.post('/employee/leaves/calculate', formData);
             setPreview(data.totalDays);
             setError('');
         } catch (err) {
@@ -70,7 +73,7 @@ const ApplyLeave = () => {
                 formDataToSend.append('attachment', attachment);
             }
 
-            await API.post('/leaves', formDataToSend, {
+            await API.post('/employee/leaves', formDataToSend, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setSuccess('Leave application submitted successfully!');

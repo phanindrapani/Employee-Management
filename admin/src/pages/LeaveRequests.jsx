@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import useSocketListener from '../hooks/useSocketListener';
 import API from '../api';
 import {
     ClipboardList,
@@ -21,7 +22,7 @@ const LeaveRequests = () => {
     const [selectedId, setSelectedId] = useState(null);
     const [statusFilter, setStatusFilter] = useState('pending');
 
-    const fetchRequests = async () => {
+    const fetchRequests = useCallback(async () => {
         try {
             const { data } = await API.get('/admin/leaves');
             setLeaves(data);
@@ -31,11 +32,14 @@ const LeaveRequests = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchRequests();
-    }, []);
+    }, [fetchRequests]);
+
+    useSocketListener('leave:created', fetchRequests);
+    useSocketListener('leave:updated', fetchRequests);
 
     useEffect(() => {
         if (statusFilter === '') {

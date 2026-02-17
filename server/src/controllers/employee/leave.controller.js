@@ -2,6 +2,7 @@ import Leave from '../../models/leave.model.js';
 import User from '../../models/user.model.js';
 import { calculateWorkingDays } from '../../utils/leaveCalculator.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
+import { getIO } from '../../socket.js';
 
 export const applyLeave = async (req, res) => {
     const { leaveType, fromDate, toDate, session, reason } = req.body;
@@ -49,6 +50,17 @@ export const applyLeave = async (req, res) => {
         status: 'pending',
         attachment: attachmentUrl
     });
+
+    // Socket Emit
+    try {
+        const io = getIO();
+        const populatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role profilePicture');
+
+        io.to('role:admin').emit('leave:created', populatedLeave); // Notify Admin
+        if (user.reportingManager) {
+            io.to(`user:${user.reportingManager}`).emit('leave:created', populatedLeave); // Notify Manager/TL
+        }
+    } catch (e) { console.error('Socket emit error:', e); }
 
     res.status(201).json(leave);
 };

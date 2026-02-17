@@ -1,6 +1,7 @@
 import Leave from '../../models/leave.model.js';
 import User from '../../models/user.model.js';
 import Notification from '../../models/notification.model.js';
+import { getIO } from '../../socket.js';
 
 export const getTeamLeaves = async (req, res) => {
     try {
@@ -51,10 +52,19 @@ export const updateLeaveStatus = async (req, res) => {
     await leave.save();
 
     // Notification
+    const notificationMessage = `Your leave request for ${leave.totalDays} day(s) has been ${status === 'approved' ? 'approved by Team Lead' : status}.`;
     await Notification.create({
         user: leave.user._id,
-        message: `Your leave request for ${leave.totalDays} day(s) has been ${status === 'approved' ? 'approved by Team Lead' : status}.`
+        message: notificationMessage
     });
+
+    // Socket Emit
+    try {
+        const io = getIO();
+        io.to(`user:${leave.user._id}`).emit('leave:updated', leave);
+        io.to(`user:${leave.user._id}`).emit('notification:new', { message: notificationMessage });
+        io.to('role:admin').emit('leave:updated', leave); // Notify Admin that TL processed it (status: tl-approved or rejected)
+    } catch (e) { console.error('Socket emit error:', e); }
 
     res.json(leave);
 };

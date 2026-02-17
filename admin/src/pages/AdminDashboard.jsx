@@ -32,6 +32,7 @@ import {
     Cell,
     Legend
 } from 'recharts';
+import useSocketListener from '../hooks/useSocketListener';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -41,20 +42,35 @@ const AdminDashboard = () => {
     });
     const [loading, setLoading] = useState(!data);
 
+    const fetchStats = async () => {
+        try {
+            const response = await API.get('/admin/stats');
+            setData(response.data);
+            localStorage.setItem('ls_admin_stats', JSON.stringify(response.data));
+        } catch (err) {
+            console.error('Failed to fetch dashboard stats');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const response = await API.get('/admin/stats');
-                setData(response.data);
-                localStorage.setItem('ls_admin_stats', JSON.stringify(response.data));
-            } catch (err) {
-                console.error('Failed to fetch dashboard stats');
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchStats();
     }, []);
+
+    useSocketListener('employee:created', fetchStats);
+    useSocketListener('employee:deleted', fetchStats);
+    useSocketListener('team:created', fetchStats);
+    useSocketListener('team:deleted', fetchStats);
+    useSocketListener('department:created', fetchStats);
+    useSocketListener('department:deleted', fetchStats);
+    useSocketListener('project:created', fetchStats);
+    useSocketListener('project:updated', fetchStats); // Status changes
+    useSocketListener('project:deleted', fetchStats);
+    useSocketListener('leave:created', fetchStats); // Pending count
+    useSocketListener('leave:updated', fetchStats); // Approved/Rejected count
+    useSocketListener('holiday:created', fetchStats);
+    useSocketListener('holiday:deleted', fetchStats);
 
     const summary = data?.summary || { employees: 0, teams: 0, departments: 0, projects: { ongoing: 0, upcoming: 0, completed: 0, onHold: 0 } };
     const pendingActions = data?.pendingActions || [];

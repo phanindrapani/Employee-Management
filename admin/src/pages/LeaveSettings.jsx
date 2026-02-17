@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Sliders, Save, RefreshCw } from 'lucide-react';
 import API from '../api';
+import useSocketListener from '../hooks/useSocketListener';
 
 const LeaveSettings = () => {
     const [settings, setSettings] = useState(() => {
@@ -14,6 +15,13 @@ const LeaveSettings = () => {
     useEffect(() => {
         fetchSettings();
     }, []);
+
+    useSocketListener('settings:updated', (newSettings) => {
+        if (newSettings && newSettings.value) {
+            setSettings(newSettings.value);
+            localStorage.setItem('ls_admin_leave_settings', JSON.stringify(newSettings.value));
+        }
+    });
 
     const fetchSettings = async () => {
         try {

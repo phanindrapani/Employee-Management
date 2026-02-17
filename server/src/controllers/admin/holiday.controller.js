@@ -1,4 +1,5 @@
 import Holiday from '../../models/holiday.model.js';
+import { getIO } from '../../socket.js';
 
 export const createHoliday = async (req, res) => {
     try {
@@ -26,6 +27,13 @@ export const createHoliday = async (req, res) => {
             description,
             date: parsedDate
         });
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            io.emit('holiday:created', holiday); // Broadcast to everyone
+        } catch (e) { console.error('Socket emit error:', e); }
+
         res.status(201).json(holiday);
     } catch (e) {
         if (e?.code === 11000) {
@@ -45,6 +53,13 @@ export const getAllHolidays = async (req, res) => {
 export const deleteHoliday = async (req, res) => {
     try {
         await Holiday.findByIdAndDelete(req.params.id);
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            io.emit('holiday:deleted', req.params.id);
+        } catch (e) { console.error('Socket emit error:', e); }
+
         res.json({ msg: "Deleted" });
     } catch (e) { res.status(500).json({ msg: "Failed" }); }
 };

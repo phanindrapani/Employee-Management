@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import Login from './pages/Login';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import AdminDashboard from './pages/AdminDashboard';
@@ -37,38 +38,46 @@ const RoleBasedDashboard = () => {
   return <Navigate to="/profile" replace />;
 };
 
+import { ToastProvider } from './context/ToastContext';
+import NotificationListener from './components/NotificationListener';
+
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+      <SocketProvider>
+        <ToastProvider>
+          <NotificationListener />
+          <Router>
+            <Routes>
+              <Route path="/login" element={<Login />} />
 
-          <Route path="/" element={
-            <PrivateRoute>
-              <DashboardLayout />
-            </PrivateRoute>
-          }>
-            <Route index element={<RoleBasedDashboard />} />
-            <Route path="holidays" element={<HolidayManagement />} />
-            <Route path="leaves" element={<LeaveRequests />} />
-            <Route path="employees" element={<EmployeeCRUD />} />
-            <Route path="employees/:id" element={<EmployeeDetails />} />
-            <Route path="departments" element={<DepartmentManagement />} />
-            <Route path="teams" element={<TeamManagement />} />
-            <Route path="projects" element={<ProjectManagement />} />
-            <Route path="projects/create" element={<CreateProject />} />
-            <Route path="projects/edit/:id" element={<CreateProject />} />
-            <Route path="projects/reports" element={<ProjectReports />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="performance-dashboard" element={<PerformanceDashboard />} />
-            <Route path="leave-settings" element={<LeaveSettings />} />
-            <Route path="profile" element={<Profile />} />
+              <Route path="/" element={
+                <PrivateRoute>
+                  <DashboardLayout />
+                </PrivateRoute>
+              }>
+                <Route index element={<RoleBasedDashboard />} />
+                <Route path="holidays" element={<HolidayManagement />} />
+                <Route path="leaves" element={<LeaveRequests />} />
+                <Route path="employees" element={<EmployeeCRUD />} />
+                <Route path="employees/:id" element={<EmployeeDetails />} />
+                <Route path="departments" element={<DepartmentManagement />} />
+                <Route path="teams" element={<TeamManagement />} />
+                <Route path="projects" element={<ProjectManagement />} />
+                <Route path="projects/create" element={<CreateProject />} />
+                <Route path="projects/edit/:id" element={<CreateProject />} />
+                <Route path="projects/reports" element={<ProjectReports />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="performance-dashboard" element={<PerformanceDashboard />} />
+                <Route path="leave-settings" element={<LeaveSettings />} />
+                <Route path="profile" element={<Profile />} />
 
-            <Route path="change-password" element={<ChangePassword />} />
-          </Route>
-        </Routes>
-      </Router>
+                <Route path="change-password" element={<ChangePassword />} />
+              </Route>
+            </Routes>
+          </Router>
+        </ToastProvider>
+      </SocketProvider>
     </AuthProvider>
   );
 }

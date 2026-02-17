@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Calendar from 'react-calendar';
 import API from '../../api';
 import { Calendar as CalendarIcon, Info } from 'lucide-react';
 import 'react-calendar/dist/Calendar.css';
+import useSocketListener from '../../hooks/useSocketListener';
 
 const HolidayCalendar = () => {
     const [holidays, setHolidays] = useState(() => {
@@ -15,31 +16,37 @@ const HolidayCalendar = () => {
     });
     const [loading, setLoading] = useState(holidays.length === 0 && leaves.length === 0);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [holidaysRes, leavesRes] = await Promise.allSettled([
-                    API.get('/holidays'),
-                    API.get('/employee/leaves')
-                ]);
+    const fetchData = useCallback(async () => {
+        try {
+            const [holidaysRes, leavesRes] = await Promise.allSettled([
+                API.get('/holidays'),
+                API.get('/employee/leaves')
+            ]);
 
-                if (holidaysRes.status === 'fulfilled') {
-                    setHolidays(holidaysRes.value.data);
-                    localStorage.setItem('ls_emp_holidays', JSON.stringify(holidaysRes.value.data));
-                }
-                if (leavesRes.status === 'fulfilled') {
-                    setLeaves(leavesRes.value.data);
-                    localStorage.setItem('ls_emp_leaves_history', JSON.stringify(leavesRes.value.data));
-                }
-
-            } catch (err) {
-                console.error('Failed to fetch calendar data');
-            } finally {
-                setLoading(false);
+            if (holidaysRes.status === 'fulfilled') {
+                setHolidays(holidaysRes.value.data);
+                localStorage.setItem('ls_emp_holidays', JSON.stringify(holidaysRes.value.data));
             }
-        };
-        fetchData();
+            if (leavesRes.status === 'fulfilled') {
+                setLeaves(leavesRes.value.data);
+                localStorage.setItem('ls_emp_leaves_history', JSON.stringify(leavesRes.value.data));
+            }
+
+        } catch (err) {
+            console.error('Failed to fetch calendar data');
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    useSocketListener('holiday:created', fetchData);
+    useSocketListener('holiday:deleted', fetchData);
+    useSocketListener('leave:created', fetchData);
+    useSocketListener('leave:updated', fetchData);
 
     const getLocalDateString = (date) => {
         const d = new Date(date);

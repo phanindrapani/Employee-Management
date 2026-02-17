@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useSocketListener from '../hooks/useSocketListener';
 import API from '../api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -58,6 +59,11 @@ const DocumentManager = ({ targetUserId }) => {
     useEffect(() => {
         fetchDocuments();
     }, [effectiveUserId]);
+
+    useSocketListener('document:uploaded', fetchDocuments);
+    useSocketListener('document:verified', fetchDocuments);
+    useSocketListener('document:rejected', fetchDocuments);
+    useSocketListener('document:deleted', fetchDocuments);
 
     const fetchDocuments = async () => {
         if (!effectiveUserId) return;

@@ -23,6 +23,8 @@ const leaveSchema = new mongoose.Schema({
     rejectionReason: { type: String },
     reason: { type: String, required: true },
     attachment: { type: String },
+    // Tracks whether leave balance has already been applied for this request.
+    balanceApplied: { type: Boolean, default: false },
     appliedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

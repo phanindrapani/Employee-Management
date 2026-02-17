@@ -1,5 +1,6 @@
 import Project from '../../models/project.model.js';
 import { overrideProjectProgress, setProgressMode } from '../../services/projectProgress.service.js';
+import { getIO } from '../../socket.js';
 
 export const getTeamProjects = async (req, res) => {
     try {
@@ -37,6 +38,13 @@ export const updateProjectProgress = async (req, res) => {
         }
 
         const updatedProject = await Project.findById(id).populate('assignedTeam', 'name');
+        try {
+            const io = getIO();
+            io.to(`team:${updatedProject.assignedTeam?._id || updatedProject.assignedTeam}`).emit('project:updated', updatedProject);
+            io.to('role:admin').emit('project:updated', updatedProject);
+        } catch (socketError) {
+            console.error('Socket emit error (project progress update):', socketError.message);
+        }
         res.json(updatedProject);
     } catch (error) {
         res.status(500).json({ message: error.message || "Failed to update project progress" });

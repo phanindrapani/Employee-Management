@@ -9,6 +9,7 @@ import {
     Clock,
     FileCheck
 } from 'lucide-react';
+import useSocketListener from '../../hooks/useSocketListener';
 
 const LeaveHistory = () => {
     const [leaves, setLeaves] = useState(() => {
@@ -33,6 +34,9 @@ const LeaveHistory = () => {
     useEffect(() => {
         fetchLeaves();
     }, []);
+
+    useSocketListener('leave:created', fetchLeaves);
+    useSocketListener('leave:updated', fetchLeaves);
 
     const filteredLeaves = leaves.filter(leave =>
         filterStatus === 'all' ? true : leave.status === filterStatus

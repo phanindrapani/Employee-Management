@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import API from '../api';
@@ -10,6 +10,7 @@ import {
     AlertCircle,
     Plus
 } from 'lucide-react';
+import useSocketListener from '../hooks/useSocketListener';
 
 const HolidayManagement = () => {
     const [holidays, setHolidays] = useState(() => {
@@ -26,7 +27,7 @@ const HolidayManagement = () => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(holidays.length === 0);
 
-    const fetchHolidays = async () => {
+    const fetchHolidays = useCallback(async () => {
         try {
             const { data } = await API.get('/admin/holidays');
             setHolidays(data);
@@ -36,11 +37,14 @@ const HolidayManagement = () => {
         } finally {
             setFetching(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchHolidays();
-    }, []);
+    }, [fetchHolidays]);
+
+    useSocketListener('holiday:created', fetchHolidays);
+    useSocketListener('holiday:deleted', fetchHolidays);
 
     const handleAddHoliday = async (e) => {
         e.preventDefault();

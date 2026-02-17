@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import useSocketListener from '../../hooks/useSocketListener';
 import StatCard from '../../components/StatCard';
 import {
     CalendarClock,
@@ -28,7 +29,7 @@ const EmployeeDashboard = () => {
     const [projects, setProjects] = useState(cachedData?.projects || []);
     const [loading, setLoading] = useState(!cachedData);
 
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async () => {
         try {
             const [leavesResult, notifResult, userResult, tasksResult, projectsResult] = await Promise.allSettled([
                 API.get('/employee/leaves'),
@@ -46,6 +47,11 @@ const EmployeeDashboard = () => {
                 projects: projectsResult.status === 'fulfilled' ? projectsResult.value.data : (cachedData?.projects || [])
             };
 
+            setLeaves(freshCache.leaves);
+            setNotifications(freshCache.notifications);
+            setBalance(freshCache.balance);
+            setTasks(freshCache.tasks);
+            setProjects(freshCache.projects);
             localStorage.setItem('ls_emp_dashboard_agg', JSON.stringify(freshCache));
 
         } catch (err) {
@@ -53,11 +59,20 @@ const EmployeeDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [cachedData]);
 
     useEffect(() => {
         fetchDashboardData();
-    }, []);
+    }, [fetchDashboardData]);
+
+    useSocketListener('leave:created', fetchDashboardData);
+    useSocketListener('leave:updated', fetchDashboardData);
+    useSocketListener('task:assigned', fetchDashboardData);
+    useSocketListener('task:updated', fetchDashboardData);
+    useSocketListener('task:deleted', fetchDashboardData);
+    useSocketListener('project:created', fetchDashboardData);
+    useSocketListener('project:updated', fetchDashboardData);
+    useSocketListener('project:deleted', fetchDashboardData);
 
     const getStatusBadge = (status) => {
         switch (status) {

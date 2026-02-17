@@ -4,6 +4,7 @@ import { syncProjectProgress } from '../../services/projectProgress.service.js';
 // Importing from admin controller as a temporary measure until services are fully separated
 import { recalculatePerformanceForUser } from '../admin/performance.controller.js';
 import mongoose from 'mongoose';
+import { getIO } from '../../socket.js';
 
 /**
  * Get tasks assigned to current user
@@ -76,6 +77,23 @@ export const updateTaskStatus = async (req, res) => {
             } catch (scoreError) {
                 console.error("Performance Recalculation Error:", scoreError);
             }
+        }
+
+        try {
+            const io = getIO();
+            const payload = await Task.findById(task._id)
+                .populate('project', 'name')
+                .populate('assignedTo', 'name email profilePicture');
+
+            if (task.assignedTo) {
+                io.to(`user:${task.assignedTo}`).emit('task:updated', payload);
+            }
+            if (worker?.team) {
+                io.to(`team:${worker.team}`).emit('task:updated', payload);
+            }
+            io.to('role:admin').emit('task:updated', payload);
+        } catch (socketError) {
+            console.error('Socket emit error (task status update):', socketError.message);
         }
 
         res.json(task);

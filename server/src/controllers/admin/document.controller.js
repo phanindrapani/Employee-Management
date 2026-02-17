@@ -1,5 +1,6 @@
 import EmployeeDocument from '../../models/employeeDocument.model.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
+import { getIO } from '../../socket.js';
 
 // Upload a document
 export const uploadDocument = async (req, res) => {
@@ -24,6 +25,13 @@ export const uploadDocument = async (req, res) => {
             originalName: req.file.originalname,
             verificationStatus: 'pending'
         });
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            // Notify Admin
+            io.to('role:admin').emit('document:uploaded', newDoc);
+        } catch (e) { console.error('Socket emit error:', e); }
 
         res.status(201).json(newDoc);
     } catch (error) {

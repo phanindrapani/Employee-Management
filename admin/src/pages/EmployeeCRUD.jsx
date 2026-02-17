@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import useSocketListener from '../hooks/useSocketListener';
 import API from '../api';
 import {
     Users, Plus, Search, Filter, MoreVertical, Edit2,
@@ -42,7 +43,7 @@ const EmployeeCRUD = () => {
 
 
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [empRes, deptRes, teamRes] = await Promise.all([
                 API.get('/admin/employees'),
@@ -60,11 +61,21 @@ const EmployeeCRUD = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
+
+    useSocketListener('employee:created', fetchData);
+    useSocketListener('employee:updated', fetchData);
+    useSocketListener('employee:deleted', fetchData);
+    useSocketListener('team:created', fetchData);
+    useSocketListener('team:updated', fetchData);
+    useSocketListener('team:deleted', fetchData);
+    useSocketListener('department:created', fetchData);
+    useSocketListener('department:updated', fetchData);
+    useSocketListener('department:deleted', fetchData);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

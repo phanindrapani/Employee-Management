@@ -10,6 +10,7 @@ import {
     RefreshCw
 } from 'lucide-react';
 import API from '../../api';
+import useSocketListener from '../../hooks/useSocketListener';
 
 const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
     if (!task) return null;
@@ -156,21 +157,26 @@ const MyTasks = () => {
 
     const [activeTab, setActiveTab] = useState('All Tasks');
 
+    const fetchTasks = async () => {
+        try {
+            // Fetch tasks assigned to the current employee
+            const { data } = await API.get('/employee/tasks');
+            setTasks(data);
+            localStorage.setItem('ls_emp_my_tasks', JSON.stringify(data));
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching tasks:", error);
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                // Fetch tasks assigned to the current employee
-                const { data } = await API.get('/employee/tasks');
-                setTasks(data);
-                localStorage.setItem('ls_emp_my_tasks', JSON.stringify(data));
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching tasks:", error);
-                setLoading(false);
-            }
-        };
         fetchTasks();
     }, []);
+
+    useSocketListener('task:assigned', fetchTasks);
+    useSocketListener('task:updated', fetchTasks);
+    useSocketListener('task:deleted', fetchTasks);
 
     const getStatusStyles = (status) => {
         switch (status) {

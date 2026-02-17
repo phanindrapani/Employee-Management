@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import API from '../api';
 import { Users2, Plus, Trash2, X, UserCheck, ShieldCheck, Pencil } from 'lucide-react';
+import useSocketListener from '../hooks/useSocketListener';
 
 const TeamManagement = () => {
     const [teams, setTeams] = useState(() => {
@@ -26,7 +27,7 @@ const TeamManagement = () => {
         members: []
     });
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [teamsRes, deptsRes, empsRes] = await Promise.all([
                 API.get('/admin/teams'),
@@ -44,11 +45,21 @@ const TeamManagement = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
+
+    useSocketListener('team:created', fetchData);
+    useSocketListener('team:updated', fetchData);
+    useSocketListener('team:deleted', fetchData);
+    useSocketListener('team:member_added', fetchData); // If specifically emitted
+    // And if departments/employees change that might affect the lists:
+    useSocketListener('department:created', fetchData);
+    useSocketListener('department:updated', fetchData);
+    useSocketListener('employee:created', fetchData);
+    useSocketListener('employee:updated', fetchData); // Role changes etc
 
     const toggleMember = (id) => {
         setFormData(prev => {

@@ -104,7 +104,7 @@ Base URL: `http://localhost:5000/api`
 ## Employee Records Management
 
 ### Add Employee (with Documents)
-- **POST** `/employees`
+- **POST** `/admin/employees`
 - **Headers**: `Content-Type: multipart/form-data`
 - **Request Body**: (Form-data)
 ```json
@@ -136,15 +136,15 @@ Base URL: `http://localhost:5000/api`
 ```
 
 ### Get All Employee Records
-- **GET** `/employees`
+- **GET** `/admin/employees`
 - **Response**: Array of detailed employee records.
 
 ### Get Employee Record by ID
-- **GET** `/employees/:id`
+- **GET** `/admin/employees/:id`
 - **Response**: Detailed employee record.
 
 ### Update Employee Record
-- **PUT** `/employees/:id`
+- **PUT** `/admin/employees/:id`
 - **Headers**: `Content-Type: multipart/form-data`
 - **Request Body**: (Partial form-data allowed)
 - **Response**:
@@ -156,7 +156,7 @@ Base URL: `http://localhost:5000/api`
 ```
 
 ### Delete Employee Record
-- **DELETE** `/employees/:id`
+- **DELETE** `/admin/employees/:id`
 - **Response**:
 ```json
 {
@@ -169,13 +169,15 @@ Base URL: `http://localhost:5000/api`
 ## Employee Document Management
 
 ### Get Documents
-- **GET** `/documents?userId=65db4...`
+- **GET** `/admin/documents?userId=65db4...` (admin)
+- **GET** `/employee/documents` (employee self)
 - **Headers**: `Authorization: Bearer <token>`
 - **Note**: Employees see their own documents. Admins see their own by default but can fetch for any user by providing `userId`.
 - **Response**: Array of document objects, including `verificationStatus` and `fileUrl`.
 
 ### Upload Document
-- **POST** `/documents/upload`
+- **POST** `/employee/documents/upload` (employee self)
+- **POST** `/admin/documents/upload` (admin)
 - **Headers**: `Authorization: Bearer <token>`, `Content-Type: multipart/form-data`
 - **Request Body**: (Form-data)
 ```json
@@ -200,7 +202,8 @@ Base URL: `http://localhost:5000/api`
 ```
 
 ### Delete Document
-- **DELETE** `/documents/:id`
+- **DELETE** `/employee/documents/:id` (employee own)
+- **DELETE** `/admin/documents/:id` (admin)
 - **Headers**: `Authorization: Bearer <token>`
 - **Note**: Employees can delete their own documents. Admins can delete any.
 - **Response**:
@@ -211,13 +214,13 @@ Base URL: `http://localhost:5000/api`
 ```
 
 ### Verify Document (Admin)
-- **PUT** `/documents/:id/verify`
+- **PUT** `/admin/documents/:id/verify`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `admin`
 - **Response**: The updated document object with `verificationStatus: "verified"`.
 
 ### Reject Document (Admin)
-- **PUT** `/documents/:id/reject`
+- **PUT** `/admin/documents/:id/reject`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `admin`
 - **Request Body**:
@@ -609,7 +612,7 @@ Base URL: `http://localhost:5000/api`
 
 ### Get All Holidays
 - **GET** `/holidays`
-- **Headers**: None (Public)
+- **Headers**: `Authorization: Bearer <token>`
 - **Response**: Array of holidays, sorted by date.
 ```json
 [
@@ -637,18 +640,6 @@ Base URL: `http://localhost:5000/api`
 }
 ```
 - **Response** (201 Created): Returns the created holiday object.
-
-### Update Holiday (Admin)
-- **PUT** `/holidays/:id`
-- **Headers**: `Authorization: Bearer <token>`
-- **Role**: `admin`
-- **Request Body**: (Partial allowed)
-```json
-{
-  "description": "Updated holiday description"
-}
-```
-- **Response**: The updated holiday object.
 
 ### Delete Holiday (Admin)
 - **DELETE** `/holidays/:id`
@@ -701,28 +692,6 @@ Base URL: `http://localhost:5000/api`
 ```
 - **Note**: `rejectionReason` should be provided if `status` is `"rejected"`.
 - **Response**: Updated leave object.
-
----
-
-## Role Management (Admin)
-
-### Promote/Demote User Role
-- **POST** `/admin/promote/:id`
-- **Headers**: `Authorization: Bearer <token>`
-- **Request Body**:
-```json
-{
-  "role": "team-lead"
-}
-```
-- **Note**: Supports `employee`, `team-lead`, and `admin` roles. Triggers automatic team and reporting manager adjustments.
-- **Response**:
-```json
-{
-  "message": "Promoted to team-lead",
-  "user": { ... }
-}
-```
 
 ---
 
@@ -886,7 +855,7 @@ Base URL: `http://localhost:5000/api`
 ## Leave Management (Personal)
 
 ### Apply for Leave
-- **POST** `/leaves`
+- **POST** `/employee/leaves`
 - **Headers**: `Authorization: Bearer <token>`, `Content-Type: multipart/form-data`
 - **Request Body**: (Form-data)
 ```json
@@ -903,12 +872,12 @@ Base URL: `http://localhost:5000/api`
 - **Response** (201 Created): Returns the created leave request object.
 
 ### Get My Leave History
-- **GET** `/leaves`
+- **GET** `/employee/leaves`
 - **Headers**: `Authorization: Bearer <token>`
 - **Response**: Array of leave request objects belonging to the authenticated user.
 
 ### Calculate Leave Duration
-- **POST** `/leaves/calculate`
+- **POST** `/employee/leaves/calculate`
 - **Headers**: `Authorization: Bearer <token>`
 - **Request Body**:
 ```json
@@ -931,7 +900,9 @@ Base URL: `http://localhost:5000/api`
 ## Notification Management
 
 ### Get My Notifications
-- **GET** `/notifications`
+- **GET** `/employee/notifications` (employee)
+- **GET** `/team-lead/notifications` (team lead)
+- **GET** `/admin/notifications` (admin)
 - **Headers**: `Authorization: Bearer <token>`
 - **Response**: Array of notification objects, sorted by most recent.
 ```json
@@ -947,7 +918,9 @@ Base URL: `http://localhost:5000/api`
 ```
 
 ### Mark Notification as Read
-- **PUT** `/notifications/:id/read`
+- **PUT** `/employee/notifications/:id/read` (employee)
+- **PUT** `/team-lead/notifications/:id/read` (team lead)
+- **PUT** `/admin/notifications/:id/read` (admin)
 - **Headers**: `Authorization: Bearer <token>`
 - **Response**:
 ```json
@@ -957,7 +930,9 @@ Base URL: `http://localhost:5000/api`
 ```
 
 ### Mark All Notifications as Read
-- **PUT** `/notifications/read-all`
+- **PUT** `/employee/notifications/read-all` (employee)
+- **PUT** `/team-lead/notifications/read-all` (team lead)
+- **PUT** `/admin/notifications/read-all` (admin)
 - **Headers**: `Authorization: Bearer <token>`
 - **Response**:
 ```json
@@ -971,7 +946,7 @@ Base URL: `http://localhost:5000/api`
 ## Task Management
 
 ### Create Task (Team Lead)
-- **POST** `/tasks`
+- **POST** `/team-lead/tasks`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `team-lead`
 - **Request Body**:
@@ -990,18 +965,18 @@ Base URL: `http://localhost:5000/api`
 - **Response** (201 Created): Returns the created task object.
 
 ### Get My Tasks
-- **GET** `/tasks/my`
+- **GET** `/employee/tasks`
 - **Headers**: `Authorization: Bearer <token>`
 - **Response**: Array of tasks assigned to the authenticated user, sorted by deadline.
 
 ### Get Team Tasks (Team Lead)
-- **GET** `/tasks/team`
+- **GET** `/team-lead/tasks`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `team-lead`
 - **Response**: Array of tasks assigned to all members of the lead's team.
 
 ### Update Task Status
-- **PATCH** `/tasks/:id/status`
+- **PATCH** `/employee/tasks/:id/status` (employee self)
 - **Headers**: `Authorization: Bearer <token>`
 - **Request Body**:
 ```json
@@ -1012,8 +987,15 @@ Base URL: `http://localhost:5000/api`
 - **Note**: `status` must be one of `todo`, `in-progress`, `review`, `done`. Authorized for the assigned user or their team lead. Triggers performance score recalculation upon completion.
 - **Response**: The updated task object.
 
+### Update Task (Team Lead)
+- **PUT** `/team-lead/tasks/:id`
+- **Headers**: `Authorization: Bearer <token>`
+- **Role**: `team-lead`
+- **Request Body**: Any editable task fields (for example `title`, `description`, `assignedTo`, `deadline`, `priority`, `weight`, `status`).
+- **Response**: The updated task object.
+
 ### Delete Task (Team Lead)
-- **DELETE** `/tasks/:id`
+- **DELETE** `/team-lead/tasks/:id`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `team-lead`
 - **Response**:
@@ -1028,7 +1010,7 @@ Base URL: `http://localhost:5000/api`
 ## Team Leadership & Management
 
 ### Get Team Dashboard Stats
-- **GET** `/team/stats`
+- **GET** `/team-lead/stats`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `team-lead`
 - **Response**:
@@ -1044,26 +1026,38 @@ Base URL: `http://localhost:5000/api`
 ```
 
 ### Get Team Members
-- **GET** `/team/members`
+- **GET** `/team-lead/team`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `team-lead`
 - **Note**: Returns list of members with their current `activeTasks` count (workload).
 - **Response**: Array of member objects.
 
 ### Get Team Leave Calendar
-- **GET** `/team/leaves`
+- **GET** `/team-lead/leaves`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `team-lead`
 - **Response**: Array of leave objects for all team members.
 
+### Update Team Leave Status
+- **PUT** `/team-lead/leaves/:id/status`
+- **Headers**: `Authorization: Bearer <token>`
+- **Role**: `team-lead`
+- **Request Body**:
+```json
+{
+  "status": "approved"
+}
+```
+- **Response**: Updated leave request object.
+
 ### Get Team Projects
-- **GET** `/team/projects`
+- **GET** `/team-lead/projects`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `team-lead`
 - **Response**: Array of project objects assigned to the lead's team.
 
 ### Update Project Progress
-- **PUT** `/team/projects/:id/progress`
+- **PUT** `/team-lead/projects/:id/progress`
 - **Headers**: `Authorization: Bearer <token>`
 - **Role**: `team-lead`, `admin`
 - **Request Body**:
@@ -1075,3 +1069,9 @@ Base URL: `http://localhost:5000/api`
 ```
 - **Note**: `mode` can be `manual` (overrides with `progress` value) or `auto` (calculates based on task completion).
 - **Response**: The updated project object.
+
+### Get Team Reports
+- **GET** `/team-lead/reports`
+- **Headers**: `Authorization: Bearer <token>`
+- **Role**: `team-lead`
+- **Response**: Team performance/report payload for the authenticated lead.

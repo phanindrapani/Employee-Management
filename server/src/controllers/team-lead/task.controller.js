@@ -2,6 +2,7 @@ import Task from '../../models/task.model.js';
 import User from '../../models/user.model.js';
 import { syncProjectProgress } from '../../services/projectProgress.service.js';
 import mongoose from 'mongoose';
+import { getIO } from '../../socket.js';
 
 export const createTask = async (req, res) => {
     const session = await mongoose.startSession();
@@ -34,7 +35,20 @@ export const createTask = async (req, res) => {
         await syncProjectProgress(projectId, req.user._id, session);
 
         await session.commitTransaction();
-        res.status(201).json(task[0]);
+        const createdTask = await Task.findById(task[0]._id)
+            .populate('project', 'name')
+            .populate('assignedTo', 'name email profilePicture');
+
+        try {
+            const io = getIO();
+            io.to(`user:${assignedTo}`).emit('task:assigned', createdTask);
+            io.to(`team:${req.user.team}`).emit('task:created', createdTask);
+            io.to('role:admin').emit('task:created', createdTask);
+        } catch (socketError) {
+            console.error('Socket emit error (task create):', socketError.message);
+        }
+
+        res.status(201).json(createdTask);
     } catch (error) {
         await session.abortTransaction();
         res.status(500).json({ message: error.message || "Failed to create task" });
@@ -135,6 +149,21 @@ export const updateTask = async (req, res) => {
         const updatedTask = await Task.findById(id)
             .populate('project', 'name')
             .populate('assignedTo', 'name email profilePicture');
+
+        try {
+            const io = getIO();
+            if (oldWorker?._id) {
+                io.to(`user:${oldWorker._id}`).emit('task:updated', updatedTask);
+            }
+            if (newWorker?._id && String(newWorker._id) !== String(oldWorker?._id)) {
+                io.to(`user:${newWorker._id}`).emit('task:assigned', updatedTask);
+            }
+            io.to(`team:${req.user.team}`).emit('task:updated', updatedTask);
+            io.to('role:admin').emit('task:updated', updatedTask);
+        } catch (socketError) {
+            console.error('Socket emit error (task update):', socketError.message);
+        }
+
         res.json(updatedTask);
     } catch (error) {
         await session.abortTransaction();
@@ -168,6 +197,16 @@ export const deleteTask = async (req, res) => {
         await syncProjectProgress(projectId, req.user._id, session);
 
         await session.commitTransaction();
+        try {
+            const io = getIO();
+            if (task.assignedTo) {
+                io.to(`user:${task.assignedTo}`).emit('task:deleted', { _id: id });
+            }
+            io.to(`team:${req.user.team}`).emit('task:deleted', { _id: id });
+            io.to('role:admin').emit('task:deleted', { _id: id });
+        } catch (socketError) {
+            console.error('Socket emit error (task delete):', socketError.message);
+        }
         res.json({ message: "Task deleted successfully" });
     } catch (error) {
         await session.abortTransaction();

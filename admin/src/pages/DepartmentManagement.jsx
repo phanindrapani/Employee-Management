@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useSocketListener from '../hooks/useSocketListener';
 import API from '../api';
 import { Building2, Plus, Trash2, X, Search, Pencil } from 'lucide-react';
 
@@ -28,6 +29,10 @@ const DepartmentManagement = () => {
     useEffect(() => {
         fetchDepartments();
     }, []);
+
+    useSocketListener('department:created', fetchDepartments);
+    useSocketListener('department:updated', fetchDepartments);
+    useSocketListener('department:deleted', fetchDepartments);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

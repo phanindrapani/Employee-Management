@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     FolderKanban,
     Calendar,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import API from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import useSocketListener from '../../hooks/useSocketListener';
 
 const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
     const { user } = useAuth();
@@ -29,7 +30,7 @@ const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
         setIsUpdating(true);
         setError(null);
         try {
-            const { data } = await API.put(`/team/projects/${project._id}/progress`, {
+            const { data } = await API.put(`/team-lead/projects/${project._id}/progress`, {
                 progress: mode === 'manual' ? tempProgress : undefined,
                 mode: mode
             });
@@ -209,21 +210,28 @@ const MyProjects = () => {
     const [loading, setLoading] = useState(projects.length === 0);
     const [selectedProject, setSelectedProject] = useState(null);
 
-    useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                // Fetch projects assigned to the employee's team
-                const { data } = await API.get('/employee/projects');
-                setProjects(data);
-                localStorage.setItem('ls_emp_projects_list', JSON.stringify(data));
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching projects:", error);
-                setLoading(false);
-            }
-        };
-        fetchProjects();
+    const fetchProjects = useCallback(async () => {
+        try {
+            // Fetch projects assigned to the employee's team
+            const { data } = await API.get('/employee/projects');
+            setProjects(data);
+            localStorage.setItem('ls_emp_projects_list', JSON.stringify(data));
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching projects:", error);
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchProjects();
+    }, [fetchProjects]);
+
+    useSocketListener('project:created', fetchProjects);
+    useSocketListener('project:updated', fetchProjects);
+    useSocketListener('project:deleted', fetchProjects);
+    useSocketListener('task:updated', fetchProjects);
+    useSocketListener('task:deleted', fetchProjects);
 
     const getStatusColor = (status) => {
         switch (status) {

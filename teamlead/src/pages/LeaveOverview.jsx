@@ -42,7 +42,7 @@ const LeaveOverview = () => {
         }
 
         try {
-            await API.put(`/leaves/${id}/status`, { status, rejectionReason });
+            await API.put(`/team-lead/leaves/${id}/status`, { status, rejectionReason });
             fetchTeamLeaves(); // Refresh list
         } catch (error) {
             console.error("Leave action error:", error);
