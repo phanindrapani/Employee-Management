@@ -17,7 +17,7 @@ const leaveSchema = new mongoose.Schema({
     totalDays: { type: Number, required: true },
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
+        enum: ['pending', 'tl-approved', 'approved', 'rejected'],
         default: 'pending'
     },
     rejectionReason: { type: String },

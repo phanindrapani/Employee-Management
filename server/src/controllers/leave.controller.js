@@ -85,13 +85,23 @@ export const updateLeaveStatus = async (req, res) => {
         return res.status(400).json({ message: 'User associated with this leave no longer exists' });
     }
 
-    leave.status = status;
+    // Differentiate status based on role
+    if (status === 'approved') {
+        if (req.user.role === 'team-lead') {
+            leave.status = 'tl-approved';
+        } else if (req.user.role === 'admin') {
+            leave.status = 'approved';
+        }
+    } else {
+        leave.status = status;
+    }
+
     if (status === 'rejected') leave.rejectionReason = rejectionReason;
 
     await leave.save();
 
-    // Deduct balance if approved
-    if (status === 'approved') {
+    // Deduct balance ONLY if FINAL status is approved
+    if (leave.status === 'approved') {
         const user = await User.findById(leave.user._id);
         const balanceKey = leave.leaveType.toLowerCase(); // cl, sl, el
 
@@ -107,7 +117,6 @@ export const updateLeaveStatus = async (req, res) => {
                     { [`leaveBalance.${balanceKey}`]: user.leaveBalance[balanceKey] }
                 );
             } else {
-                // This shouldn't happen due to frontend validation, but stay safe
                 return res.status(400).json({ message: `Insufficient ${leave.leaveType} balance for deduction` });
             }
         }

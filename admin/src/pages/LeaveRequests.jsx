@@ -129,8 +129,9 @@ const LeaveRequests = () => {
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
-                            <option value="pending">Pending Only</option>
-                            <option value="approved">Approved Only</option>
+                            <option value="pending">Initial Review (Pending TL)</option>
+                            <option value="tl-approved">Second Level (Pending Admin)</option>
+                            <option value="approved">Approved Final</option>
                             <option value="rejected">Rejected Only</option>
                             <option value="">Show All</option>
                         </select>
@@ -195,7 +196,7 @@ const LeaveRequests = () => {
                                             <span className="text-[10px] text-slate-400 font-black ml-1 uppercase">Unit(s)</span>
                                         </td>
                                         <td className="py-6 px-4">
-                                            {leave.status === 'pending' ? (
+                                            {leave.status === 'pending' || leave.status === 'tl-approved' ? (
                                                 <div className="flex items-center justify-end gap-3">
                                                     {selectedId === leave._id ? (
                                                         <div className="flex items-center gap-3 animate-in slide-in-from-right-4 duration-300">
@@ -226,7 +227,7 @@ const LeaveRequests = () => {
                                                                 onClick={() => handleAction(leave._id, 'approved')}
                                                                 className="flex items-center gap-2 px-5 py-2.5 bg-[#63C132] text-white hover:bg-[#52A428] rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#63C132]/20 active:scale-95"
                                                             >
-                                                                <CheckCircle size={16} /> Approve
+                                                                <CheckCircle size={16} /> {leave.status === 'tl-approved' ? 'Final Approve' : 'Approve'}
                                                             </button>
                                                             <button
                                                                 onClick={() => setSelectedId(leave._id)}
@@ -241,9 +242,11 @@ const LeaveRequests = () => {
                                                 <div className="text-right">
                                                     <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${leave.status === 'approved'
                                                         ? 'bg-[#F0FFF4] text-[#63C132] border-[#63C132]/20'
-                                                        : 'bg-red-50 text-red-600 border-red-100'
+                                                        : leave.status === 'tl-approved'
+                                                            ? 'bg-blue-50 text-blue-600 border-blue-100'
+                                                            : 'bg-red-50 text-red-600 border-red-100'
                                                         }`}>
-                                                        {leave.status}
+                                                        {leave.status === 'tl-approved' ? 'TL Approved' : leave.status}
                                                     </span>
                                                 </div>
                                             )}

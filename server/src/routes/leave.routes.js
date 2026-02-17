@@ -12,8 +12,8 @@ router.route('/')
 
 router.post('/calculate', protect, authorizeRole(['employee', 'team-lead', 'admin']), calculateLeave);
 
-// Routes accessible only by Admins
+// Routes accessible by Admins and Team Leads
 router.get('/all', protect, authorizeRole(['admin']), getAllLeaves);
-router.put('/:id/status', protect, authorizeRole(['admin']), updateLeaveStatus);
+router.put('/:id/status', protect, authorizeRole(['admin', 'team-lead']), updateLeaveStatus);
 
 export default router;

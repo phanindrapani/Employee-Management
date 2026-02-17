@@ -18,24 +18,42 @@ const LeaveOverview = () => {
     });
     const [loading, setLoading] = useState(leaves.length === 0);
 
+    const fetchTeamLeaves = async () => {
+        try {
+            const { data } = await API.get('/team/leaves');
+            setLeaves(data);
+            localStorage.setItem('ls_tl_leave_requests', JSON.stringify(data));
+            setLoading(false);
+        } catch (error) {
+            console.error("Fetch leaves error:", error);
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchTeamLeaves = async () => {
-            try {
-                const { data } = await API.get('/team/leaves');
-                setLeaves(data);
-                localStorage.setItem('ls_tl_leave_requests', JSON.stringify(data));
-                setLoading(false);
-            } catch (error) {
-                console.error("Fetch leaves error:", error);
-                setLoading(false);
-            }
-        };
         fetchTeamLeaves();
     }, []);
+
+    const handleLeaveAction = async (id, status) => {
+        let rejectionReason = '';
+        if (status === 'rejected') {
+            rejectionReason = prompt("Please enter the reason for rejection:");
+            if (!rejectionReason) return;
+        }
+
+        try {
+            await API.put(`/leaves/${id}/status`, { status, rejectionReason });
+            fetchTeamLeaves(); // Refresh list
+        } catch (error) {
+            console.error("Leave action error:", error);
+            alert(error.response?.data?.message || "Failed to process leave request");
+        }
+    };
 
     const getStatusColor = (status) => {
         switch (status) {
             case 'approved': return 'bg-[#63C132]/10 text-[#63C132]';
+            case 'tl-approved': return 'bg-blue-50 text-blue-600';
             case 'pending': return 'bg-amber-50 text-amber-600';
             case 'rejected': return 'bg-rose-50 text-rose-600';
             default: return 'bg-slate-50 text-slate-500';
@@ -132,15 +150,15 @@ const LeaveOverview = () => {
                                     </td>
                                     <td className="px-10 py-6">
                                         <div className="text-sm font-semibold text-slate-500 flex flex-col">
-                                            <span>{new Date(leave.startDate).toLocaleDateString()}</span>
+                                            <span>{new Date(leave.fromDate).toLocaleDateString()}</span>
                                             <span className="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center gap-1">
-                                                <ArrowRight size={10} /> {new Date(leave.endDate).toLocaleDateString()}
+                                                <ArrowRight size={10} /> {new Date(leave.toDate).toLocaleDateString()}
                                             </span>
                                         </div>
                                     </td>
                                     <td className="px-10 py-6">
                                         <div className="text-sm font-medium text-slate-400">
-                                            {new Date(leave.createdAt).toLocaleDateString()}
+                                            {new Date(leave.appliedAt).toLocaleDateString()}
                                         </div>
                                     </td>
                                     <td className="px-10 py-6 text-sm">
@@ -149,9 +167,30 @@ const LeaveOverview = () => {
                                         </span>
                                     </td>
                                     <td className="px-10 py-6 text-right">
-                                        <button className="p-2 text-slate-300 hover:text-[#0B3C5D] transition-colors">
-                                            <Info size={18} />
-                                        </button>
+                                        <div className="flex justify-end gap-2">
+                                            {leave.status === 'pending' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleLeaveAction(leave._id, 'approved')}
+                                                        className="p-2 bg-[#63C132]/10 text-[#63C132] hover:bg-[#63C132] hover:text-white rounded-xl transition-all shadow-sm"
+                                                        title="Approve Leave"
+                                                    >
+                                                        <CheckCircle2 size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleLeaveAction(leave._id, 'rejected')}
+                                                        className="p-2 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all shadow-sm"
+                                                        title="Reject Leave"
+                                                    >
+                                                        <XCircle size={18} />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <div className="p-2 text-slate-300">
+                                                    <Info size={18} />
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             )) : (
