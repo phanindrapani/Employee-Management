@@ -40,13 +40,82 @@ export const getTeamDashboardStats = async (req, res) => {
             endDate: { $gte: today }
         });
 
+        // 5. Weekly Productivity Trend (Last 7 Days)
+        const productivityTrend = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            date.setHours(0, 0, 0, 0);
+            const nextDay = new Date(date);
+            nextDay.setDate(nextDay.getDate() + 1);
+
+            const completedTasks = await Task.countDocuments({
+                assignedTo: { $in: memberIds },
+                status: 'done',
+                updatedAt: { $gte: date, $lt: nextDay }
+            });
+
+            const totalTasks = await Task.countDocuments({
+                assignedTo: { $in: memberIds },
+                updatedAt: { $gte: date, $lt: nextDay }
+            });
+
+            productivityTrend.push({
+                day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                value: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+            });
+        }
+
+        const avgProductivity = productivityTrend.length > 0
+            ? Math.round(productivityTrend.reduce((acc, curr) => acc + curr.value, 0) / productivityTrend.length)
+            : 0;
+
+        // 6. Dynamic Alerts
+        const alerts = [];
+
+        // Project Deadlines Alert
+        const soon = new Date();
+        soon.setDate(soon.getDate() + 7);
+        const endingSoon = await Project.countDocuments({
+            assignedTeam: teamId,
+            status: 'ongoing',
+            endDate: { $lte: soon, $gte: new Date() }
+        });
+        if (endingSoon > 0) {
+            alerts.push({
+                type: 'Project',
+                message: `${endingSoon} projects ending within 7 days`,
+                severity: 'warning'
+            });
+        }
+
+        // Leave Alert
+        if (onLeaveToday > 0) {
+            alerts.push({
+                type: 'Resource',
+                message: `${onLeaveToday} team members on leave today`,
+                severity: 'info'
+            });
+        }
+
+        // Pending Approval Alert (Using real pending tasks count as a proxy for approvals)
+        if (pendingTasks > 0) {
+            alerts.push({
+                type: 'Task',
+                message: `${pendingTasks} tasks require status review`,
+                severity: 'success'
+            });
+        }
+
         res.json({
             teamSize,
             activeProjects,
             pendingTasks,
             onLeaveToday,
-            pendingApprovals: pendingTasks, // Simplification or specific logic for TL approval tasks
-            weeklyProductivity: 85 // Mocked for now, calculated from task completions
+            pendingApprovals: pendingTasks,
+            weeklyProductivity: avgProductivity,
+            productivityTrend,
+            alerts
         });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch team stats" });

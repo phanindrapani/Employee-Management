@@ -261,7 +261,7 @@ const AdminDashboard = () => {
                             {/* Leave Trend Chart */}
                             <div className="card h-80 flex flex-col">
                                 <h3 className="font-bold text-[#0B3C5D] mb-4 flex items-center gap-2">
-                                    <TrendingUp size={18} /> Leave Trend (2026)
+                                    <TrendingUp size={18} /> Leave Trend ({new Date().getFullYear()})
                                 </h3>
                                 <div className="flex-1 min-h-0">
                                     <ResponsiveContainer width="100%" height="100%">
