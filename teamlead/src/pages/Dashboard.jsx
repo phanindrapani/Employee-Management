@@ -9,9 +9,11 @@ import {
     Clock,
     AlertCircle
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import API from '../api';
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [stats, setStats] = useState(() => {
         const cached = localStorage.getItem('ls_tl_stats');
         return cached ? JSON.parse(cached) : {
@@ -41,10 +43,10 @@ const Dashboard = () => {
     }, []);
 
     const cards = [
-        { title: 'My Team', value: stats.teamSize, sub: 'Active Members', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { title: 'Active Projects', value: stats.activeProjects, sub: 'Assigned to Team', icon: FolderKanban, color: 'text-[#63C132]', bg: 'bg-[#63C132]/10' },
-        { title: 'Pending Tasks', value: stats.pendingTasks, sub: 'Action Required', icon: ClipboardList, color: 'text-amber-500', bg: 'bg-amber-50' },
-        { title: 'On Leave Today', value: stats.onLeaveToday, sub: 'Resource Availability', icon: CalendarClock, color: 'text-rose-500', bg: 'bg-rose-50' },
+        { title: 'My Team', value: stats.teamSize, sub: 'Active Members', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', path: '/team' },
+        { title: 'Active Projects', value: stats.activeProjects, sub: 'Assigned to Team', icon: FolderKanban, color: 'text-[#63C132]', bg: 'bg-[#63C132]/10', path: '/projects' },
+        { title: 'Pending Tasks', value: stats.pendingTasks, sub: 'Action Required', icon: ClipboardList, color: 'text-amber-500', bg: 'bg-amber-50', path: '/tasks' },
+        { title: 'On Leave Today', value: stats.onLeaveToday, sub: 'Resource Availability', icon: CalendarClock, color: 'text-rose-500', bg: 'bg-rose-50', path: '/leaves' },
     ];
 
     if (loading) {
@@ -73,7 +75,11 @@ const Dashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {cards.map((card, idx) => (
-                    <div key={idx} className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 hover:shadow-xl hover:scale-[1.02] transition-all group overflow-hidden relative">
+                    <div
+                        key={idx}
+                        onClick={() => navigate(card.path)}
+                        className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 hover:shadow-xl hover:scale-[1.02] transition-all group overflow-hidden relative cursor-pointer"
+                    >
                         <div className={`absolute top-0 right-0 w-24 h-24 ${card.bg} rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110`}></div>
                         <div className={`${card.bg} ${card.color} w-14 h-14 rounded-2xl flex items-center justify-center mb-6 relative z-10`}>
                             <card.icon size={28} />

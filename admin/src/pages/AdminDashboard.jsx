@@ -99,7 +99,10 @@ const AdminDashboard = () => {
                     {/* 1. TOP SUMMARY CARDS */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* Organization Stats */}
-                        <div className="card p-5 border-l-4 border-[#0B3C5D] flex flex-col justify-between">
+                        <div
+                            onClick={() => navigate('/employees')}
+                            className="card p-5 border-l-4 border-[#0B3C5D] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
+                        >
                             <div>
                                 <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Employees</h4>
                                 <div className="text-3xl font-black text-[#0B3C5D] mt-1">{summary.employees}</div>
@@ -111,7 +114,10 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Project Stats */}
-                        <div className="card p-5 border-l-4 border-[#3B82F6] flex flex-col justify-between">
+                        <div
+                            onClick={() => navigate('/projects')}
+                            className="card p-5 border-l-4 border-[#3B82F6] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
+                        >
                             <div>
                                 <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Active Projects</h4>
                                 <div className="text-3xl font-black text-[#3B82F6] mt-1">{summary.projects.ongoing}</div>
@@ -123,7 +129,10 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Leave Stats */}
-                        <div className="card p-5 border-l-4 border-[#F59E0B] flex flex-col justify-between">
+                        <div
+                            onClick={() => navigate('/leaves')}
+                            className="card p-5 border-l-4 border-[#F59E0B] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
+                        >
                             <div>
                                 <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Pending Leaves</h4>
                                 <div className="text-3xl font-black text-[#F59E0B] mt-1">{summary.leaves.pending}</div>
@@ -135,7 +144,10 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Holiday Stats */}
-                        <div className="card p-5 border-l-4 border-[#EC4899] flex flex-col justify-between">
+                        <div
+                            onClick={() => navigate('/holidays')}
+                            className="card p-5 border-l-4 border-[#EC4899] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
+                        >
                             <div>
                                 <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Next Holiday</h4>
                                 <div className="font-bold text-[#EC4899] mt-1 truncate" title={summary.holidays.upcoming?.name || 'None'}>

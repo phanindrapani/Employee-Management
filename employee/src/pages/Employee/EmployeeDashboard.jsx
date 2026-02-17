@@ -170,11 +170,15 @@ const EmployeeDashboard = () => {
                                 <p className="text-center py-8 text-slate-400 italic">No tasks assigned</p>
                             ) : (
                                 tasks.slice(0, 3).map(task => (
-                                    <div key={task._id} className="flex items-center justify-between p-5 rounded-[20px] bg-slate-50 border border-slate-100 hover:border-[#63C132]/30 transition-colors">
+                                    <div
+                                        key={task._id}
+                                        onClick={() => navigate('/tasks')}
+                                        className="flex items-center justify-between p-5 rounded-[20px] bg-slate-50 border border-slate-100 hover:border-[#63C132]/30 transition-all cursor-pointer group/item hover:bg-white hover:shadow-md"
+                                    >
                                         <div className="flex items-center gap-4">
                                             <div className={`w-2 h-2 rounded-full ${task.priority === 'high' ? 'bg-rose-500' : 'bg-blue-500'}`}></div>
                                             <div>
-                                                <div className="font-bold text-sm text-[#0B3C5D]">{task.title}</div>
+                                                <div className="font-bold text-sm text-[#0B3C5D] group-hover/item:text-[#63C132] transition-colors">{task.title}</div>
                                                 <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">{task.project?.name || 'Team Project'}</div>
                                             </div>
                                         </div>
@@ -234,9 +238,13 @@ const EmployeeDashboard = () => {
                         </div>
                         <div className="space-y-6">
                             {projects.filter(p => p.status === 'ongoing').slice(0, 3).map(project => (
-                                <div key={project._id} className="space-y-3">
+                                <div
+                                    key={project._id}
+                                    onClick={() => navigate('/projects')}
+                                    className="space-y-3 cursor-pointer group/proj hover:bg-slate-50 p-2 -m-2 rounded-xl transition-all"
+                                >
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-[#0B3C5D]">
-                                        <span className="line-clamp-1">{project.name}</span>
+                                        <span className="line-clamp-1 group-hover/proj:text-[#63C132] transition-colors">{project.name}</span>
                                         <span className="text-[#63C132] font-black">{project.progress}%</span>
                                     </div>
                                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
