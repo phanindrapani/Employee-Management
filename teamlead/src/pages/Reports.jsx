@@ -29,39 +29,23 @@ const Reports = () => {
         return !cached;
     });
 
-    // Mock data for analytics - in a real app, this would come from /api/team/analytics
-    const [productivityData, setProductivityData] = useState(() => {
-        const cached = localStorage.getItem('ls_tl_prod_data');
-        return cached ? JSON.parse(cached) : [
-            { name: 'Mon', tasks: 12, efficiency: 75 },
-            { name: 'Tue', tasks: 18, efficiency: 82 },
-            { name: 'Wed', tasks: 15, efficiency: 88 },
-            { name: 'Thu', tasks: 22, efficiency: 92 },
-            { name: 'Fri', tasks: 20, efficiency: 85 },
-        ];
-    });
-
-    const [contributionData, setContributionData] = useState(() => {
-        const cached = localStorage.getItem('ls_tl_cont_data');
-        return cached ? JSON.parse(cached) : [
-            { name: 'John Doe', value: 35 },
-            { name: 'Sarah Smith', value: 25 },
-            { name: 'Mike Ross', value: 20 },
-            { name: 'Rachel Zane', value: 20 },
-        ];
-    });
-
     const COLORS = ['#0B3C5D', '#63C132', '#1A4B6D', '#74D144'];
+    const [reportData, setReportData] = useState(null);
+
+    const fetchReports = async () => {
+        try {
+            const { data } = await API.get('/team/reports');
+            setReportData(data);
+            localStorage.setItem('ls_tl_reports_data', JSON.stringify(data));
+            setLoading(false);
+        } catch (error) {
+            console.error("Fetch reports error:", error);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        // Simulate background sync
-        const syncData = setTimeout(() => {
-            localStorage.setItem('ls_tl_reports_data', 'true');
-            localStorage.setItem('ls_tl_prod_data', JSON.stringify(productivityData));
-            localStorage.setItem('ls_tl_cont_data', JSON.stringify(contributionData));
-            setLoading(false);
-        }, 1000);
-        return () => clearTimeout(syncData);
+        fetchReports();
     }, []);
 
     if (loading) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-pulse">
@@ -75,6 +59,37 @@ const Reports = () => {
                 <div>
                     <h1 className="text-4xl font-black text-[#0B3C5D] tracking-tight mb-2">Team Intelligence</h1>
                     <p className="text-slate-500 font-medium">Strategic Reports • Performance Metrics & Contribution Analysis</p>
+                </div>
+            </div>
+
+            {/* Top Analysis Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
+                    <div className="w-12 h-12 bg-[#63C132]/10 text-[#63C132] rounded-2xl flex items-center justify-center">
+                        <Target size={24} />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Key Result Area</div>
+                        <div className="text-lg font-black text-[#0B3C5D]">{reportData?.summary?.achievementRate || 0}% Achievement</div>
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center">
+                        <Users size={24} />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Members</div>
+                        <div className="text-lg font-black text-[#0B3C5D]">{reportData?.summary?.teamSize || 0} Professional(s)</div>
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
+                    <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
+                        <BarChart3 size={24} />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Growth Volume</div>
+                        <div className="text-lg font-black text-[#0B3C5D]">{reportData?.summary?.totalCompleted || 0} Milestones</div>
+                    </div>
                 </div>
             </div>
 
@@ -94,7 +109,7 @@ const Reports = () => {
                     </div>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={productivityData}>
+                            <BarChart data={reportData?.productivityTrend || []}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }} />
@@ -123,13 +138,13 @@ const Reports = () => {
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
-                                    data={contributionData}
+                                    data={reportData?.contributionData || []}
                                     innerRadius={60}
                                     outerRadius={80}
                                     paddingAngle={5}
                                     dataKey="value"
                                 >
-                                    {contributionData.map((entry, index) => (
+                                    {(reportData?.contributionData || []).map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
@@ -153,7 +168,7 @@ const Reports = () => {
 
                 <div className="h-64 relative z-10">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={productivityData}>
+                        <LineChart data={reportData?.productivityTrend || []}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700 }} dy={10} />
                             <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700 }} />
@@ -166,36 +181,6 @@ const Reports = () => {
                 </div>
             </div>
 
-            {/* Bottom Insight Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#63C132]/10 text-[#63C132] rounded-2xl flex items-center justify-center">
-                        <Target size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Key Result Area</div>
-                        <div className="text-lg font-black text-[#0B3C5D]">92% Achievement</div>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center">
-                        <Users size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Retention Rate</div>
-                        <div className="text-lg font-black text-[#0B3C5D]">98.4% Stable</div>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
-                        <BarChart size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Growth Velocity</div>
-                        <div className="text-lg font-black text-[#0B3C5D]">+12.5% Month</div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };
