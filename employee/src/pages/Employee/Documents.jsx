@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, ShieldCheck } from 'lucide-react';
 import DocumentManager from '../../components/DocumentManager';
 
