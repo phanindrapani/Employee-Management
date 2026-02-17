@@ -93,6 +93,7 @@ export const loginUser = async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            createdAt: user.createdAt,
             token: generateToken(user._id, user.role),
         });
     } else {
@@ -158,6 +159,7 @@ export const updateProfile = async (req, res) => {
                 bio: updatedUser.bio,
                 skills: updatedUser.skills,
                 qualification: updatedUser.qualification,
+                createdAt: updatedUser.createdAt,
                 completeness: completeness,
                 token: generateToken(updatedUser._id),
             });

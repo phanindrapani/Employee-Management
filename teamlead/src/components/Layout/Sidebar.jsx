@@ -43,7 +43,6 @@ const Sidebar = () => {
         {
             title: 'PERSONAL',
             items: [
-                { name: 'Notifications', path: '/notifications', icon: Bell },
                 { name: 'My Profile', path: '/profile', icon: UserCircle },
             ]
         }
