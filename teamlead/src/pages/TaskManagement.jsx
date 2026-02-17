@@ -32,6 +32,17 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members, taskToEdit }) 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
 
+    // Automate weight according to priority
+    useEffect(() => {
+        const weightMap = {
+            low: 1,
+            medium: 3,
+            high: 5,
+            urgent: 10
+        };
+        setFormData(prev => ({ ...prev, weight: weightMap[prev.priority] || 1 }));
+    }, [formData.priority]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -145,11 +156,10 @@ const AssignTaskModal = ({ onClose, onSuccess, projects, members, taskToEdit }) 
                             <div className="flex bg-white px-3 py-1 rounded-xl border border-slate-100">
                                 <input
                                     type="number"
-                                    min="1"
-                                    max="10"
-                                    className="w-10 text-center font-black text-sm text-[#0B3C5D] bg-transparent outline-none"
+                                    readOnly
+                                    disabled
+                                    className="w-10 text-center font-black text-sm text-[#0B3C5D] bg-transparent outline-none opacity-50 cursor-not-allowed"
                                     value={formData.weight}
-                                    onChange={(e) => setFormData({ ...formData, weight: parseInt(e.target.value) || 1 })}
                                 />
                                 <span className="text-[10px] font-black text-slate-300 ml-1">PTS</span>
                             </div>
