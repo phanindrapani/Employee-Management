@@ -695,54 +695,6 @@ Base URL: `http://localhost:5000/api`
 
 ---
 
-## Performance Module - Goals (Admin & Team Lead)
-
-### Create Goal
-- **POST** `/admin/performance/goals`
-- **Headers**: `Authorization: Bearer <token>`
-- **Role**: `admin`, `team-lead`
-- **Request Body**:
-```json
-{
-  "title": "Complete Security Audit",
-  "description": "Perform full audit of the auth module",
-  "deadline": "2024-05-01",
-  "assignedTo": "65db4..."
-}
-```
-- **Response** (201 Created): Returns the created goal object.
-
-### Get Goals
-- **GET** `/admin/performance/goals?employeeId=65db4...`
-- **Headers**: `Authorization: Bearer <token>`
-- **Note**: Employees can only see their own goals. Admin and Team Lead can filter by `employeeId`.
-- **Response**: Array of goal objects.
-
-### Update Goal Status
-- **PATCH** `/admin/performance/goals/:id`
-- **Headers**: `Authorization: Bearer <token>`
-- **Request Body**:
-```json
-{
-  "status": "In Progress"
-}
-```
-- **Note**: `status` must be one of `Pending`, `In Progress`, `Completed`.
-- **Response**: The updated goal object.
-
-### Delete Goal
-- **DELETE** `/admin/performance/goals/:id`
-- **Headers**: `Authorization: Bearer <token>`
-- **Role**: `admin`
-- **Response**:
-```json
-{
-  "message": "Goal deleted"
-}
-```
-
----
-
 ## Performance Module - Reviews (Admin & Team Lead)
 
 ### Create Performance Review

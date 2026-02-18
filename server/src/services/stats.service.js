@@ -125,8 +125,8 @@ export const getTeamStats = async (teamId) => {
         Leave.countDocuments({
             user: { $in: memberIds },
             status: 'approved',
-            startDate: { $lte: new Date() },
-            endDate: { $gte: new Date() }
+            fromDate: { $lte: new Date() },
+            toDate: { $gte: new Date() }
         })
     ]);
 

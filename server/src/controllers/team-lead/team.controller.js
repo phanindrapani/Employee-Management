@@ -33,8 +33,8 @@ export const getTeamMembers = async (req, res) => {
             const isOnLeave = await Leave.exists({
                 user: member._id,
                 status: 'approved',
-                startDate: { $lte: today },
-                endDate: { $gte: today }
+                fromDate: { $lte: today },
+                toDate: { $gte: today }
             });
 
             return {

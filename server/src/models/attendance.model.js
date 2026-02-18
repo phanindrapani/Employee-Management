@@ -10,6 +10,14 @@ const attendanceSchema = new mongoose.Schema({
     },
     checkIn: { type: Date },
     checkOut: { type: Date },
+    checkInLocation: {
+        latitude: { type: Number },
+        longitude: { type: Number }
+    },
+    checkOutLocation: {
+        latitude: { type: Number },
+        longitude: { type: Number }
+    },
     workingHours: { type: Number, default: 0 } // Computed hours
 }, { timestamps: true });
 

@@ -1,4 +1,3 @@
-import Goal from '../../models/goal.model.js';
 import Performance from '../../models/performance.model.js';
 import PerformanceMetric from '../../models/performanceMetric.model.js';
 import Task from '../../models/task.model.js';
@@ -6,90 +5,6 @@ import Attendance from '../../models/attendance.model.js';
 import WorkLog from '../../models/workLog.model.js';
 import User from '../../models/user.model.js';
 import { getIO } from '../../socket.js';
-
-// ==================================================
-// GOAL MANAGEMENT
-// ==================================================
-
-export const createGoal = async (req, res) => {
-    try {
-        const { title, description, deadline, assignedTo } = req.body;
-        const goal = await Goal.create({
-            title,
-            description,
-            deadline,
-            assignedTo,
-            createdBy: req.user._id
-        });
-
-        // Socket Emit
-        try {
-            const io = getIO();
-            const populatedGoal = await Goal.findById(goal._id).populate('assignedTo', 'name').populate('createdBy', 'name');
-            io.to(`user:${assignedTo}`).emit('goal:created', populatedGoal);
-            // Notify creator/admin if needed
-        } catch (e) { console.error('Socket emit error:', e); }
-
-        res.status(201).json(goal);
-    } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to create goal" });
-    }
-};
-
-export const getGoals = async (req, res) => {
-    try {
-        const { employeeId } = req.query; // Changed to query param
-        const query = employeeId ? { assignedTo: employeeId } : {};
-
-        // If employee, can only see own goals
-        if (req.user.role === 'employee') {
-            query.assignedTo = req.user._id;
-        }
-
-        const goals = await Goal.find(query).populate('assignedTo', 'name').populate('createdBy', 'name').sort({ createdAt: -1 });
-        res.json(goals);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch goals" });
-    }
-};
-
-export const updateGoalStatus = async (req, res) => {
-    try {
-        const { status } = req.body;
-        const goal = await Goal.findByIdAndUpdate(req.params.id, { status }, { new: true })
-            .populate('assignedTo', 'name').populate('createdBy', 'name');
-
-        // Socket Emit
-        try {
-            const io = getIO();
-            io.to(`user:${goal.assignedTo._id}`).emit('goal:updated', goal);
-            io.to(`user:${goal.createdBy._id}`).emit('goal:updated', goal); // Notify creator
-        } catch (e) { console.error('Socket emit error:', e); }
-
-        res.json(goal);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to update goal" });
-    }
-};
-
-export const deleteGoal = async (req, res) => {
-    try {
-        const goal = await Goal.findById(req.params.id);
-        await Goal.findByIdAndDelete(req.params.id);
-
-        // Socket Emit
-        try {
-            if (goal) {
-                const io = getIO();
-                io.to(`user:${goal.assignedTo}`).emit('goal:deleted', req.params.id);
-            }
-        } catch (e) { console.error('Socket emit error:', e); }
-
-        res.json({ message: "Goal deleted" });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to delete goal" });
-    }
-};
 
 // ==================================================
 // PERFORMANCE REVIEWS (Manual)
@@ -356,12 +271,9 @@ export const getEmployeePerformanceProfile = async (req, res) => {
 
         const metric = await PerformanceMetric.findOne({ user: id, period });
         const history = await PerformanceMetric.find({ user: id }).sort({ period: 1 }).limit(6);
-        const goals = await Goal.find({ assignedTo: id }).sort({ createdAt: -1 });
-
         res.json({
             current: metric || {},
-            history,
-            goals
+            history
         });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch profile" });

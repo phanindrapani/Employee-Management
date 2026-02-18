@@ -56,15 +56,6 @@ const DocumentManager = ({ targetUserId }) => {
     const [rejectingDocId, setRejectingDocId] = useState(null);
     const [rejectionReason, setRejectionReason] = useState('');
 
-    useEffect(() => {
-        fetchDocuments();
-    }, [effectiveUserId]);
-
-    useSocketListener('document:uploaded', fetchDocuments);
-    useSocketListener('document:verified', fetchDocuments);
-    useSocketListener('document:rejected', fetchDocuments);
-    useSocketListener('document:deleted', fetchDocuments);
-
     const fetchDocuments = async () => {
         try {
             setLoading(true);
@@ -77,6 +68,15 @@ const DocumentManager = ({ targetUserId }) => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchDocuments();
+    }, [effectiveUserId]);
+
+    useSocketListener('document:uploaded', fetchDocuments);
+    useSocketListener('document:verified', fetchDocuments);
+    useSocketListener('document:rejected', fetchDocuments);
+    useSocketListener('document:deleted', fetchDocuments);
 
     const handleUpload = async (e, category, customName) => {
         const file = e.target.files[0];

@@ -14,7 +14,8 @@ import {
     ClipboardList,
     User,
     FileText,
-    ShieldCheck
+    ShieldCheck,
+    Clock3
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -45,6 +46,7 @@ const Sidebar = () => {
         {
             title: 'PERSONAL',
             items: [
+                { name: 'Attendance', path: '/attendance', icon: Clock3 },
                 { name: 'My Profile', path: '/profile', icon: User },
                 { name: 'My Documents', path: '/documents', icon: FileText },
                 { name: 'Security', path: '/change-password', icon: ShieldCheck },

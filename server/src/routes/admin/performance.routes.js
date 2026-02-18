@@ -1,10 +1,6 @@
 import express from 'express';
 import { protect, authorizeRole } from '../../middlewares/auth.middleware.js';
 import {
-    createGoal,
-    getGoals,
-    updateGoalStatus,
-    deleteGoal,
     createPerformanceReview,
     getPerformanceReviews,
     triggerCalculation,
@@ -12,12 +8,6 @@ import {
 } from '../../controllers/admin/performance.controller.js';
 
 const router = express.Router();
-
-// Goals
-router.post('/goals', protect, authorizeRole(['admin', 'team-lead']), createGoal);
-router.get('/goals', protect, authorizeRole(['admin', 'team-lead', 'employee']), getGoals);
-router.patch('/goals/:id', protect, authorizeRole(['admin', 'team-lead', 'employee']), updateGoalStatus);
-router.delete('/goals/:id', protect, authorizeRole(['admin']), deleteGoal);
 
 // Reviews
 router.post('/reviews', protect, authorizeRole(['admin', 'team-lead']), createPerformanceReview);
