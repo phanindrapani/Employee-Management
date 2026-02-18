@@ -2,7 +2,6 @@ import Performance from '../../models/performance.model.js';
 import PerformanceMetric from '../../models/performanceMetric.model.js';
 import Task from '../../models/task.model.js';
 import Attendance from '../../models/attendance.model.js';
-import WorkLog from '../../models/workLog.model.js';
 import User from '../../models/user.model.js';
 import { getIO } from '../../socket.js';
 
@@ -126,27 +125,14 @@ const calculateScore = async (userId, period) => {
     const attendanceDays = attendanceRecords.filter(a => a.status === 'Present').length;
     const attendanceScore = (attendanceDays / workingDays) * 100 > 100 ? 100 : (attendanceDays / workingDays) * 100;
 
-    // 3. Work Logs
-    const workLogs = await WorkLog.find({
-        user: userId,
-        date: { $gte: startDate, $lte: endDate }
-    });
+    // Team contribution is excluded until review rating flow is implemented in UI.
+    const teamContributionScore = 0;
 
-    const loggedHours = workLogs.reduce((sum, log) => sum + log.hours, 0);
-    const expectedHours = workingDays * 8;
-    const workLogScore = (loggedHours / expectedHours) * 100 > 100 ? 100 : (loggedHours / expectedHours) * 100;
-
-    // 4. Retrieve Manager Rating (Team Contribution) from latest Review
-    const latestReview = await Performance.findOne({ employee: userId, reviewPeriod: period });
-    const teamContributionScore = latestReview ? (latestReview.rating / 5) * 100 : 70; // Default 70 if no review
-
-    // WEIGHTED CALCULATION
-    // Tasks: 40%, OnTime: 20%, Logs: 20%, Team: 10%, Attendance: 10%
+    // WEIGHTED CALCULATION (Objective metrics only)
+    // Tasks: 70%, OnTime: 20%, Attendance: 10%
     const totalScore = (
-        (taskCompletionScore * 0.4) +
+        (taskCompletionScore * 0.7) +
         (onTimeScore * 0.2) +
-        (workLogScore * 0.2) +
-        (teamContributionScore * 0.1) +
         (attendanceScore * 0.1)
     );
 
@@ -163,11 +149,9 @@ const calculateScore = async (userId, period) => {
         onTimeTasks,
         attendanceDays,
         workingDays,
-        loggedHours,
         taskCompletionScore,
         onTimeScore,
         attendanceScore,
-        workLogScore,
         teamContributionScore,
         totalScore: Math.round(totalScore),
         category
@@ -182,7 +166,7 @@ export const recalculatePerformanceForUser = async (userId, period) => {
         { upsert: true, new: true }
     );
     console.log(
-        `[DEBUG][Performance] savedMetric user=${userId} period=${period} total=${savedMetric?.totalScore} tasks=${savedMetric?.tasksCompleted}/${savedMetric?.tasksAssigned} onTime=${savedMetric?.onTimeTasks} attendance=${savedMetric?.attendanceDays}/${savedMetric?.workingDays} logs=${savedMetric?.loggedHours}`
+        `[DEBUG][Performance] savedMetric user=${userId} period=${period} total=${savedMetric?.totalScore} tasks=${savedMetric?.tasksCompleted}/${savedMetric?.tasksAssigned} onTime=${savedMetric?.onTimeTasks} attendance=${savedMetric?.attendanceDays}/${savedMetric?.workingDays}`
     );
 
     // Socket Emit

@@ -10,13 +10,11 @@ const performanceMetricSchema = new mongoose.Schema({
     onTimeTasks: { type: Number, default: 0 },
     attendanceDays: { type: Number, default: 0 },
     workingDays: { type: Number, default: 0 },
-    loggedHours: { type: Number, default: 0 },
 
     // Scores (0-100)
     taskCompletionScore: { type: Number, default: 0 },
     onTimeScore: { type: Number, default: 0 },
     attendanceScore: { type: Number, default: 0 },
-    workLogScore: { type: Number, default: 0 },
     teamContributionScore: { type: Number, default: 0 }, // Manual/Manager input
 
     // Final Weighted Score
