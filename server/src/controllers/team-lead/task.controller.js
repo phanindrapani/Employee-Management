@@ -104,6 +104,7 @@ export const updateTask = async (req, res) => {
             weight,
             status
         } = req.body;
+        const allowedStatuses = ['todo', 'in-progress', 'review', 'done'];
 
         let newWorker = oldWorker;
         if (assignedTo && assignedTo.toString() !== task.assignedTo?.toString()) {
@@ -129,6 +130,16 @@ export const updateTask = async (req, res) => {
         if (weight !== undefined) task.weight = weight;
 
         if (status !== undefined) {
+            if (!allowedStatuses.includes(status)) {
+                await session.abortTransaction();
+                return res.status(400).json({ message: "Invalid status value" });
+            }
+
+            if (status === 'done' && task.status !== 'review') {
+                await session.abortTransaction();
+                return res.status(400).json({ message: "Task must be in review before it can be marked done" });
+            }
+
             if (status === 'done' && task.status !== 'done') {
                 task.completedAt = new Date();
             } else if (status !== 'done' && task.status === 'done') {

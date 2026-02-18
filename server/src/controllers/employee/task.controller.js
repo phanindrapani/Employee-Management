@@ -29,6 +29,12 @@ export const updateTaskStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+        const allowedStatuses = ['todo', 'in-progress', 'review', 'done'];
+
+        if (!allowedStatuses.includes(status)) {
+            await session.abortTransaction();
+            return res.status(400).json({ message: "Invalid status value" });
+        }
 
         const task = await Task.findById(id).session(session);
         if (!task) {
@@ -43,6 +49,18 @@ export const updateTaskStatus = async (req, res) => {
         if (!isAssigned && !isTL) {
             await session.abortTransaction();
             return res.status(403).json({ message: "Not authorized to update this task" });
+        }
+
+        // Employees can submit work for review, but cannot self-complete tasks.
+        if (status === 'done' && req.user.role === 'employee') {
+            await session.abortTransaction();
+            return res.status(403).json({ message: "Team lead review is required before marking a task done" });
+        }
+
+        // Team leads can mark done only after review.
+        if (status === 'done' && req.user.role === 'team-lead' && task.status !== 'review') {
+            await session.abortTransaction();
+            return res.status(400).json({ message: "Task must be in review before it can be marked done" });
         }
 
         if (status === 'done' && task.status !== 'done') {

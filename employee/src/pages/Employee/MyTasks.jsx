@@ -114,7 +114,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
                     <div className="space-y-4">
                         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Update Status</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {['todo', 'in-progress', 'review', 'done'].map((s) => (
+                            {['todo', 'in-progress', 'review'].map((s) => (
                                 <button
                                     key={s}
                                     disabled={isUpdating || task.status === s}
@@ -128,6 +128,9 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
                                 </button>
                             ))}
                         </div>
+                        <p className="text-[10px] text-slate-500 font-bold text-center">
+                            Submit to review. Team lead will verify and mark done.
+                        </p>
                         {error && <p className="text-[10px] text-rose-500 font-bold text-center">{error}</p>}
                     </div>
 

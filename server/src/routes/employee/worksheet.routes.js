@@ -13,7 +13,7 @@ const router = express.Router();
 
 // All routes require authentication
 router.use(protect);
-router.use(authorizeRole(['employee']));
+router.use(authorizeRole(['employee', 'team-lead']));
 
 // POST /api/employee/worksheet/import
 router.post('/import', worksheetUpload.single('file'), importWorksheet);

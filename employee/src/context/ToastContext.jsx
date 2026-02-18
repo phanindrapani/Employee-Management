@@ -17,8 +17,11 @@ export const ToastProvider = ({ children }) => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, []);
 
+    // Backward-compatible alias used by some screens.
+    const showToast = addToast;
+
     return (
-        <ToastContext.Provider value={{ addToast, removeToast }}>
+        <ToastContext.Provider value={{ addToast, showToast, removeToast }}>
             {children}
             <div className="fixed top-5 right-5 z-50 flex flex-col gap-2">
                 {toasts.map((toast) => (

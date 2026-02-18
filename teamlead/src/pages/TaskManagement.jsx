@@ -398,6 +398,15 @@ const TaskManagement = () => {
         }
     };
 
+    const handleMarkDone = async (taskId) => {
+        try {
+            await API.put(`/team-lead/tasks/${taskId}`, { status: 'done' });
+            fetchData();
+        } catch (error) {
+            console.error("Failed to mark task as done:", error);
+        }
+    };
+
     if (loading) return <div className="space-y-4 animate-pulse p-10">
         <div className="h-20 bg-white rounded-3xl"></div>
         {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-16 bg-white rounded-2xl"></div>)}
@@ -459,7 +468,7 @@ const TaskManagement = () => {
             {/* Toolbar */}
             <div className="bg-white p-4 rounded-[32px] shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between">
                 <div className="flex gap-2">
-                    {['all', 'todo', 'in-progress', 'done', 'overdue'].map((f) => (
+                    {['all', 'todo', 'in-progress', 'review', 'done', 'overdue'].map((f) => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
@@ -542,15 +551,25 @@ const TaskManagement = () => {
                                     </span>
                                 </td>
                                 <td className="px-8 py-6 text-right">
-                                    <button
-                                        onClick={() => {
-                                            setSelectedTask(task);
-                                            setShowDetailsModal(true);
-                                        }}
-                                        className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-white rounded-xl transition-all"
-                                    >
-                                        <ChevronRight size={20} />
-                                    </button>
+                                    <div className="flex items-center justify-end gap-2">
+                                        {task.status === 'review' && (
+                                            <button
+                                                onClick={() => handleMarkDone(task._id)}
+                                                className="px-3 py-2 bg-[#63C132] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#56ab2b] transition-all"
+                                            >
+                                                Mark Done
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => {
+                                                setSelectedTask(task);
+                                                setShowDetailsModal(true);
+                                            }}
+                                            className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-white rounded-xl transition-all"
+                                        >
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         )) : (
