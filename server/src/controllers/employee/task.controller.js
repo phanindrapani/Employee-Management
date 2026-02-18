@@ -91,6 +91,9 @@ export const updateTaskStatus = async (req, res) => {
             if (worker?.team) {
                 io.to(`team:${worker.team}`).emit('task:updated', payload);
             }
+            if (worker?.reportingManager) {
+                io.to(`user:${worker.reportingManager}`).emit('task:updated', payload);
+            }
             io.to('role:admin').emit('task:updated', payload);
         } catch (socketError) {
             console.error('Socket emit error (task status update):', socketError.message);

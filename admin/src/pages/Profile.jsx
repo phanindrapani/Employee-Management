@@ -5,7 +5,7 @@ import { User, Mail, Phone, Shield, Camera, Save, X } from 'lucide-react';
 
 
 const Profile = () => {
-    const { user: authUser, login } = useAuth();
+    const { user: authUser, setUser, login } = useAuth();
     const [profile, setProfile] = useState(() => {
         const cached = localStorage.getItem('ls_admin_profile');
         return cached ? JSON.parse(cached) : null;
@@ -68,9 +68,10 @@ const Profile = () => {
             });
 
             setProfile(data);
+            setUser(data);
+            localStorage.setItem('ls_admin_profile', JSON.stringify(data));
             setIsEditing(false);
             setSelectedImage(null);
-            // Update auth context if needed (omitted for brevity)
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to update profile');
         }

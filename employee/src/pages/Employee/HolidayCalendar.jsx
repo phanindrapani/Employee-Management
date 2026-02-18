@@ -273,15 +273,15 @@ const HolidayCalendar = () => {
                         </div>
                     </div>
 
-                    <div className="bg-[#0B3C5D] rounded-[32px] p-8 text-white shadow-xl shadow-[#0B3C5D]/20 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-[#63C132]/10 transition-colors"></div>
+                    <div className="bg-white rounded-[32px] p-8 text-[#0B3C5D] shadow-sm border border-slate-100 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-100/40 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-[#63C132]/10 transition-colors"></div>
                         <div className="flex items-start gap-4 relative z-10">
-                            <div className="p-3 bg-white/10 rounded-2xl">
+                            <div className="p-3 bg-[#F0F7FF] rounded-2xl">
                                 <Info size={24} className="text-[#63C132]" />
                             </div>
                             <div>
                                 <h4 className="font-bold text-lg mb-2">Leave Policy</h4>
-                                <p className="text-sm text-blue-100/80 leading-relaxed font-medium">
+                                <p className="text-sm text-slate-600 leading-relaxed font-medium">
                                     Holidays and Sundays are automatically excluded from your leave calculations.
                                 </p>
                             </div>

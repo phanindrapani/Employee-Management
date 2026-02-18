@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Plus,
     Search,
@@ -19,6 +19,7 @@ import {
     RefreshCw
 } from 'lucide-react';
 import API from '../api';
+import useSocketListener from '../hooks/useSocketListener';
 
 const AssignTaskModal = ({ onClose, onSuccess, projects, members, taskToEdit }) => {
     const [formData, setFormData] = useState({
@@ -334,7 +335,7 @@ const TaskManagement = () => {
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [tasksRes, projectsRes, membersRes] = await Promise.all([
                 API.get('/team-lead/tasks'),
@@ -358,7 +359,7 @@ const TaskManagement = () => {
             console.error("Fetch data error:", error);
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchData();
@@ -366,7 +367,12 @@ const TaskManagement = () => {
         if (location.state) {
             window.history.replaceState({}, document.title);
         }
-    }, []);
+    }, [fetchData, location.state]);
+
+    useSocketListener('task:assigned', fetchData);
+    useSocketListener('task:created', fetchData);
+    useSocketListener('task:updated', fetchData);
+    useSocketListener('task:deleted', fetchData);
 
     const filteredTasks = tasks.filter(task => {
         const matchesStatus = filter === 'all'

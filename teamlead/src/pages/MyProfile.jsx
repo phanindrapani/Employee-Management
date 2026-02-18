@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
     User,
@@ -11,13 +11,60 @@ import {
     Briefcase,
     Calendar,
     Settings,
-    ChevronRight
+    ChevronRight,
+    Loader2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import API from '../api';
 
 const MyProfile = () => {
-    const { user } = useAuth();
+    const { user, setUser } = useAuth();
+    const { addToast } = useToast();
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleImageClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Basic validation
+        if (!file.type.startsWith('image/')) {
+            addToast('Please select an image file', 'error');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            addToast('Image size should be less than 5MB', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('profilePicture', file);
+
+        setUploading(true);
+        try {
+            const { data } = await API.put('/auth/profile', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            setUser(data);
+            localStorage.setItem('ls_tl_profile', JSON.stringify(data));
+            addToast('Profile picture updated successfully', 'success');
+        } catch (error) {
+            console.error('Upload error:', error);
+            addToast(error.response?.data?.message || 'Failed to update profile picture', 'error');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     if (!user) return null;
 
@@ -50,7 +97,14 @@ const MyProfile = () => {
                 <div className="absolute inset-0 p-6 flex items-center">
                     <div className="flex items-center gap-5 relative z-10 w-full">
                         <div className="relative group">
-                            <div className="w-24 h-24 bg-slate-100 rounded-[24px] p-1 shadow-md overflow-hidden group-hover:scale-[1.02] transition-transform duration-500 border-2 border-white">
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept="image/*"
+                            />
+                            <div className="w-24 h-24 bg-slate-100 rounded-[24px] p-1 shadow-md overflow-hidden group-hover:scale-[1.02] transition-transform duration-500 border-2 border-white relative">
                                 {user.profilePicture ? (
                                     <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover rounded-[22px]" />
                                 ) : (
@@ -58,8 +112,17 @@ const MyProfile = () => {
                                         {user.name.split(' ').map(n => n[0]).join('')}
                                     </div>
                                 )}
+                                {uploading && (
+                                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center rounded-[22px]">
+                                        <Loader2 size={24} className="text-[#63C132] animate-spin" />
+                                    </div>
+                                )}
                             </div>
-                            <button className="absolute -bottom-1 -right-1 p-2 bg-[#63C132] text-white rounded-lg shadow-lg hover:scale-110 transition-transform active:scale-95 border-2 border-white">
+                            <button
+                                onClick={handleImageClick}
+                                disabled={uploading}
+                                className="absolute -bottom-1 -right-1 p-2 bg-[#63C132] text-white rounded-lg shadow-lg hover:scale-110 transition-transform active:scale-95 border-2 border-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                                 <Camera size={12} />
                             </button>
                         </div>

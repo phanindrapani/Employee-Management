@@ -20,7 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 import API from '../../api';
 
 const Profile = () => {
-    const { user: authUser } = useAuth();
+    const { user: authUser, setUser } = useAuth();
     const [profile, setProfile] = useState(() => {
         const cached = localStorage.getItem('ls_emp_profile');
         return cached ? JSON.parse(cached) : null;
@@ -95,7 +95,8 @@ const Profile = () => {
             });
             // Update profile with new image (backend returns updated user object)
             setProfile(prev => ({ ...prev, profilePicture: data.profilePicture }));
-            // Optionally update global auth context if needed, but for now local state is enough for visual feedback
+            setUser(data);
+            localStorage.setItem('ls_emp_profile', JSON.stringify(data));
         } catch (error) {
             console.error("Error uploading image:", error);
             alert("Failed to upload image. Please try again.");
