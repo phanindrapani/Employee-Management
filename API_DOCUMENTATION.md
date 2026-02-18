@@ -959,6 +959,105 @@ Base URL: `http://localhost:5000/api`
 
 ---
 
+## Worksheet Module (Employee)
+
+### Import Worksheet File
+- **POST** `/employee/worksheet/import`
+- **Headers**: `Authorization: Bearer <token>`, `Content-Type: multipart/form-data`
+- **Role**: `employee`
+- **Form Body**:
+```json
+{
+  "file": "(CSV|JSON|XLSX|DOCX|PDF file)"
+}
+```
+- **Response**:
+```json
+{
+  "message": "Import complete. 8 entries saved.",
+  "totalRows": 10,
+  "validRows": 8,
+  "savedRows": 8,
+  "invalidRows": 2,
+  "errors": [
+    { "row": 5, "field": "startTime", "message": "Invalid time format: \"25:99\" (expected HH:MM)" }
+  ],
+  "parseErrors": [],
+  "warning": "PDF parsing is template-dependent. For best results, use the official worksheet template."
+}
+```
+
+### Download Worksheet Template
+- **GET** `/employee/worksheet/template?format=csv|json|xlsx|docx`
+- **Headers**: `Authorization: Bearer <token>`
+- **Role**: `employee`
+- **Response**: File download in requested format.
+
+### Get Imported Worksheet Entries
+- **GET** `/employee/worksheet/entries?fromDate=2026-02-01&toDate=2026-02-28&project=EMS&status=completed&page=1&limit=20`
+- **Headers**: `Authorization: Bearer <token>`
+- **Role**: `employee`
+- **Response**:
+```json
+{
+  "entries": [
+    {
+      "_id": "6999...",
+      "date": "2026-02-18",
+      "startTime": "09:00",
+      "endTime": "10:30",
+      "durationMinutes": 90,
+      "taskTitle": "Implement login feature",
+      "project": "Auth Module",
+      "category": "development",
+      "status": "completed",
+      "priority": "high"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "pages": 1
+  }
+}
+```
+
+### Worksheet Analysis
+- **GET** `/employee/worksheet/analysis?fromDate=2026-02-01&toDate=2026-02-28`
+- **Headers**: `Authorization: Bearer <token>`
+- **Role**: `employee`
+- **Response**:
+```json
+{
+  "fromDate": "2026-02-01",
+  "toDate": "2026-02-28",
+  "totalHours": 42.5,
+  "productiveHours": 31.5,
+  "nonProductiveHours": 11,
+  "tasksCompleted": 18,
+  "completionRatio": 72,
+  "avgTaskDuration": 85,
+  "topProjects": [
+    { "name": "EMS", "hours": 22.5, "tasks": 10 }
+  ],
+  "topCategories": [
+    { "name": "development", "hours": 20, "tasks": 8 }
+  ],
+  "trend": [
+    { "date": "2026-02-18", "hours": 6.5, "tasks": 4 }
+  ]
+}
+```
+
+### Export Worksheet Entries
+- **GET** `/employee/worksheet/export?format=csv|xlsx|pdf|docx&fromDate=2026-02-01&toDate=2026-02-28&project=EMS&status=completed`
+- **Headers**: `Authorization: Bearer <token>`
+- **Role**: `employee`
+- **Response**: File download in requested format.
+
+---
+
 ## Team Leadership & Management
 
 ### Get Team Dashboard Stats

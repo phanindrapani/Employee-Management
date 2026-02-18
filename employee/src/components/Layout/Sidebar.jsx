@@ -15,7 +15,8 @@ import {
     User,
     FileText,
     ShieldCheck,
-    Clock3
+    Clock3,
+    TableProperties
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -49,6 +50,7 @@ const Sidebar = () => {
                 { name: 'Attendance', path: '/attendance', icon: Clock3 },
                 { name: 'My Profile', path: '/profile', icon: User },
                 { name: 'My Documents', path: '/documents', icon: FileText },
+                { name: 'Worksheet', path: '/worksheet', icon: TableProperties },
                 { name: 'Security', path: '/change-password', icon: ShieldCheck },
             ]
         }

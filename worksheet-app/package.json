@@ -1,0 +1,30 @@
+{
+    "name": "worksheet-app",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@hookform/resolvers": "^3.3.4",
+        "axios": "^1.6.7",
+        "docx": "^8.5.0",
+        "jspdf": "^2.5.1",
+        "jspdf-autotable": "^3.8.2",
+        "lucide-react": "^0.574.0",
+        "papaparse": "^5.4.1",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-hook-form": "^7.51.0",
+        "react-router-dom": "^6.22.0",
+        "xlsx": "^0.18.5",
+        "zod": "^3.22.4"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^4.2.1",
+        "vite": "^5.1.4"
+    }
+}
