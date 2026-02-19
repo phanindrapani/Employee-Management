@@ -12,10 +12,11 @@ import {
     Bell,
     UserCircle,
     LogOut,
-    ExternalLink
+    ExternalLink,
+    X
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, toggle }) => {
     const { logout } = useAuth();
 
     const sections = [
@@ -49,9 +50,15 @@ const Sidebar = () => {
     ];
 
     return (
-        <div className="w-72 bg-[#0B3C5D] text-white h-screen flex flex-col sticky top-0 shadow-2xl border-r border-white/5">
+        <div className={`
+            fixed lg:sticky top-0 left-0 z-50 w-72 bg-[#0B3C5D] text-white h-screen flex flex-col shadow-2xl transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
             {/* Header / Logo */}
-            <div className="p-8 border-b border-white/5 flex flex-col items-center gap-2">
+            <div className="p-8 border-b border-white/5 flex flex-col items-center gap-2 relative bg-[#0B3C5D]">
+                <button onClick={toggle} className="lg:hidden absolute top-4 right-4 text-gray-300 hover:text-white p-1">
+                    <X size={24} />
+                </button>
                 <span className="text-2xl font-black tracking-tighter text-[#63C132] italic">TEAM<span>LEAD</span></span>
                 <div className="px-3 py-1 bg-[#63C132]/10 rounded-full text-[10px] font-bold text-[#63C132] uppercase tracking-widest border border-[#63C132]/20">
                     Control Center

@@ -233,23 +233,20 @@ const WorksheetInsights = () => {
             <div className="ws-header">
                 <div>
                     <h1 className="ws-title">Worksheet Insights</h1>
-                    <p className="ws-subtitle">Import, analyze, and export your daily work logs</p>
+                    <p className="ws-subtitle">Import, analyze, and export logs</p>
                 </div>
-                <div className="ws-header-actions">
-                    <button className="ws-btn ws-btn-ghost" onClick={() => { fetchEntries(); fetchAnalysis(); }}>
-                        <RefreshCw size={16} /> Refresh
+                <div className="ws-header-actions flex-wrap">
+                    <button className="ws-btn ws-btn-ghost flex-1 sm:flex-none justify-center" onClick={() => { fetchEntries(); fetchAnalysis(); }}>
+                        <RefreshCw size={16} /> <span className="hidden sm:inline">Refresh</span>
                     </button>
-                    <button className="ws-btn ws-btn-outline" onClick={() => handleTemplateDownload('csv')}>
-                        <Download size={16} /> CSV Template
+                    <button className="ws-btn ws-btn-outline flex-1 sm:flex-none justify-center" onClick={() => handleTemplateDownload('csv')}>
+                        <Download size={16} /> <span className="hidden sm:inline">CSV Template</span><span className="sm:hidden">CSV</span>
                     </button>
-                    <button className="ws-btn ws-btn-outline" onClick={() => handleTemplateDownload('json')}>
-                        <Download size={16} /> JSON Template
+                    <button className="ws-btn ws-btn-outline flex-1 sm:flex-none justify-center" onClick={() => handleTemplateDownload('xlsx')}>
+                        <Download size={16} /> <span className="hidden sm:inline">XLSX Template</span><span className="sm:hidden">XLSX</span>
                     </button>
-                    <button className="ws-btn ws-btn-outline" onClick={() => handleTemplateDownload('xlsx')}>
-                        <Download size={16} /> XLSX Template
-                    </button>
-                    <button className="ws-btn ws-btn-outline" onClick={() => handleTemplateDownload('docx')}>
-                        <Download size={16} /> DOCX Template
+                    <button className="ws-btn ws-btn-outline flex-1 sm:flex-none justify-center" onClick={() => handleTemplateDownload('docx')}>
+                        <Download size={16} /> <span className="hidden sm:inline">DOCX Template</span><span className="sm:hidden">DOCX</span>
                     </button>
                 </div>
             </div>

@@ -133,3 +133,21 @@ h6 {
 .leave-indicator {
   @apply absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white;
 }
+
+/* Custom Scrollbar for a premium look */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

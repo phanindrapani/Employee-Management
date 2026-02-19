@@ -16,10 +16,11 @@ import {
     Activity,
     PieChart,
     Sliders,
-    UserCircle
+    UserCircle,
+    X
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, toggle }) => {
     const { user, logout } = useAuth();
 
     const allSections = [
@@ -81,13 +82,19 @@ const Sidebar = () => {
     })).filter(section => section.items.length > 0);
 
     return (
-        <div className="w-64 bg-[#0B3C5D] text-white h-screen flex flex-col sticky top-0 shadow-2xl overflow-y-auto">
-            <div className="p-8 border-b border-[#1A4B6D]/50 flex flex-col items-center gap-2">
-                <span className="text-xl font-black tracking-tighter text-[#63C132]">CORPORATE ERP</span>
+        <div className={`
+            fixed lg:sticky top-0 left-0 z-50 w-64 bg-[#0B3C5D] text-white h-screen flex flex-col shadow-2xl transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+            <div className="p-8 border-b border-[#1A4B6D]/50 flex flex-col items-center gap-2 relative bg-[#0B3C5D]">
+                <button onClick={toggle} className="lg:hidden absolute top-4 right-4 text-gray-300 hover:text-white p-1">
+                    <X size={20} />
+                </button>
+                <span className="text-xl font-black tracking-tighter text-[#63C132] text-center">CORPORATE ERP</span>
                 <span className="text-[10px] font-bold text-slate-400 tracking-[0.3em] uppercase">Admin Portal</span>
             </div>
 
-            <nav className="flex-1 px-4 py-6 space-y-8">
+            <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto custom-scrollbar">
                 {sections.map((section) => (
                     <div key={section.title} className="space-y-2">
                         <h3 className="px-3 text-xs font-bold uppercase tracking-[0.15em] !text-slate-300 mt-6 mb-3">

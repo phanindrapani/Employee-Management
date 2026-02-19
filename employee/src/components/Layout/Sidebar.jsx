@@ -16,10 +16,11 @@ import {
     FileText,
     ShieldCheck,
     Clock3,
-    TableProperties
+    TableProperties,
+    X
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, toggle }) => {
     const { user, logout } = useAuth();
     const handleSwitchToTeamPortal = () => {
         // localStorage is origin-scoped, so employee portal cannot clear teamlead storage directly.
@@ -57,12 +58,18 @@ const Sidebar = () => {
     ];
 
     return (
-        <div className="w-64 bg-[#0B3C5D] text-white h-screen flex flex-col sticky top-0 shadow-2xl">
-            <div className="p-8 border-b border-[#1A4B6D]/50 flex justify-center">
+        <div className={`
+            fixed lg:sticky top-0 left-0 z-50 w-64 bg-[#0B3C5D] text-white h-screen flex flex-col shadow-2xl transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+            <div className="p-8 border-b border-[#1A4B6D]/50 flex justify-between items-center bg-[#0B3C5D]">
                 <span className="text-xl font-black tracking-tighter text-[#63C132]">EMPLOYEE</span>
+                <button onClick={toggle} className="lg:hidden text-gray-300 hover:text-white p-1">
+                    <X size={24} />
+                </button>
             </div>
 
-            <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+            <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto custom-scrollbar">
                 {navSections.map((section) => (
                     <div key={section.title} className="space-y-1">
                         <h4 className="px-3 text-[10px] font-bold !text-slate-300 uppercase tracking-[0.2em] mb-2">

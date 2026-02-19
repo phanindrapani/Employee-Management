@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, User, Check, Trash2 } from 'lucide-react';
+import { Bell, User, Check, Trash2, Menu } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api';
@@ -7,7 +7,7 @@ import manuenLogo from '../../assets/manuen_logo.png';
 import manuenSquare from '../../assets/manuen_square.png';
 import useSocketListener from '../../hooks/useSocketListener';
 
-const Topbar = () => {
+const Topbar = ({ toggleSidebar }) => {
     const { user } = useAuth();
     const location = useLocation();
     const [notifications, setNotifications] = useState([]);
@@ -46,18 +46,24 @@ const Topbar = () => {
     };
 
     return (
-        <div className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10">
-            <div className="flex items-center gap-4">
-                <div className="flex items-center mr-6 py-2 border-r border-slate-100 pr-6">
+        <div className="h-16 bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between sticky top-0 z-40">
+            <div className="flex items-center gap-2 md:gap-4">
+                <button
+                    onClick={toggleSidebar}
+                    className="p-2 text-slate-500 hover:bg-slate-50 rounded-lg lg:hidden"
+                >
+                    <Menu size={24} />
+                </button>
+                <div className="flex items-center md:mr-6 md:py-2 md:border-r md:border-slate-100 md:pr-6">
                     <img src={manuenSquare} alt="Logo" className="h-8 w-8 relative z-10" />
                     <img src={manuenLogo} alt="Manuen" className="h-10 -ml-5" />
                 </div>
-                <h2 className="text-lg font-medium text-slate-700">
+                <h2 className="text-lg font-medium text-slate-700 hidden md:block">
                     {location.pathname === '/' ? `Welcome back, ${user.name}` : ''}
                 </h2>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 md:gap-6">
                 <div className="relative">
                     <button
                         onClick={() => setShowNotifications(!showNotifications)}
@@ -94,8 +100,8 @@ const Topbar = () => {
                         </div>
                     )}
                 </div>
-                <Link to="/profile" className="flex items-center gap-3 pl-6 border-l border-slate-200 hover:opacity-80 transition-opacity">
-                    <div className="text-right">
+                <Link to="/profile" className="flex items-center gap-3 md:pl-6 md:border-l md:border-slate-200 hover:opacity-80 transition-opacity">
+                    <div className="text-right hidden sm:block">
                         <p className="text-sm font-medium text-slate-900">{user.name}</p>
                         <p className="text-xs text-slate-500 capitalize">{user.role}</p>
                     </div>

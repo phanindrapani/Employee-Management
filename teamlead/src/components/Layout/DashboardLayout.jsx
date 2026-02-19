@@ -6,6 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 
 const DashboardLayout = () => {
     const { user, loading } = useAuth();
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+    const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
     if (loading) {
         return (
@@ -23,12 +25,23 @@ const DashboardLayout = () => {
     }
 
     return (
-        <div className="flex min-h-screen bg-slate-50 font-sans tracking-tight">
-            <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0">
-                <Topbar />
-                <main className="flex-1 p-10 overflow-y-auto max-w-7xl w-full mx-auto">
-                    <Outlet />
+        <div className="flex h-screen bg-slate-50 font-sans tracking-tight relative overflow-hidden">
+            {/* Mobile Backdrop */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-all duration-300"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            <Sidebar isOpen={isSidebarOpen} toggle={toggleSidebar} />
+
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                <Topbar toggleSidebar={toggleSidebar} />
+                <main className="flex-1 p-4 md:p-10 overflow-y-auto">
+                    <div className="max-w-7xl w-full mx-auto">
+                        <Outlet />
+                    </div>
                 </main>
             </div>
         </div>

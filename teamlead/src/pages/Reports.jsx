@@ -48,61 +48,61 @@ const Reports = () => {
         fetchReports();
     }, []);
 
-    if (loading) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-pulse">
+    if (loading) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-pulse p-4 md:p-10">
         {[1, 2, 3, 4].map(i => <div key={i} className="h-80 bg-white rounded-[40px]"></div>)}
     </div>;
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header */}
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-[#0B3C5D] tracking-tight mb-2">Team Intelligence</h1>
-                    <p className="text-slate-500 font-medium">Strategic Reports • Performance Metrics & Contribution Analysis</p>
+                    <h1 className="text-3xl md:text-4xl font-black text-[#0B3C5D] tracking-tight mb-2">Team Intelligence</h1>
+                    <p className="text-sm md:text-base text-slate-500 font-medium italic">Strategic Reports • Insights & Trends</p>
                 </div>
             </div>
 
             {/* Top Analysis Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
-                    <div className="w-12 h-12 bg-[#63C132]/10 text-[#63C132] rounded-2xl flex items-center justify-center">
-                        <Target size={24} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-[#63C132]/10 text-[#63C132] rounded-xl md:rounded-2xl flex items-center justify-center">
+                        <Target className="size-5 md:size-6" />
                     </div>
                     <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Key Result Area</div>
-                        <div className="text-lg font-black text-[#0B3C5D]">{reportData?.summary?.achievementRate || 0}% Achievement</div>
+                        <div className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Achievement Rate</div>
+                        <div className="text-base md:text-lg font-black text-[#0B3C5D]">{reportData?.summary?.achievementRate || 0}% Rate</div>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
-                    <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center">
-                        <Users size={24} />
+                <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 text-blue-500 rounded-xl md:rounded-2xl flex items-center justify-center">
+                        <Users className="size-5 md:size-6" />
                     </div>
                     <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Members</div>
-                        <div className="text-lg font-black text-[#0B3C5D]">{reportData?.summary?.teamSize || 0} Professional(s)</div>
+                        <div className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Active Professionals</div>
+                        <div className="text-base md:text-lg font-black text-[#0B3C5D]">{reportData?.summary?.teamSize || 0} Member(s)</div>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
-                    <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
-                        <BarChart3 size={24} />
+                <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all sm:col-span-2 md:col-span-1">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-50 text-amber-500 rounded-xl md:rounded-2xl flex items-center justify-center">
+                        <BarChart3 className="size-5 md:size-6" />
                     </div>
                     <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Growth Volume</div>
-                        <div className="text-lg font-black text-[#0B3C5D]">{reportData?.summary?.totalCompleted || 0} Milestones</div>
+                        <div className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Milestones Completed</div>
+                        <div className="text-base md:text-lg font-black text-[#0B3C5D]">{reportData?.summary?.totalCompleted || 0} Tasks</div>
                     </div>
                 </div>
             </div>
 
             {/* Top Row: Productivity & Completion */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Weekly Task Volume */}
-                <div className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100">
-                    <div className="flex justify-between items-center mb-10">
-                        <h3 className="text-xl font-black text-[#0B3C5D] tracking-tight flex items-center gap-3">
+                <div className="bg-white p-6 md:p-10 rounded-[32px] md:rounded-[40px] shadow-sm border border-slate-100">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+                        <h3 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight flex items-center gap-3">
                             <BarChart3 className="text-[#63C132]" />
-                            Task Completion Volume
+                            Task Volume Trend
                         </h3>
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             <Calendar size={14} />
                             Last 5 Working Days
                         </div>
@@ -117,21 +117,21 @@ const Reports = () => {
                                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
                                     cursor={{ fill: '#F8FAFC' }}
                                 />
-                                <Bar dataKey="tasks" fill="#0B3C5D" radius={[6, 6, 0, 0]} barSize={40} />
+                                <Bar dataKey="tasks" fill="#0B3C5D" radius={[6, 6, 0, 0]} barSize={32} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
                 {/* Team Contribution */}
-                <div className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100">
+                <div className="bg-white p-6 md:p-10 rounded-[32px] md:rounded-[40px] shadow-sm border border-slate-100">
                     <div className="flex justify-between items-center mb-10">
-                        <h3 className="text-xl font-black text-[#0B3C5D] tracking-tight flex items-center gap-3">
+                        <h3 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight flex items-center gap-3">
                             <PieIcon className="text-[#63C132]" />
                             Member Contribution
                         </h3>
-                        <span className="px-4 py-2 bg-slate-50 text-[10px] font-black text-slate-400 rounded-xl uppercase tracking-widest">
-                            Task Share %
+                        <span className="px-3 py-1 bg-slate-50 text-[10px] font-black text-slate-400 rounded-lg uppercase tracking-widest">
+                            Share %
                         </span>
                     </div>
                     <div className="h-64">
@@ -139,8 +139,8 @@ const Reports = () => {
                             <PieChart>
                                 <Pie
                                     data={reportData?.contributionData || []}
-                                    innerRadius={60}
-                                    outerRadius={80}
+                                    innerRadius={50}
+                                    outerRadius={70}
                                     paddingAngle={5}
                                     dataKey="value"
                                 >
@@ -156,11 +156,11 @@ const Reports = () => {
             </div>
 
             {/* Efficiency Trend */}
-            <div className="bg-[#0B3C5D] p-10 rounded-[40px] shadow-2xl text-white overflow-hidden relative">
+            <div className="bg-[#0B3C5D] p-6 md:p-10 rounded-[32px] md:rounded-[40px] shadow-2xl text-white overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
 
                 <div className="flex justify-between items-center mb-10 relative z-10">
-                    <h3 className="text-xl font-black tracking-tight flex items-center gap-3">
+                    <h3 className="text-lg md:text-xl font-black tracking-tight flex items-center gap-3">
                         <TrendingUp className="text-[#63C132]" />
                         Efficiency Index Trend
                     </h3>
