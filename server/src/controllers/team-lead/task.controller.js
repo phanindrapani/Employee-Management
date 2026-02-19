@@ -2,6 +2,7 @@ import Task from '../../models/task.model.js';
 import User from '../../models/user.model.js';
 import { syncProjectProgress } from '../../services/projectProgress.service.js';
 import mongoose from 'mongoose';
+import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
 
 export const createTask = async (req, res) => {
@@ -41,6 +42,18 @@ export const createTask = async (req, res) => {
 
         try {
             const io = getIO();
+
+            // --- NOTIFICATION: Task Assigned ---
+            await Notification.create({
+                user: assignedTo,
+                message: `📝 New Task Assigned: "${createdTask.title}" by ${req.user.name}`,
+                isRead: false
+            });
+
+            io.to(`user:${assignedTo}`).emit('notification', {
+                message: `📝 New Task Assigned: "${createdTask.title}"`
+            });
+
             io.to(`user:${assignedTo}`).emit('task:assigned', createdTask);
             io.to(`team:${req.user.team}`).emit('task:created', createdTask);
             io.to('role:admin').emit('task:created', createdTask);
@@ -171,6 +184,20 @@ export const updateTask = async (req, res) => {
             }
             io.to(`team:${req.user.team}`).emit('task:updated', updatedTask);
             io.to('role:admin').emit('task:updated', updatedTask);
+
+            // --- NOTIFICATION: Task Completed by Lead ---
+            // Triggers if status changed to 'done' AND updater is Team Lead
+            if (status === 'done' && req.user.role === 'team-lead' && updatedTask.assignedTo) {
+                const assigneeId = updatedTask.assignedTo._id;
+                await Notification.create({
+                    user: assigneeId,
+                    message: `✅ Task Completed: "${updatedTask.title}" marked as Done by Team Lead`,
+                    isRead: false
+                });
+                io.to(`user:${assigneeId}`).emit('notification', {
+                    message: `✅ Task Completed: "${updatedTask.title}" marked as Done`
+                });
+            }
         } catch (socketError) {
             console.error('Socket emit error (task update):', socketError.message);
         }

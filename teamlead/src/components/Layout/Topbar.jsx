@@ -27,6 +27,20 @@ const Topbar = ({ toggleSidebar }) => {
         return () => clearInterval(interval);
     }, []);
 
+    const fetchNotifications = async () => {
+        try {
+            const { data } = await API.get('/notifications');
+            setNotifications(data);
+        } catch (err) {
+            console.error('Failed to fetch notifications');
+        }
+    };
+
+    useSocketListener('notification', fetchNotifications);
+    useSocketListener('task:assigned', fetchNotifications);
+    useSocketListener('task:updated', fetchNotifications);
+    useSocketListener('project:created', fetchNotifications);
+
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     const markAllRead = async () => {

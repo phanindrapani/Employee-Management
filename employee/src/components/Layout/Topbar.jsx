@@ -28,7 +28,7 @@ const Topbar = ({ toggleSidebar }) => {
         return () => clearInterval(interval);
     }, [fetchNotifications]);
 
-    useSocketListener('notification:new', fetchNotifications);
+    useSocketListener('notification', fetchNotifications);
     useSocketListener('leave:updated', fetchNotifications);
     useSocketListener('task:assigned', fetchNotifications);
 

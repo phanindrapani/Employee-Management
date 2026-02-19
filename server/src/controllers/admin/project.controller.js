@@ -1,5 +1,7 @@
 import Project from '../../models/project.model.js';
 import Task from '../../models/task.model.js';
+import Notification from '../../models/notification.model.js';
+import User from '../../models/user.model.js';
 import { getIO } from '../../socket.js';
 
 // ==================================================
@@ -18,6 +20,25 @@ export const createProject = async (req, res) => {
             io.to('role:admin').emit('project:created', populatedProject);
             if (project.assignedTeam) {
                 io.to(`team:${project.assignedTeam}`).emit('project:created', populatedProject);
+
+                // --- NOTIFICATION: Project Assigned ---
+                const teamMembers = await User.find({ team: project.assignedTeam });
+                if (teamMembers.length > 0) {
+                    const notifications = teamMembers.map(member => ({
+                        user: member._id,
+                        message: `🚀 New Project Assigned: "${project.name}" has been assigned to your team`,
+                        isRead: false
+                    }));
+                    await Notification.insertMany(notifications);
+
+                    // Send individual alerts or team alert
+                    // Since we already emit 'project:created' to team room, we can also emit proper 'notification' event
+                    // or rely on frontend to catch 'project:created' if we want.
+                    // But for consistency with bell icon, we emit 'notification' to the team room
+                    io.to(`team:${project.assignedTeam}`).emit('notification', {
+                        message: `🚀 New Project Assigned: "${project.name}"`
+                    });
+                }
             }
         } catch (e) { console.error('Socket emit error:', e); }
 
