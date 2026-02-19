@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import API from '../../api';
 import manuenLogo from '../../assets/manuen_logo.png';
 import manuenSquare from '../../assets/manuen_square.png';
+import useSocketListener from '../../hooks/useSocketListener';
 
 const Topbar = ({ toggleSidebar }) => {
     const { user } = useAuth();

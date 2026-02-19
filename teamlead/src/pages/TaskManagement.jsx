@@ -2,16 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Plus,
     Search,
-    Filter,
     Clock,
     CheckCircle2,
     AlertTriangle,
     Calendar,
     User,
     ClipboardList,
-    ChevronDown,
     X,
-    Target,
     Scale,
     Briefcase,
     ChevronRight,
@@ -19,6 +16,7 @@ import {
     RefreshCw
 } from 'lucide-react';
 import API from '../api';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useSocketListener from '../hooks/useSocketListener';
 
 const AssignTaskModal = ({ onClose, onSuccess, projects, members, taskToEdit }) => {

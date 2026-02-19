@@ -51,40 +51,38 @@ const Sidebar = ({ isOpen, toggle }) => {
 
     return (
         <div className={`
-            fixed lg:sticky top-0 left-0 z-50 w-72 bg-[#0B3C5D] text-white h-screen flex flex-col shadow-2xl transition-transform duration-300 ease-in-out
+            fixed lg:sticky top-0 left-0 z-50 w-64 bg-[#0B3C5D] text-white h-screen flex flex-col shadow-2xl transition-transform duration-300 ease-in-out
             ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
             {/* Header / Logo */}
-            <div className="p-8 border-b border-white/5 flex flex-col items-center gap-2 relative bg-[#0B3C5D]">
+            <div className="p-8 border-b border-[#1A4B6D]/50 flex flex-col items-center gap-2 relative bg-[#0B3C5D]">
                 <button onClick={toggle} className="lg:hidden absolute top-4 right-4 text-gray-300 hover:text-white p-1">
-                    <X size={24} />
+                    <X size={20} />
                 </button>
-                <span className="text-2xl font-black tracking-tighter text-[#63C132] italic">TEAM<span>LEAD</span></span>
-                <div className="px-3 py-1 bg-[#63C132]/10 rounded-full text-[10px] font-bold text-[#63C132] uppercase tracking-widest border border-[#63C132]/20">
-                    Control Center
-                </div>
+                <span className="text-xl font-black tracking-tighter text-[#63C132] text-center italic">TEAM<span>LEAD</span></span>
+                <span className="text-[10px] font-bold text-slate-400 tracking-[0.3em] uppercase">Control Center</span>
             </div>
 
             {/* Navigation */}
             <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto custom-scrollbar">
                 {sections.map((section) => (
                     <div key={section.title} className="space-y-2">
-                        <h4 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        <h3 className="px-3 text-xs font-bold uppercase tracking-[0.15em] !text-slate-300 mt-6 mb-3">
                             {section.title}
-                        </h4>
+                        </h3>
                         <div className="space-y-1">
                             {section.items.map((item) => (
                                 <NavLink
                                     key={item.name}
                                     to={item.path}
                                     className={({ isActive }) => `
-                                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group
+                                        flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group
                                         ${isActive
                                             ? 'bg-[#1A4B6D] text-white font-bold shadow-lg shadow-black/20 border-l-4 border-[#63C132]'
-                                            : 'text-slate-400 hover:bg-white/5 hover:text-white'}
+                                            : 'text-slate-400 hover:bg-[#1A4B6D]/50 hover:text-white'}
                                     `}
                                 >
-                                    <item.icon size={20} className="group-hover:scale-110 transition-transform" />
+                                    <item.icon size={18} className="group-hover:scale-110 transition-transform" />
                                     <span className="text-sm tracking-tight">{item.name}</span>
                                 </NavLink>
                             ))}
@@ -105,12 +103,12 @@ const Sidebar = ({ isOpen, toggle }) => {
             </nav>
 
             {/* Footer / Logout */}
-            <div className="p-4 border-t border-white/5">
+            <div className="p-4 border-t border-[#1A4B6D]">
                 <button
                     onClick={logout}
                     className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-colors font-semibold"
                 >
-                    <LogOut size={20} />
+                    <LogOut size={18} />
                     Sign Out
                 </button>
             </div>

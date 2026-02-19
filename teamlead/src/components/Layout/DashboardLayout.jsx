@@ -38,10 +38,8 @@ const DashboardLayout = () => {
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <Topbar toggleSidebar={toggleSidebar} />
-                <main className="flex-1 p-4 md:p-10 overflow-y-auto">
-                    <div className="max-w-7xl w-full mx-auto">
-                        <Outlet />
-                    </div>
+                <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+                    <Outlet />
                 </main>
             </div>
         </div>
