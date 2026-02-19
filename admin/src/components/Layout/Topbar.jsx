@@ -28,11 +28,12 @@ const Topbar = ({ toggleSidebar }) => {
         return () => clearInterval(interval);
     }, [fetchNotifications]);
 
-    useSocketListener('notification:new', fetchNotifications);
+    useSocketListener('notification', fetchNotifications);
     useSocketListener('leave:created', fetchNotifications);
     useSocketListener('leave:updated', fetchNotifications);
     useSocketListener('task:assigned', fetchNotifications);
     useSocketListener('task:updated', fetchNotifications);
+    useSocketListener('document_upload', fetchNotifications); // Matches the 'type' sent, but main event is 'notification'
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
