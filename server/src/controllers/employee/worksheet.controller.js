@@ -75,8 +75,9 @@ export const importWorksheet = async (req, res) => {
         const { rows: rawRows, errors: parseErrors } = parseResult;
 
         if (rawRows.length === 0) {
+            const errorDetail = parseErrors && parseErrors.length > 0 ? ` Details: ${parseErrors[0]}` : '';
             return res.status(422).json({
-                message: 'No data rows found in file.',
+                message: `No data rows found in file.${errorDetail}`,
                 parseErrors,
                 warning: parserWarning
             });
@@ -113,13 +114,14 @@ export const importWorksheet = async (req, res) => {
             }
         });
 
-        // Save valid rows (skip duplicates via upsert)
+        // Save valid rows — only insert NEW entries, never overwrite existing ones
         let savedCount = 0;
+        let skippedCount = 0;
         const now = new Date();
 
         for (const row of validRows) {
             try {
-                await WorksheetEntry.findOneAndUpdate(
+                const result = await WorksheetEntry.findOneAndUpdate(
                     {
                         employee: req.user._id,
                         date: row.date,
@@ -127,28 +129,35 @@ export const importWorksheet = async (req, res) => {
                         taskTitle: row.taskTitle
                     },
                     {
-                        ...row,
-                        employee: req.user._id,
-                        sourceApp: 'import',
-                        sourceFileName: originalname,
-                        sourceChecksum: checksum,
-                        importedAt: now,
-                        importedBy: req.user._id,
-                        rawRow: row
+                        $setOnInsert: {
+                            ...row,
+                            employee: req.user._id,
+                            sourceApp: 'import',
+                            sourceFileName: originalname,
+                            sourceChecksum: checksum,
+                            importedAt: now,
+                            importedBy: req.user._id,
+                            rawRow: row
+                        }
                     },
-                    { upsert: true, new: true }
+                    { upsert: true, new: false }
                 );
-                savedCount++;
+                // result is null when a new document was inserted (upserted)
+                if (result === null) {
+                    savedCount++;
+                } else {
+                    skippedCount++;
+                }
             } catch (err) {
                 if (err.code === 11000) {
-                    // Duplicate — skip silently
+                    skippedCount++; // race-condition duplicate
                 } else {
                     console.error('[Worksheet] Row save error:', err.message);
                 }
             }
         }
 
-        console.log(`[Worksheet] Import by ${req.user._id}: total=${rawRows.length} valid=${validRows.length} saved=${savedCount} invalid=${invalidRows.length}`);
+        console.log(`[Worksheet] Import by ${req.user._id}: total=${rawRows.length} valid=${validRows.length} saved=${savedCount} skipped=${skippedCount} invalid=${invalidRows.length}`);
 
         // WebSocket notification
         try {
@@ -163,10 +172,13 @@ export const importWorksheet = async (req, res) => {
         } catch (e) { console.error('[Worksheet] Socket emit error:', e.message); }
 
         res.status(200).json({
-            message: `Import complete. ${savedCount} entries saved.`,
+            message: skippedCount > 0
+                ? `Import complete. ${savedCount} new entries saved, ${skippedCount} already existed and were skipped.`
+                : `Import complete. ${savedCount} entries saved.`,
             totalRows: rawRows.length,
             validRows: validRows.length,
             savedRows: savedCount,
+            skippedRows: skippedCount,
             invalidRows: invalidRows.length,
             errors: allErrors,
             warning: parserWarning,

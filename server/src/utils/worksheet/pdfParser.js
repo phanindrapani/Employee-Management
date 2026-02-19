@@ -1,9 +1,10 @@
+import { PDFParse } from 'pdf-parse';
+
 /**
- * Parse PDF buffer using pdf-parse.
- * NOTE: Reliability depends on strict template formatting.
- * Best results come from template-generated PDFs.
+ * Parse PDF buffer using pdf-parse v2 (class-based API).
+ * Uses cellSeparator='|' to get structured pipe-delimited text from table rows.
  * @param {Buffer} buffer
- * @returns {{ rows: object[], errors: string[], warning: string }}
+ * @returns {{ rows: object[], errors: string[], warning: string|null }}
  */
 export const parsePDF = async (buffer) => {
     const toRow = (parts) => ({
@@ -23,40 +24,75 @@ export const parsePDF = async (buffer) => {
     const splitLine = (line) => {
         const trimmed = line.trim();
         if (!trimmed) return [];
-        if (trimmed.includes('|')) return trimmed.split('|').map((p) => p.trim());
-        if (trimmed.includes('\t')) return trimmed.split('\t').map((p) => p.trim()).filter(Boolean);
-        if (trimmed.includes(',')) return trimmed.split(',').map((p) => p.trim());
-        return trimmed.split(/\s{2,}/).map((p) => p.trim()).filter(Boolean);
+        if (trimmed.includes('|')) return trimmed.split('|').map(p => p.trim()).filter(Boolean);
+        if (trimmed.includes('\t')) return trimmed.split('\t').map(p => p.trim()).filter(Boolean);
+        if (trimmed.includes(',')) return trimmed.split(',').map(p => p.trim());
+
+        const multiSpace = trimmed.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
+        if (multiSpace.length >= 5) return multiSpace;
+
+        // Fallback date-prefixed parse
+        const dateMatch = trimmed.match(
+            /^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})\s+(\d{1,2}:\d{2})\s+(\d+)\s+(.+)$/
+        );
+        if (dateMatch) {
+            const [, date, start, end, dur, rest] = dateMatch;
+            const restParts = rest.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
+            return [date, start, end, dur, ...restParts];
+        }
+
+        return multiSpace.length > 0 ? multiSpace : [trimmed];
     };
 
+    const isMetaLine = (lower) =>
+        lower.startsWith('worksheet report') ||
+        lower.startsWith('generated:') ||
+        lower.startsWith('employee:') ||
+        lower.startsWith('period:') ||
+        lower.startsWith('exported:') ||
+        (lower.startsWith('date') && (
+            lower.includes('start') || lower.includes('dur') ||
+            lower.includes('task') || lower.includes('end')
+        ));
+
     try {
-        const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
-        const data = await pdfParse(buffer);
-        const text = data.text;
+        // pdf-parse v2: class-based API
+        const parser = new PDFParse({ data: buffer });
+        // cellSeparator adds '|' between columns on same line, lineEnforce adds line breaks
+        const result = await parser.getText({ cellSeparator: '|', lineEnforce: true });
+        await parser.destroy();
+
+        const text = result.text;
 
         const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-
         const rows = [];
         const errors = [];
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const lower = line.toLowerCase();
-            if (lower.startsWith('worksheet report') || lower.startsWith('generated:') || lower.startsWith('employee:') || lower.startsWith('period:')) continue;
-            if (lower.startsWith('date') && (lower.includes('start') || lower.includes('dur'))) continue;
+
+            if (isMetaLine(lower)) continue;
 
             const parts = splitLine(line);
-            if (parts.length < 5) {
-                errors.push(`Line ${i + 1}: insufficient columns`);
-                continue;
-            }
+            if (parts.length < 2) continue;
+
+            const firstPart = parts[0].trim();
+            const looksLikeDate =
+                /^\d{4}-\d{2}-\d{2}$/.test(firstPart) ||
+                /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(firstPart);
+
+            if (!looksLikeDate) continue;
+
             rows.push(toRow(parts));
         }
 
         return {
             rows,
             errors,
-            warning: 'PDF parsing is template-dependent. For best results, use the official worksheet template.'
+            warning: (errors.length > 0 || rows.length === 0)
+                ? 'PDF parsing is template-dependent. For best results, use the official worksheet template.'
+                : null
         };
     } catch (err) {
         return {

@@ -31,32 +31,47 @@ export const parseDOCX = async (buffer) => {
 
     try {
         const mammoth = (await import('mammoth')).default;
-        const result = await mammoth.extractRawText({ buffer });
-        const text = result.value;
+        const result = await mammoth.convertToHtml({ buffer });
+        let html = result.value;
 
-        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-
+        // Simple regex-based table extraction
         const rows = [];
         const errors = [];
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const lower = line.toLowerCase();
-            if (lower.startsWith('worksheet report') || lower.startsWith('employee:') || lower.startsWith('period:')) continue;
-            if (lower.startsWith('date') && (lower.includes('start') || lower.includes('duration'))) continue;
+        // Extract table rows using regex (handle attributes like class or style)
+        const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+        let match;
+        let rowIndex = 0;
 
-            const parts = splitLine(line);
-            if (parts.length < 5) {
-                errors.push(`Line ${i + 1}: insufficient columns`);
-                continue;
+        while ((match = trRegex.exec(html)) !== null) {
+            const trContent = match[1];
+            // Extract table cells (handle attributes)
+            const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+            let tdMatch;
+            const cells = [];
+            while ((tdMatch = tdRegex.exec(trContent)) !== null) {
+                // Remove HTML tags and trim
+                const cellText = tdMatch[1].replace(/<[^>]*>?/gm, '').trim();
+                cells.push(cellText);
             }
-            rows.push(toRow(parts));
+
+            if (cells.length < 5) continue; // Not enough columns to be a data row
+
+            const firstCell = (cells[0] || '').toLowerCase();
+            // Skip headers (if first cell is 'date' or title)
+            if (firstCell === 'date' || firstCell.includes('worksheet')) continue;
+
+            // Successful row found
+            rows.push(toRow(cells));
+            rowIndex++;
         }
 
         return {
             rows,
             errors,
-            warning: 'DOCX parsing is template-dependent. For best results, use the official worksheet template.'
+            warning: (errors.length > 0 || rows.length === 0)
+                ? 'DOCX parsing is template-dependent. For best results, use the official worksheet template.'
+                : null
         };
     } catch (err) {
         return {

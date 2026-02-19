@@ -8,6 +8,21 @@ import {
     TrendingUp, FolderOpen, Tag, AlertCircle, ChevronDown, Filter,
     RefreshCw, X, FileSpreadsheet, FileImage, Loader2
 } from 'lucide-react';
+import {
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    PieChart,
+    Pie,
+    Cell
+} from 'recharts';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const fmt = (n, decimals = 1) => (typeof n === 'number' ? n.toFixed(decimals) : '0');
@@ -39,31 +54,18 @@ const StatCard = ({ icon: Icon, label, value, sub, color = '#3B82F6' }) => (
     </div>
 );
 
-const MiniBar = ({ label, value, max, color }) => (
-    <div className="ws-mini-bar">
-        <div className="ws-mini-bar-label">
-            <span style={{ color }}>{label}</span>
-            <span>{fmt(value)}h</span>
-        </div>
-        <div className="ws-mini-bar-track">
-            <div className="ws-mini-bar-fill" style={{ width: `${max > 0 ? (value / max) * 100 : 0}%`, background: color }} />
-        </div>
-    </div>
-);
-
-const TrendChart = ({ trend }) => {
-    if (!trend || trend.length === 0) return <div className="ws-empty-chart">No trend data</div>;
-    const maxH = Math.max(...trend.map(d => d.hours), 1);
-    return (
-        <div className="ws-trend-chart">
-            {trend.map((d, i) => (
-                <div key={i} className="ws-trend-bar-wrap" title={`${d.date}: ${fmt(d.hours)}h`}>
-                    <div className="ws-trend-bar" style={{ height: `${(d.hours / maxH) * 100}%` }} />
-                    <div className="ws-trend-label">{d.date.slice(5)}</div>
-                </div>
-            ))}
-        </div>
-    );
+const CustomTooltip = ({ active, payload, label, unit = 'h' }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="ws-chart-tooltip">
+                <p className="ws-tooltip-label">{label}</p>
+                <p className="ws-tooltip-value">
+                    {payload[0].value.toFixed(1)}{unit}
+                </p>
+            </div>
+        );
+    }
+    return null;
 };
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -333,31 +335,99 @@ const WorksheetInsights = () => {
                         {/* Trend */}
                         <div className="ws-card ws-card-wide">
                             <h3 className="ws-card-title"><TrendingUp size={16} /> Daily Trend</h3>
-                            <TrendChart trend={analysis.trend} />
+                            <div className="ws-chart-container">
+                                {analysis.trend.length === 0 ? <div className="ws-empty">No trend data</div> : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={analysis.trend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                            <XAxis
+                                                dataKey="date"
+                                                tickFormatter={(str) => str.slice(5)}
+                                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                                axisLine={false}
+                                                tickLine={false}
+                                            />
+                                            <YAxis
+                                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                                axisLine={false}
+                                                tickLine={false}
+                                            />
+                                            <Tooltip content={<CustomTooltip />} />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="hours"
+                                                stroke="#3B82F6"
+                                                strokeWidth={2}
+                                                fillOpacity={1}
+                                                fill="url(#colorHours)"
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </div>
                         </div>
 
                         {/* Top Projects */}
                         <div className="ws-card">
                             <h3 className="ws-card-title"><FolderOpen size={16} /> Top Projects</h3>
-                            {analysis.topProjects.length === 0 ? <p className="ws-empty">No data</p> : (
-                                <div className="ws-bars">
-                                    {analysis.topProjects.map((p, i) => (
-                                        <MiniBar key={i} label={p.name || 'Unassigned'} value={p.hours} max={maxProjectHours} color="#3B82F6" />
-                                    ))}
-                                </div>
-                            )}
+                            <div className="ws-chart-container">
+                                {analysis.topProjects.length === 0 ? <p className="ws-empty">No data</p> : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={analysis.topProjects} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                            <XAxis type="number" hide />
+                                            <YAxis
+                                                dataKey="name"
+                                                type="category"
+                                                width={80}
+                                                tick={{ fill: '#475569', fontSize: 10, fontWeight: 500 }}
+                                                axisLine={false}
+                                                tickLine={false}
+                                            />
+                                            <Tooltip content={<CustomTooltip />} />
+                                            <Bar dataKey="hours" fill="#3B82F6" radius={[0, 4, 4, 0]} barSize={12} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </div>
                         </div>
 
                         {/* Top Categories */}
                         <div className="ws-card">
                             <h3 className="ws-card-title"><Tag size={16} /> Categories</h3>
-                            {analysis.topCategories.length === 0 ? <p className="ws-empty">No data</p> : (
-                                <div className="ws-bars">
-                                    {analysis.topCategories.map((c, i) => (
-                                        <MiniBar key={i} label={c.name} value={c.hours} max={maxCatHours} color={CATEGORY_COLORS[c.name] || '#6B7280'} />
-                                    ))}
-                                </div>
-                            )}
+                            <div className="ws-chart-container">
+                                {analysis.topCategories.length === 0 ? <p className="ws-empty">No data</p> : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={analysis.topCategories}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={45}
+                                                outerRadius={70}
+                                                paddingAngle={4}
+                                                dataKey="hours"
+                                            >
+                                                {analysis.topCategories.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.name] || '#6B7280'} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip content={<CustomTooltip />} />
+                                            <Legend
+                                                verticalAlign="bottom"
+                                                height={36}
+                                                iconType="circle"
+                                                wrapperStyle={{ fontSize: '10px', color: '#64748b' }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </>
@@ -482,22 +552,14 @@ const worksheetStyles = `
 @media (max-width: 1100px) { .ws-charts-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 700px) { .ws-charts-row { grid-template-columns: 1fr; } }
 
-.ws-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; }
-.ws-card-wide { }
-.ws-card-full { }
+.ws-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; display: flex; flex-direction: column; }
 .ws-card-title { font-size: 0.9rem; font-weight: 700; color: #334155; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
 
-.ws-trend-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding-top: 10px; }
-.ws-trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
-.ws-trend-bar { width: 100%; background: linear-gradient(to top, #3B82F6, #93C5FD); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; }
-.ws-trend-label { font-size: 9px; color: #94a3b8; white-space: nowrap; }
-.ws-empty-chart { color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 40px 0; }
+.ws-chart-container { flex: 1; min-height: 200px; width: 100%; position: relative; }
 
-.ws-bars { display: flex; flex-direction: column; gap: 10px; }
-.ws-mini-bar { display: flex; flex-direction: column; gap: 4px; }
-.ws-mini-bar-label { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 500; }
-.ws-mini-bar-track { height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
-.ws-mini-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+.ws-chart-tooltip { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+.ws-tooltip-label { font-size: 0.75rem; font-weight: 700; color: #64748b; margin: 0 0 4px; }
+.ws-tooltip-value { font-size: 0.9rem; font-weight: 800; color: #0B3C5D; margin: 0; }
 
 .ws-export-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ws-export-label { font-size: 0.85rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px; }
