@@ -275,7 +275,7 @@ const TeamProjects = () => {
                         <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
                             <Layers size={40} />
                         </div>
-                        <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">No Projects Allocated</h3>
+                        <h3 className="text-xl font-black !text-slate-400 uppercase tracking-widest">No Projects Allocated</h3>
                     </div>
                 )}
             </div>

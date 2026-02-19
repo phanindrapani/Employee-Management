@@ -155,7 +155,7 @@ const MyProfile = () => {
 
                     <div className="bg-slate-50 p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-slate-100 space-y-4">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Security Settings</h3>
+                            <h3 className="text-[10px] font-black !text-slate-400 uppercase tracking-[0.2em]">Security Settings</h3>
                             <Settings size={16} className="text-slate-300" />
                         </div>
                         <Link to="/change-password" title="Change Password" className="w-full flex items-center justify-between p-4 bg-white rounded-[20px] shadow-sm hover:shadow-md transition-all group">

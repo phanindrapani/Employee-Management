@@ -98,7 +98,7 @@ const Dashboard = () => {
                             <card.icon size={24} className="md:size-[28px]" />
                         </div>
                         <div className="relative z-10">
-                            <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{card.title}</h3>
+                            <h3 className="text-[10px] md:text-xs font-black !text-slate-400 uppercase tracking-widest mb-1">{card.title}</h3>
                             <div className="text-2xl md:text-3xl font-black text-[#0B3C5D] mb-1">{card.value}</div>
                             <p className="text-[10px] md:text-xs font-bold text-slate-400">{card.sub}</p>
                         </div>
@@ -162,7 +162,7 @@ const Dashboard = () => {
                 <div className="bg-[#0B3C5D] rounded-[32px] md:rounded-[40px] shadow-2xl p-8 md:p-10 text-white relative overflow-hidden flex flex-col">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
 
-                    <h3 className="text-xl font-black mb-8 md:mb-10 tracking-tight flex items-center gap-3">
+                    <h3 className="text-xl font-black mb-8 md:mb-10 tracking-tight flex items-center gap-3 !text-white">
                         <CheckCircle2 className="text-[#63C132]" />
                         Lead Actions
                     </h3>

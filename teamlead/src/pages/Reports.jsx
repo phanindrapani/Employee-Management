@@ -160,7 +160,7 @@ const Reports = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
 
                 <div className="flex justify-between items-center mb-10 relative z-10">
-                    <h3 className="text-lg md:text-xl font-black tracking-tight flex items-center gap-3">
+                    <h3 className="text-lg md:text-xl font-black tracking-tight flex items-center gap-3 !text-white">
                         <TrendingUp className="text-[#63C132]" />
                         Efficiency Index Trend
                     </h3>
