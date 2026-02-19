@@ -24,7 +24,7 @@ export const createPerformanceReview = async (req, res) => {
         });
 
         // Update metric manually if exists
-        await updatePerformanceMetric(employee, reviewPeriod, { teamContributionScore: rating * 20 }); // simple hook
+        // await updatePerformanceMetric(employee, reviewPeriod, { teamContributionScore: rating * 20 }); // removed legacy hook
 
         // Socket Emit
         try {
@@ -64,9 +64,24 @@ export const getPerformanceReviews = async (req, res) => {
 
 const calculateScore = async (userId, period) => {
     // Period format "YYYY-MM"
+    // Period format "YYYY-MM"
     const [year, month] = period.split('-').map(Number);
     const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    // For denominator (working days), we should only count up to "Today" if looking at current month
+    // Otherwise the score will be artificially low (e.g. 50% mid-month despite 100% attendance)
+    const now = new Date();
+    const isCurrentMonth = now.getFullYear() === year && (now.getMonth() + 1) === month;
+
+    // End date for fetching tasks/attendance (tasks can be anytime in month, but usually up to now)
+    const monthEndDate = new Date(year, month, 0, 23, 59, 59);
+
+    // For calculation loop, use effective end date
+    const calcEndDate = isCurrentMonth ? now : monthEndDate;
+    // Ensure we don't go before start date (e.g. if checking future month? shouldn't happen)
+    const effectiveEndDate = calcEndDate < startDate ? startDate : calcEndDate;
+
+    const endDate = monthEndDate; // Keep original for DB queries range
 
     // 1. Task Metrics
     // Pull tasks up to period end, then filter in-memory by relevant activity in this period.
@@ -127,9 +142,13 @@ const calculateScore = async (userId, period) => {
     });
 
     // Dynamic Working Days: Excluding Sundays and Holidays
+    // Dynamic Working Days: Excluding Sundays and Holidays
+    // Denominator should be "Working Days ELAPSED" so far in the month
     let workingDays = 0;
     let tempDate = new Date(startDate);
-    while (tempDate <= endDate) {
+
+    // Use effectiveEndDate (Today or MonthEnd) calculated above
+    while (tempDate <= effectiveEndDate) {
         const isSunday = tempDate.getDay() === 0;
         const isHoliday = holidayDates.has(tempDate.toDateString());
         if (!isSunday && !isHoliday) {
@@ -141,11 +160,8 @@ const calculateScore = async (userId, period) => {
     const attendanceDays = attendanceRecords.filter(a => a.status === 'Present').length;
     const attendanceScore = workingDays > 0 ? Math.min((attendanceDays / workingDays) * 100, 100) : 0;
 
-    // Team contribution is excluded until review rating flow is implemented in UI.
     const teamContributionScore = 0;
 
-    // WEIGHTED CALCULATION (Objective metrics only)
-    // "consider attendance even if tasks not completed but calculate from their attendance model"
     const totalScore = (
         (taskCompletionScore * 0.7) +
         (onTimeScore * 0.2) +
@@ -214,7 +230,6 @@ export const triggerCalculation = async (req, res) => {
 
 // Single User Update (Helper)
 const updatePerformanceMetric = async (userId, period, updates) => {
-    // Only updates specific fields, doesn't re-run full calc logic here for simplicity
     await PerformanceMetric.findOneAndUpdate(
         { user: userId, period },
         { ...updates },

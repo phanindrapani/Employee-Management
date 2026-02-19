@@ -1,5 +1,6 @@
 import User from '../../models/user.model.js';
 import Task from '../../models/task.model.js';
+import { getProductivityTrend } from '../../services/stats.service.js';
 
 export const getTeamReports = async (req, res) => {
     try {
@@ -7,32 +8,8 @@ export const getTeamReports = async (req, res) => {
         const members = await User.find({ team: teamId }).select('_id name');
         const memberIds = members.map(m => m._id);
 
-        // 1. Productivity Trend (Last 7 Days)
-        const productivityTrend = [];
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            date.setHours(0, 0, 0, 0);
-            const nextDay = new Date(date);
-            nextDay.setDate(nextDay.getDate() + 1);
-
-            const completedTasks = await Task.countDocuments({
-                assignedTo: { $in: memberIds },
-                status: 'done',
-                updatedAt: { $gte: date, $lt: nextDay }
-            });
-
-            const totalTasks = await Task.countDocuments({
-                assignedTo: { $in: memberIds },
-                updatedAt: { $gte: date, $lt: nextDay }
-            });
-
-            productivityTrend.push({
-                name: date.toLocaleDateString('en-US', { weekday: 'short' }),
-                tasks: completedTasks,
-                efficiency: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
-            });
-        }
+        // 1. Productivity Trend (Last 7 Days) - synchronized with Dashboard logic
+        const productivityTrend = await getProductivityTrend(memberIds);
 
         // 2. Member Contribution (Total Completed Tasks)
         const contributionData = await Promise.all(members.map(async (member) => {
