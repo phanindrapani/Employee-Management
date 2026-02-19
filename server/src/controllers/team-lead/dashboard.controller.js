@@ -2,6 +2,7 @@ import User from '../../models/user.model.js';
 import Project from '../../models/project.model.js';
 import Task from '../../models/task.model.js';
 import Leave from '../../models/leave.model.js';
+import Holiday from '../../models/holiday.model.js';
 import { getTeamStats, getProductivityTrend } from '../../services/stats.service.js';
 
 export const getTeamDashboardStats = async (req, res) => {
@@ -14,8 +15,27 @@ export const getTeamDashboardStats = async (req, res) => {
         const memberIds = members.map(m => m._id);
 
         const productivityTrend = await getProductivityTrend(memberIds);
-        const avgProductivity = productivityTrend.length > 0
-            ? Math.round(productivityTrend.reduce((acc, curr) => acc + curr.efficiency, 0) / productivityTrend.length)
+
+        // Fetch holidays to exclude them from the average calculation
+        const now = new Date();
+        const start = new Date();
+        start.setDate(now.getDate() - 7);
+        const holidays = await Holiday.find({
+            date: { $gte: start, $lte: now }
+        });
+        const holidayDates = new Set(holidays.map(h => new Date(h.date).toDateString()));
+
+        // Filter out Sundays and Holidays from the average unless there was productivity on those days
+        const activeDays = productivityTrend.filter(p => {
+            const date = new Date(p.date);
+            const isSunday = date.getDay() === 0;
+            const isHoliday = holidayDates.has(date.toDateString());
+            // Include day if there was work OR if it's a regular working day
+            return p.efficiency > 0 || (!isSunday && !isHoliday);
+        });
+
+        const avgProductivity = activeDays.length > 0
+            ? Math.round(activeDays.reduce((acc, curr) => acc + curr.efficiency, 0) / activeDays.length)
             : 0;
 
         // Dynamic Alerts

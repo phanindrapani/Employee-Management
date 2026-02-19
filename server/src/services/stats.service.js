@@ -152,22 +152,28 @@ export const getProductivityTrend = async (memberIds, days = 7) => {
 
         const query = memberIds ? { assignedTo: { $in: memberIds } } : {};
 
-        const completedTasks = await Task.countDocuments({
+        const completedTasksToday = await Task.countDocuments({
             ...query,
             status: 'done',
             updatedAt: { $gte: date, $lt: nextDay }
         });
 
-        const totalTasks = await Task.countDocuments({
+        // Use total tasks assigned to the team as the denominator for a more accurate backlog progress metric
+        const totalTeamTasks = await Task.countDocuments({
             ...query,
-            updatedAt: { $gte: date, $lt: nextDay }
+            createdAt: { $lt: nextDay } // All tasks assigned up to this day
         });
+
+        // Create YYYY-MM-DD string in local time to match the day name and avoid timezone shifts
+        const offset = date.getTimezoneOffset();
+        const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+        const dateString = localDate.toISOString().split('T')[0];
 
         productivityTrend.push({
             name: date.toLocaleDateString('en-US', { weekday: 'short' }),
-            date: date.toISOString().split('T')[0],
-            tasks: completedTasks,
-            efficiency: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+            date: dateString,
+            tasks: completedTasksToday,
+            efficiency: totalTeamTasks > 0 ? Math.round((completedTasksToday / totalTeamTasks) * 100) : 0
         });
     }
     return productivityTrend;
