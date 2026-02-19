@@ -150,8 +150,14 @@ export const checkOut = async (req, res) => {
         const hours = (now - new Date(record.checkIn)) / (1000 * 60 * 60);
         record.workingHours = Math.max(0, Number(hours.toFixed(2)));
 
-        if (record.workingHours < 4) {
+        // Update status based on working hours (8+ Present, 4+ Half-Day, <4 Absent)
+        // User request: "minimum 8 hours per day", "if they come late goes late"
+        if (record.workingHours >= 8) {
+            record.status = 'Present';
+        } else if (record.workingHours >= 4) {
             record.status = 'Half-Day';
+        } else {
+            record.status = 'Absent';
         }
 
         await record.save();

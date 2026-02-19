@@ -3,6 +3,7 @@ import PerformanceMetric from '../../models/performanceMetric.model.js';
 import Task from '../../models/task.model.js';
 import Attendance from '../../models/attendance.model.js';
 import User from '../../models/user.model.js';
+import Holiday from '../../models/holiday.model.js';
 import { getIO } from '../../socket.js';
 
 // ==================================================
@@ -115,21 +116,36 @@ const calculateScore = async (userId, period) => {
     const onTimeScore = tasksCompleted > 0 ? (onTimeTasks / tasksCompleted) * 100 : 0;
 
     // 2. Attendance Metrics
+    const holidays = await Holiday.find({
+        date: { $gte: startDate, $lte: endDate }
+    });
+    const holidayDates = new Set(holidays.map(h => h.date.toDateString()));
+
     const attendanceRecords = await Attendance.find({
         user: userId,
         date: { $gte: startDate, $lte: endDate }
     });
 
-    // Assume 22 working days for now, or calculate based on business days
-    const workingDays = 22;
+    // Dynamic Working Days: Excluding Sundays and Holidays
+    let workingDays = 0;
+    let tempDate = new Date(startDate);
+    while (tempDate <= endDate) {
+        const isSunday = tempDate.getDay() === 0;
+        const isHoliday = holidayDates.has(tempDate.toDateString());
+        if (!isSunday && !isHoliday) {
+            workingDays++;
+        }
+        tempDate.setDate(tempDate.getDate() + 1);
+    }
+
     const attendanceDays = attendanceRecords.filter(a => a.status === 'Present').length;
-    const attendanceScore = (attendanceDays / workingDays) * 100 > 100 ? 100 : (attendanceDays / workingDays) * 100;
+    const attendanceScore = workingDays > 0 ? Math.min((attendanceDays / workingDays) * 100, 100) : 0;
 
     // Team contribution is excluded until review rating flow is implemented in UI.
     const teamContributionScore = 0;
 
     // WEIGHTED CALCULATION (Objective metrics only)
-    // Tasks: 70%, OnTime: 20%, Attendance: 10%
+    // "consider attendance even if tasks not completed but calculate from their attendance model"
     const totalScore = (
         (taskCompletionScore * 0.7) +
         (onTimeScore * 0.2) +

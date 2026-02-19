@@ -104,7 +104,7 @@ const Sidebar = ({ isOpen, toggle }) => {
                             className="flex items-center gap-3 px-3 py-3 w-full text-sm font-bold text-[#63C132] bg-[#63C132]/5 rounded-xl border border-[#63C132]/10 hover:bg-[#63C132] hover:text-white transition-all transform hover:scale-[1.02]"
                         >
                             <LayoutTemplate size={18} />
-                            Team Portal
+                            Switch to Team Lead Portal
                         </button>
                     </div>
                 )}
