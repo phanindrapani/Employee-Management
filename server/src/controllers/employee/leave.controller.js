@@ -2,6 +2,7 @@ import Leave from '../../models/leave.model.js';
 import User from '../../models/user.model.js';
 import { calculateWorkingDays } from '../../utils/leaveCalculator.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
+import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
 
 export const applyLeave = async (req, res) => {
@@ -56,9 +57,42 @@ export const applyLeave = async (req, res) => {
         const io = getIO();
         const populatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role profilePicture');
 
+        // --- NOTIFICATION: New Leave Request ---
+        const notifications = [];
+
+        // 1. Notify all Admins
+        const admins = await User.find({ role: 'admin' });
+        admins.forEach(admin => {
+            notifications.push({
+                user: admin._id,
+                message: `📅 New Leave Request: ${req.user.name} applied for ${leaveType} (${totalDays} days)`,
+                isRead: false
+            });
+        });
+
+        // 2. Notify Reporting Manager (if exists)
+        if (user.reportingManager) {
+            notifications.push({
+                user: user.reportingManager,
+                message: `📅 New Leave Request: ${req.user.name} applied for ${leaveType} (${totalDays} days)`,
+                isRead: false
+            });
+        }
+
+        if (notifications.length > 0) {
+            await Notification.insertMany(notifications);
+        }
+
         io.to('role:admin').emit('leave:created', populatedLeave); // Notify Admin
+        io.to('role:admin').emit('notification', {
+            message: `📅 New Leave Request: ${req.user.name}`
+        });
+
         if (user.reportingManager) {
             io.to(`user:${user.reportingManager}`).emit('leave:created', populatedLeave); // Notify Manager/TL
+            io.to(`user:${user.reportingManager}`).emit('notification', {
+                message: `📅 New Leave Request: ${req.user.name}`
+            });
         }
     } catch (e) { console.error('Socket emit error:', e); }
 

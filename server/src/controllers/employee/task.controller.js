@@ -4,6 +4,7 @@ import { syncProjectProgress } from '../../services/projectProgress.service.js';
 // Importing from admin controller as a temporary measure until services are fully separated
 import { recalculatePerformanceForUser } from '../admin/performance.controller.js';
 import mongoose from 'mongoose';
+import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
 
 /**
@@ -113,6 +114,20 @@ export const updateTaskStatus = async (req, res) => {
                 io.to(`user:${worker.reportingManager}`).emit('task:updated', payload);
             }
             io.to('role:admin').emit('task:updated', payload);
+
+            // --- NOTIFICATION: Task Moved to Review ---
+            // Sent to Team Lead/Manager when Employee moves task to 'review'
+            if (status === 'review' && req.user.role === 'employee' && worker?.reportingManager) {
+                await Notification.create({
+                    user: worker.reportingManager,
+                    message: `📝 Task submitted for Review: "${task.title}" by ${req.user.name}`,
+                    isRead: false
+                });
+
+                io.to(`user:${worker.reportingManager}`).emit('notification', {
+                    message: `📝 Task submitted for Review: "${task.title}"`
+                });
+            }
         } catch (socketError) {
             console.error('Socket emit error (task status update):', socketError.message);
         }
