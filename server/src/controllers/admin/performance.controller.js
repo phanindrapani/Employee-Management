@@ -63,13 +63,8 @@ export const getPerformanceReviews = async (req, res) => {
 // ==================================================
 
 const calculateScore = async (userId, period) => {
-    // Period format "YYYY-MM"
-    // Period format "YYYY-MM"
     const [year, month] = period.split('-').map(Number);
     const startDate = new Date(year, month - 1, 1);
-
-    // For denominator (working days), we should only count up to "Today" if looking at current month
-    // Otherwise the score will be artificially low (e.g. 50% mid-month despite 100% attendance)
     const now = new Date();
     const isCurrentMonth = now.getFullYear() === year && (now.getMonth() + 1) === month;
 
@@ -84,8 +79,6 @@ const calculateScore = async (userId, period) => {
     const endDate = monthEndDate; // Keep original for DB queries range
 
     // 1. Task Metrics
-    // Pull tasks up to period end, then filter in-memory by relevant activity in this period.
-    // This avoids missing tasks that were created earlier but completed this month.
     const tasks = await Task.find({
         assignedTo: userId,
         createdAt: { $lte: endDate }
@@ -108,8 +101,6 @@ const calculateScore = async (userId, period) => {
     const tasksAssigned = relevantTasks.length;
     const getCompletionRef = (task) => {
         if (task.completedAt) return task.completedAt;
-        // Legacy/backfilled tasks may be marked done without completedAt.
-        // Fallback to updatedAt so they're still counted in period metrics.
         if (task.status === 'done') return task.updatedAt;
         return null;
     };
@@ -141,13 +132,8 @@ const calculateScore = async (userId, period) => {
         date: { $gte: startDate, $lte: endDate }
     });
 
-    // Dynamic Working Days: Excluding Sundays and Holidays
-    // Dynamic Working Days: Excluding Sundays and Holidays
-    // Denominator should be "Working Days ELAPSED" so far in the month
     let workingDays = 0;
     let tempDate = new Date(startDate);
-
-    // Use effectiveEndDate (Today or MonthEnd) calculated above
     while (tempDate <= effectiveEndDate) {
         const isSunday = tempDate.getDay() === 0;
         const isHoliday = holidayDates.has(tempDate.toDateString());
