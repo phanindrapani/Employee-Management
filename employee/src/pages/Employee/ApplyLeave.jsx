@@ -5,7 +5,7 @@ import { Calendar, Clock, AlertCircle, CheckCircle, FilePlus2 } from 'lucide-rea
 import useSocketListener from '../../hooks/useSocketListener';
 
 const ApplyLeave = () => {
-    const { user, setUser } = useAuth();
+    const { user, refreshProfile } = useAuth();
     const [formData, setFormData] = useState({
         leaveType: 'CL',
         fromDate: '',
@@ -23,15 +23,11 @@ const ApplyLeave = () => {
     const fetchLatestBalance = useCallback(async () => {
         setFetchingBalances(true);
         try {
-            const { data } = await API.get('/auth/profile');
-            setUser(data);
-            localStorage.setItem('ls_emp_profile_sync', JSON.stringify(data));
-        } catch (err) {
-            console.error('Failed to sync balances:', err.response?.data || err.message);
+            await refreshProfile();
         } finally {
             setFetchingBalances(false);
         }
-    }, [setUser]);
+    }, [refreshProfile]);
 
     useEffect(() => {
         fetchLatestBalance();

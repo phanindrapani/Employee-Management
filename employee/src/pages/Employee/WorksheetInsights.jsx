@@ -133,12 +133,14 @@ const WorksheetInsights = () => {
     }, [fetchEntries, fetchAnalysis]);
 
     // ── WebSocket real-time refresh ──────────────────────────────────────────
-    useSocketListener('worksheet:updated', (payload) => {
+    const handleWorksheetUpdate = useCallback((payload) => {
         if (String(payload?.employeeId) === String(user?._id)) {
             fetchEntries();
             fetchAnalysis();
         }
-    });
+    }, [user?._id, fetchEntries, fetchAnalysis]);
+
+    useSocketListener('worksheet:updated', handleWorksheetUpdate);
 
     // ── File upload / import ─────────────────────────────────────────────────
     const handleFile = async (file) => {

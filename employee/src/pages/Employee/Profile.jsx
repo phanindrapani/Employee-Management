@@ -20,7 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 import API from '../../api';
 
 const Profile = () => {
-    const { user: authUser, setUser } = useAuth();
+    const { user: authUser, setUser, refreshProfile } = useAuth();
     const [profile, setProfile] = useState(() => {
         const cached = localStorage.getItem('ls_emp_profile');
         return cached ? JSON.parse(cached) : null;
@@ -67,19 +67,18 @@ const Profile = () => {
     const handlePhoneSave = () => handleSave('phone', phoneContent);
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchProfileData = async () => {
             try {
-                const { data } = await API.get('/auth/profile');
-                setProfile(data);
-                localStorage.setItem('ls_emp_profile', JSON.stringify(data));
+                const data = await refreshProfile();
+                if (data) setProfile(data);
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching profile:", error);
                 setLoading(false);
             }
         };
-        fetchProfile();
-    }, []);
+        fetchProfileData();
+    }, [refreshProfile]);
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
