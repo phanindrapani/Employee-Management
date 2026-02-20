@@ -115,7 +115,6 @@ export const getUserProfile = async (req, res) => {
 
         const completeness = calculateCompleteness({ ...user, lastLogin: user.lastLogin || new Date() });
 
-        console.log(`[DEBUG] Profile fetched for ${user.email}, Role: ${user.role}, Completeness: ${completeness.totalScore}%`);
 
         res.json({
             ...user,

@@ -10,7 +10,7 @@ import { getLeaveQuotas } from './settings.service.js';
  * @returns {Promise<Object>} Updated User
  */
 export const promoteUser = async (id, targetRole, session = null) => {
-    console.log(`[DEBUG] promoteUser called for ${id} to ${targetRole}`);
+
     // If no external session is provided, start a new one for atomicity of this operation
     const localSession = session || await mongoose.startSession();
     if (!session) localSession.startTransaction();
@@ -20,7 +20,7 @@ export const promoteUser = async (id, targetRole, session = null) => {
         if (!user) throw new Error('User not found');
 
         const currentRole = user.role;
-        console.log(`[DEBUG] promoteUser: Current role is ${currentRole}`);
+
 
         // Security: Prevent Admin manipulation via this service (Admins have separate flows)
         if (currentRole === 'admin' || targetRole === 'admin') {
@@ -29,7 +29,7 @@ export const promoteUser = async (id, targetRole, session = null) => {
 
         // Idempotency: If already in role, just return user (or throw if strictness required, but better to be idempotent)
         if (currentRole === targetRole) {
-            console.log(`[DEBUG] promoteUser: User already in role ${targetRole}. Skipping.`);
+
             if (!session) {
                 await localSession.commitTransaction();
                 localSession.endSession();
@@ -57,7 +57,7 @@ export const promoteUser = async (id, targetRole, session = null) => {
                     { $pull: { members: user._id } },
                     { session: localSession }
                 );
-                console.log(`[DEBUG] promoteUser: Removed user ${user._id} from members of team ${user.team}`);
+
             }
         }
 
@@ -73,11 +73,7 @@ export const promoteUser = async (id, targetRole, session = null) => {
                 leadershipLevel: "",
                 teamPerformanceScore: ""
             };
-            // Note: We keep 'skills' as it is shared
         }
-
-        console.log(`[DEBUG] promoteUser: Applying update`, JSON.stringify(update));
-        console.log(`[DEBUG] promoteUser: Applying unset`, JSON.stringify(unset));
 
         const result = await User.collection.findOneAndUpdate(
             { _id: new mongoose.Types.ObjectId(id) },
@@ -87,12 +83,12 @@ export const promoteUser = async (id, targetRole, session = null) => {
             },
             {
                 session: localSession,
-                returnDocument: 'after' // Return updated doc
+                returnDocument: 'after'
             }
         );
         const updatedUser = result.value || result;
 
-        console.log(`[DEBUG] promoteUser: Update result role: ${updatedUser?.role}`);
+
 
         // Commit if we started the session
         if (!session) {
@@ -103,7 +99,7 @@ export const promoteUser = async (id, targetRole, session = null) => {
         return updatedUser;
 
     } catch (error) {
-        console.error(`[DEBUG] promoteUser Error: ${error.message}`);
+
         // Abort if we started the session
         if (!session) {
             await localSession.abortTransaction();

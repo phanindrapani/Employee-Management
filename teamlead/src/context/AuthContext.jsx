@@ -14,12 +14,12 @@ export const AuthProvider = ({ children }) => {
         if (forceLogin) {
             localStorage.removeItem('ls_tl_token');
             localStorage.removeItem('ls_tl_profile');
-            console.log('[DEBUG] TL AuthContext init: forceLogin=1, cleared TL auth storage');
+
             return null;
         }
 
         const cached = localStorage.getItem('ls_tl_profile');
-        console.log('[DEBUG] TL AuthContext init: ls_tl_profile =', cached ? 'FOUND' : 'NULL');
+
         return cached ? JSON.parse(cached) : null;
     });
     const [loading, setLoading] = useState(!user);
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
             }
 
             const token = localStorage.getItem('ls_tl_token');
-            console.log('[DEBUG] TL AuthContext check: ls_tl_token =', token ? 'FOUND' : 'NULL');
+
             if (token) {
                 try {
                     const { data } = await API.get('/auth/profile');

@@ -112,11 +112,6 @@ const calculateScore = async (userId, period) => {
         return t.deadline && completionRef && completionRef <= toEndOfDay(t.deadline);
     }).length;
 
-    const debugTaskIds = relevantTasks.map(t => t._id?.toString());
-    const doneWithoutCompletedAt = relevantTasks.filter(t => t.status === 'done' && !t.completedAt).length;
-    console.log(
-        `[DEBUG][Performance] user=${userId} period=${period} tasksFetched=${tasks.length} relevant=${relevantTasks.length} completed=${tasksCompleted} onTime=${onTimeTasks} doneWithoutCompletedAt=${doneWithoutCompletedAt} taskIds=${debugTaskIds.join(',')}`
-    );
 
     const taskCompletionScore = tasksAssigned > 0 ? (tasksCompleted / tasksAssigned) * 100 : 0;
     const onTimeScore = tasksCompleted > 0 ? (onTimeTasks / tasksCompleted) * 100 : 0;
@@ -182,9 +177,6 @@ export const recalculatePerformanceForUser = async (userId, period) => {
         { user: userId, period },
         metrics,
         { upsert: true, new: true }
-    );
-    console.log(
-        `[DEBUG][Performance] savedMetric user=${userId} period=${period} total=${savedMetric?.totalScore} tasks=${savedMetric?.tasksCompleted}/${savedMetric?.tasksAssigned} onTime=${savedMetric?.onTimeTasks} attendance=${savedMetric?.attendanceDays}/${savedMetric?.workingDays}`
     );
 
     // Socket Emit

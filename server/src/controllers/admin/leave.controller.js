@@ -31,7 +31,6 @@ export const updateLeaveStatus = async (req, res) => {
         const balanceKey = leave.leaveType?.toLowerCase();
         const wasBalanceApplied = leave.balanceApplied === true;
         const beforeBalance = balanceKey ? Number(user.leaveBalance?.[balanceKey] ?? 0) : null;
-        console.log(`[DEBUG][AdminLeave] leave=${leave._id} user=${user._id} prevStatus=${leave.status} nextStatus=${nextStatus} type=${leave.leaveType} key=${balanceKey} totalDays=${leave.totalDays} wasApplied=${wasBalanceApplied} beforeBalance=${beforeBalance}`);
 
         // Debit only when approval is finalized and not yet applied.
         // Refund if moving away from approved after already applying.
@@ -46,17 +45,14 @@ export const updateLeaveStatus = async (req, res) => {
                 user.leaveBalance[balanceKey] = currentBalance - leave.totalDays;
                 await user.save({ session });
                 leave.balanceApplied = true;
-                console.log(`[DEBUG][AdminLeave] deducted leave=${leave._id} user=${user._id} key=${balanceKey} afterBalance=${user.leaveBalance[balanceKey]}`);
             } else if (nextStatus !== 'approved' && wasBalanceApplied) {
                 user.leaveBalance[balanceKey] = currentBalance + leave.totalDays;
                 await user.save({ session });
                 leave.balanceApplied = false;
-                console.log(`[DEBUG][AdminLeave] refunded leave=${leave._id} user=${user._id} key=${balanceKey} afterBalance=${user.leaveBalance[balanceKey]}`);
             }
         } else if (nextStatus === 'approved') {
             // LOP: no balance debit, but mark as handled.
             leave.balanceApplied = true;
-            console.log(`[DEBUG][AdminLeave] LOP marked applied leave=${leave._id}`);
         } else if (nextStatus !== 'approved' && wasBalanceApplied) {
             leave.balanceApplied = false;
         }

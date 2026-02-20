@@ -19,7 +19,6 @@ export const createTeam = async (req, res) => {
 
         // 2. Promote Lead (if assigned)
         if (teamLead) {
-            console.log(`[DEBUG] createTeam: Promoting lead ${teamLead}`);
             await promoteUser(teamLead, 'team-lead', session);
             // Use native driver for consistency
             await User.collection.updateOne(

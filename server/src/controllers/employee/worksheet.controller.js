@@ -157,7 +157,7 @@ export const importWorksheet = async (req, res) => {
             }
         }
 
-        console.log(`[Worksheet] Import by ${req.user._id}: total=${rawRows.length} valid=${validRows.length} saved=${savedCount} skipped=${skippedCount} invalid=${invalidRows.length}`);
+
 
         // WebSocket notification
         try {
