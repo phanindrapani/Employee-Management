@@ -28,8 +28,11 @@ const getScoreColor = (score) => {
 };
 
 const TeamPerformance = () => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_perf_stats');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [loading, setLoading] = useState(!data);
     const [calculating, setCalculating] = useState(false);
 
     useEffect(() => {
@@ -38,9 +41,9 @@ const TeamPerformance = () => {
 
     const fetchPerformance = async () => {
         try {
-            setLoading(true);
             const res = await API.get('/team-lead/team/performance');
             setData(res.data);
+            localStorage.setItem('ls_tl_perf_stats', JSON.stringify(res.data));
         } catch (error) {
             console.error('Failed to fetch team performance:', error);
         } finally {
@@ -63,7 +66,7 @@ const TeamPerformance = () => {
     };
 
     if (loading) return (
-        <div className="animate-pulse grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4 md:p-10">
+        <div className="animate-pulse grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => <div key={i} className="h-40 bg-white rounded-[32px] shadow-sm" />)}
         </div>
     );
@@ -74,7 +77,7 @@ const TeamPerformance = () => {
     const topPerformer = members.length > 0 ? [...members].sort((a, b) => b.totalScore - a.totalScore)[0] : null;
 
     return (
-        <div className="space-y-8 text-[#0B3C5D] animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-8 text-[#0B3C5D]">
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
