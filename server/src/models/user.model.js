@@ -25,12 +25,24 @@ const userSchema = new mongoose.Schema({
         unique: true,
         lowercase: true,
         trim: true,
+        validate: {
+            validator: function (v) {
+                return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
+            },
+            message: props => `${props.value} is not a valid email address!`
+        },
         index: true
     },
     phone: {
         type: String,
         required: true,
         unique: true,
+        validate: {
+            validator: function (v) {
+                return /^[6-9]\d{9}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid 10-digit Indian mobile number!`
+        },
         index: true
     },
     password: {
