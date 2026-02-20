@@ -78,7 +78,6 @@ const calculateScore = async (userId, period) => {
 
     const endDate = monthEndDate; // Keep original for DB queries range
 
-    // 1. Task Metrics
     const tasks = await Task.find({
         assignedTo: userId,
         createdAt: { $lte: endDate }
@@ -92,11 +91,9 @@ const calculateScore = async (userId, period) => {
         return d;
     };
 
-    const relevantTasks = tasks.filter((t) =>
-        isWithinPeriod(t.createdAt) ||
-        isWithinPeriod(t.updatedAt) ||
-        isWithinPeriod(t.completedAt)
-    );
+    const relevantTasks = tasks.filter((t) => {
+        return isWithinPeriod(t.createdAt) || isWithinPeriod(t.updatedAt) || isWithinPeriod(t.completedAt);
+    });
 
     const tasksAssigned = relevantTasks.length;
     const getCompletionRef = (task) => {
@@ -105,7 +102,10 @@ const calculateScore = async (userId, period) => {
         return null;
     };
 
-    const completedTasks = relevantTasks.filter((t) => isWithinPeriod(getCompletionRef(t)));
+    const completedTasks = relevantTasks.filter((t) => {
+        const ref = getCompletionRef(t);
+        return isWithinPeriod(ref);
+    });
     const tasksCompleted = completedTasks.length;
     const onTimeTasks = completedTasks.filter((t) => {
         const completionRef = getCompletionRef(t);
@@ -178,6 +178,9 @@ export const recalculatePerformanceForUser = async (userId, period) => {
         metrics,
         { upsert: true, new: true }
     );
+
+    // Sync the calculated score to the User profile so the Profile page reflects it
+    await User.findByIdAndUpdate(userId, { teamPerformanceScore: Math.round(metrics.totalScore) });
 
     // Socket Emit
     try {

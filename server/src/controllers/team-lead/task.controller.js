@@ -1,6 +1,7 @@
 import Task from '../../models/task.model.js';
 import User from '../../models/user.model.js';
 import { syncProjectProgress } from '../../services/projectProgress.service.js';
+import { recalculatePerformanceForUser } from '../admin/performance.controller.js';
 import mongoose from 'mongoose';
 import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
@@ -173,6 +174,17 @@ export const updateTask = async (req, res) => {
         const updatedTask = await Task.findById(id)
             .populate('project', 'name')
             .populate('assignedTo', 'name email profilePicture');
+
+        // Recalculate performance score for the assigned employee when any status change occurs
+        if (status !== undefined && newWorker && ['employee', 'team-lead'].includes(newWorker.role)) {
+            const now = new Date();
+            const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            try {
+                await recalculatePerformanceForUser(newWorker._id, period);
+            } catch (scoreError) {
+                console.error('Performance recalculation error (TL task update):', scoreError.message);
+            }
+        }
 
         try {
             const io = getIO();
