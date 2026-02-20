@@ -141,12 +141,30 @@ const calculateScore = async (userId, period) => {
     const attendanceDays = attendanceRecords.filter(a => a.status === 'Present').length;
     const attendanceScore = workingDays > 0 ? Math.min((attendanceDays / workingDays) * 100, 100) : 0;
 
-    const teamContributionScore = 0;
+    // 3. Team Contribution Metric (Weight-Based)
+    let teamContributionScore = 0;
+    const projectIds = [...new Set(relevantTasks.map(t => t.project?.toString()).filter(Boolean))];
+
+    if (projectIds.length > 0) {
+        // user's total weight in these projects
+        const userProjectWeights = relevantTasks.reduce((sum, t) => sum + (t.weight || 1), 0);
+
+        // total weight of ALL tasks in these projects (for anyone in the team)
+        const allProjectTasks = await Task.find({
+            project: { $in: projectIds },
+            createdAt: { $lte: endDate }
+        });
+
+        const totalProjectWeights = allProjectTasks.reduce((sum, t) => sum + (t.weight || 1), 0);
+
+        teamContributionScore = totalProjectWeights > 0 ? (userProjectWeights / totalProjectWeights) * 100 : 0;
+    }
 
     const totalScore = (
-        (taskCompletionScore * 0.7) +
-        (onTimeScore * 0.2) +
-        (attendanceScore * 0.1)
+        (taskCompletionScore * 0.6) +
+        (onTimeScore * 0.1) +
+        (attendanceScore * 0.1) +
+        (teamContributionScore * 0.2)
     );
 
     let category = 'Needs Improvement';
