@@ -13,6 +13,7 @@ import {
     UserCircle,
     LogOut,
     ExternalLink,
+    TrendingUp,
     X
 } from 'lucide-react';
 
@@ -30,6 +31,7 @@ const Sidebar = ({ isOpen, toggle }) => {
             title: 'MANAGEMENT',
             items: [
                 { name: 'My Team', path: '/team', icon: Users },
+                { name: 'Team Performance', path: '/team-performance', icon: TrendingUp },
                 { name: 'Projects', path: '/projects', icon: FolderKanban },
                 { name: 'Tasks', path: '/tasks', icon: ClipboardList },
             ]

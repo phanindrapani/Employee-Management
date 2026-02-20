@@ -278,38 +278,77 @@ const updatePerformanceMetric = async (userId, period, updates) => {
 
 export const getAdminPerformanceStats = async (req, res) => {
     try {
-        const { period } = req.query; // "2026-02"
-        const metrics = await PerformanceMetric.find({ period }).populate('user', 'name department role profilePicture');
+        const { period } = req.query;
+        const metrics = await PerformanceMetric.find({ period })
+            .populate('user', 'name role team department');
 
         if (metrics.length === 0) return res.json({
-            summary: {},
-            topPerformers: [],
-            needsAttention: [],
-            distribution: []
+            summary: { totalTeams: 0, orgAvgScore: 0, highestTeamAvg: 0, teamsNeedingAttention: 0 },
+            teams: [],
+            topPerformers: []
         });
 
-        const totalScore = metrics.reduce((sum, m) => sum + m.totalScore, 0);
-        const avgScore = (totalScore / metrics.length).toFixed(1);
+        // Fetch all teams with lead info
+        const teams = await Team.find({}).populate('teamLead', 'name email').populate('members', '_id');
 
-        const topPerformers = [...metrics].sort((a, b) => b.totalScore - a.totalScore).slice(0, 5);
-        const needsAttention = metrics.filter(m => m.totalScore < 50);
+        // Calculate per-team stats
+        const teamStats = await Promise.all(teams.map(async (team) => {
+            // Include team lead in the member lookup
+            const memberIds = team.members.map(m => m._id.toString());
+            if (team.teamLead && !memberIds.includes(team.teamLead._id.toString())) {
+                memberIds.push(team.teamLead._id.toString());
+            }
+            const teamMetrics = metrics.filter(m => m.user && memberIds.includes(m.user._id.toString()));
+
+            const avgScore = teamMetrics.length > 0
+                ? Math.round(teamMetrics.reduce((sum, m) => sum + m.totalScore, 0) / teamMetrics.length)
+                : 0;
+            const highestScore = teamMetrics.length > 0
+                ? Math.max(...teamMetrics.map(m => m.totalScore))
+                : 0;
+            const needsAttention = teamMetrics.filter(m => m.totalScore < 50).length;
+
+            return {
+                teamId: team._id,
+                teamName: team.name,
+                leadName: team.teamLead?.name || 'No Lead',
+                leadId: team.teamLead?._id?.toString(),
+                membersCount: memberIds.length,
+                trackedCount: teamMetrics.length,
+                avgScore,
+                highestScore,
+                needsAttention,
+                members: teamMetrics.map(m => ({
+                    name: m.user?.name,
+                    score: m.totalScore,
+                    isLead: m.user?._id?.toString() === team.teamLead?._id?.toString()
+                }))
+            };
+        }));
+
+        const orgAvgScore = teamStats.length > 0
+            ? Math.round(teamStats.reduce((sum, t) => sum + t.avgScore, 0) / teamStats.filter(t => t.trackedCount > 0).length || 0)
+            : 0;
+        const highestTeamAvg = teamStats.length > 0 ? Math.max(...teamStats.map(t => t.avgScore)) : 0;
+        const teamsNeedingAttention = teamStats.filter(t => t.needsAttention > 0).length;
+
+        // Top performers across all teams
+        const topPerformers = [...metrics]
+            .sort((a, b) => b.totalScore - a.totalScore)
+            .slice(0, 5);
 
         res.json({
             summary: {
-                totalEmployees: metrics.length,
-                avgScore,
-                topScore: topPerformers[0]?.totalScore || 0
+                totalTeams: teams.length,
+                orgAvgScore,
+                highestTeamAvg,
+                teamsNeedingAttention
             },
-            topPerformers,
-            needsAttention,
-            distribution: metrics.map(m => ({
-                name: m.user.name,
-                score: m.totalScore,
-                tasks: m.taskCompletionScore,
-                role: m.user.role
-            }))
+            teams: teamStats.filter(t => t.membersCount > 0),
+            topPerformers
         });
     } catch (error) {
+        console.error('Admin perf stats error:', error);
         res.status(500).json({ message: "Failed to fetch stats" });
     }
 };

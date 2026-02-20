@@ -5,9 +5,10 @@ import {
     TrendingUp,
     Users,
     AlertCircle,
-    CheckCircle,
+    Award,
     Clock,
-    Award
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import {
     BarChart,
@@ -17,20 +18,21 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    LineChart,
-    Line,
-    PieChart,
-    Pie,
     Cell
 } from 'recharts';
 
+const ScorePill = ({ score }) => {
+    const color = score >= 75 ? '#63C132' : score >= 50 ? '#f59e0b' : '#ef4444';
+    return (
+        <span className="text-2xl font-black" style={{ color }}>{score}%</span>
+    );
+};
+
 const PerformanceDashboard = () => {
-    const [stats, setStats] = useState(() => {
-        const cached = localStorage.getItem('ls_admin_perf_stats');
-        return cached ? JSON.parse(cached) : null;
-    });
-    const [loading, setLoading] = useState(!stats);
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [calculating, setCalculating] = useState(false);
+    const [expanded, setExpanded] = useState({});
 
     useEffect(() => {
         fetchStats();
@@ -42,7 +44,6 @@ const PerformanceDashboard = () => {
             const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             const res = await API.get(`/admin/performance/dashboard?period=${period}`);
             setStats(res.data);
-            localStorage.setItem('ls_admin_perf_stats', JSON.stringify(res.data));
         } catch (error) {
             console.error("Failed to fetch dashboard stats", error);
         } finally {
@@ -56,27 +57,27 @@ const PerformanceDashboard = () => {
             const date = new Date();
             const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             await API.post('/admin/performance/calculate', { period });
-            fetchStats();
-            alert("Performance scores updated successfully!");
+            await fetchStats();
         } catch (error) {
-            alert("Calculation failed");
+            console.error("Calculation failed", error);
         } finally {
             setCalculating(false);
         }
     };
 
-    // if (loading) return <div className="p-10 text-center text-slate-400">Loading Dashboard...</div>;
+    const toggleTeam = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
     return (
         <div className="space-y-8 text-[#0B3C5D]">
-            <div className="flex items-center justify-between">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-[#F0F7FF] rounded-xl text-[#0B3C5D]">
                         <LayoutDashboard size={32} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-extrabold tracking-tight">Performance Dashboard</h1>
-                        <p className="text-slate-500 font-medium">Enterprise Analytics & Scoring</p>
+                        <h1 className="text-3xl font-extrabold tracking-tight">Team Performance</h1>
+                        <p className="text-slate-500 font-medium">Organisation-wide team analytics</p>
                     </div>
                 </div>
                 <button
@@ -84,19 +85,14 @@ const PerformanceDashboard = () => {
                     disabled={calculating}
                     className="flex items-center gap-2 px-6 py-3 bg-[#0B3C5D] text-white rounded-xl font-bold hover:bg-[#1A4B6D] transition-colors disabled:opacity-50"
                 >
-                    {calculating ? (
-                        <Clock size={20} className="animate-spin" />
-                    ) : (
-                        <TrendingUp size={20} />
-                    )}
+                    {calculating ? <Clock size={20} className="animate-spin" /> : <TrendingUp size={20} />}
                     {calculating ? 'Calculating...' : 'Update Scores'}
                 </button>
             </div>
 
-            {/* Content Area */}
             {loading ? (
                 <div className="flex items-center justify-center min-h-[400px] text-slate-400 font-bold italic">
-                    Loading Enterprise Analytics...
+                    Loading Analytics...
                 </div>
             ) : (
                 <>
@@ -104,82 +100,144 @@ const PerformanceDashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                                    <Users size={24} />
-                                </div>
-                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Total</span>
+                                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Users size={24} /></div>
+                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Teams</span>
                             </div>
-                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.totalEmployees || 0}</div>
-                            <div className="text-sm font-bold text-slate-400 mt-1">Employees Tracked</div>
+                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.totalTeams || 0}</div>
+                            <div className="text-sm font-bold text-slate-400 mt-1">Active Teams</div>
                         </div>
-
                         <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                                    <Award size={24} />
-                                </div>
-                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Avg Score</span>
+                                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><Award size={24} /></div>
+                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Org Avg</span>
                             </div>
-                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.avgScore || 0}</div>
+                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.orgAvgScore || 0}%</div>
                             <div className="text-sm font-bold text-slate-400 mt-1">Organization Average</div>
                         </div>
-
                         <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                                    <TrendingUp size={24} />
-                                </div>
-                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Top</span>
+                                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><TrendingUp size={24} /></div>
+                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Best</span>
                             </div>
-                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.topScore || 0}</div>
-                            <div className="text-sm font-bold text-slate-400 mt-1">Highest Score</div>
+                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.highestTeamAvg || 0}%</div>
+                            <div className="text-sm font-bold text-slate-400 mt-1">Highest Team Avg</div>
                         </div>
-
                         <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
-                                    <AlertCircle size={24} />
-                                </div>
+                                <div className="p-3 bg-rose-50 text-rose-600 rounded-xl"><AlertCircle size={24} /></div>
                                 <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Action</span>
                             </div>
-                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.needsAttention?.length || 0}</div>
-                            <div className="text-sm font-bold text-slate-400 mt-1">Need Attention</div>
+                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.teamsNeedingAttention || 0}</div>
+                            <div className="text-sm font-bold text-slate-400 mt-1">Teams Need Attention</div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Score Distribution Chart */}
-                        <div className="lg:col-span-2 bg-white p-8 rounded-[24px] shadow-sm border border-slate-50 flex flex-col">
+                    {/* Team Average Bar Chart */}
+                    {stats?.teams?.length > 0 && (
+                        <div className="bg-white p-8 rounded-[24px] shadow-sm border border-slate-50">
                             <h3 className="text-lg font-black text-[#0B3C5D] mb-6 flex items-center gap-2">
-                                <TrendingUp size={20} /> Performance Distribution
+                                <TrendingUp size={20} /> Team Average Scores
                             </h3>
-                            <div className="flex-1 min-h-[300px]">
+                            <div className="h-[280px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={stats?.distribution || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <BarChart data={stats.teams} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                        <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} dy={10} />
+                                        <XAxis dataKey="teamName" tick={{ fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} dy={8} />
                                         <YAxis domain={[0, 100]} tick={{ fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
                                         <Tooltip
                                             cursor={{ fill: '#f8fafc' }}
                                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                            formatter={(value) => [`${value}%`, 'Avg Score']}
                                         />
-                                        <Bar dataKey="score" fill="#0B3C5D" radius={[4, 4, 0, 0]} barSize={30} />
-                                        <Bar dataKey="tasks" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={30} />
+                                        <Bar dataKey="avgScore" radius={[6, 6, 0, 0]} barSize={36}>
+                                            {stats.teams.map((t, i) => (
+                                                <Cell key={i} fill={t.avgScore >= 75 ? '#63C132' : t.avgScore >= 50 ? '#f59e0b' : '#ef4444'} />
+                                            ))}
+                                        </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
+                    )}
 
-                        {/* Top Performers List */}
+                    {/* Team Cards */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-black text-[#0B3C5D] flex items-center gap-2">
+                            <Users size={20} /> All Teams
+                        </h3>
+                        {stats?.teams?.length === 0 && (
+                            <div className="text-center text-slate-400 py-12 font-medium italic">No team data available. Click "Update Scores" to calculate.</div>
+                        )}
+                        {stats?.teams?.map((team, i) => (
+                            <div key={i} className="bg-white rounded-[20px] shadow-sm border border-slate-50 overflow-hidden">
+                                {/* Team Header Row */}
+                                <div
+                                    className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                                    onClick={() => toggleTeam(i)}
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-[#0B3C5D] text-white flex items-center justify-center font-black text-lg shrink-0">
+                                        {team.teamName?.charAt(0)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-black text-[#0B3C5D] text-lg">{team.teamName}</div>
+                                        <div className="text-xs text-slate-400 font-bold">Lead: {team.leadName} · {team.membersCount} members</div>
+                                    </div>
+                                    <div className="flex items-center gap-6 flex-wrap">
+                                        <div className="text-center">
+                                            <ScorePill score={team.avgScore} />
+                                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Team Avg</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <span className="text-2xl font-black text-[#0B3C5D]">{team.highestScore}%</span>
+                                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Best Score</div>
+                                        </div>
+                                        {team.needsAttention > 0 && (
+                                            <span className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-xs font-black">
+                                                {team.needsAttention} need attention
+                                            </span>
+                                        )}
+                                        {expanded[i] ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
+                                    </div>
+                                </div>
+
+                                {/* Expanded member list */}
+                                {expanded[i] && team.members?.length > 0 && (
+                                    <div className="border-t border-slate-50 px-6 pb-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4">
+                                            {team.members.map((m, j) => (
+                                                <div key={j} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-[#0B3C5D] text-white flex items-center justify-center text-xs font-black">
+                                                            {m.name?.charAt(0)}
+                                                        </div>
+                                                        <span className="text-sm font-bold text-[#0B3C5D]">{m.name}</span>
+                                                        {m.isLead && (
+                                                            <span className="px-2 py-0.5 bg-[#63C132]/10 text-[#63C132] text-[9px] font-black uppercase tracking-widest rounded-full">Lead</span>
+                                                        )}
+                                                    </div>
+                                                    <span className={`font-black text-sm ${m.score >= 75 ? 'text-[#63C132]' : m.score >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>
+                                                        {m.score}%
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Top Performers sidebar */}
+                    {stats?.topPerformers?.length > 0 && (
                         <div className="bg-white p-8 rounded-[24px] shadow-sm border border-slate-50">
                             <h3 className="text-lg font-black text-[#0B3C5D] mb-6 flex items-center gap-2">
-                                <Award size={20} className="text-amber-500" /> Top Performers
+                                <Award size={20} className="text-amber-500" /> Top Performers (All Teams)
                             </h3>
-                            <div className="space-y-4">
-                                {stats?.topPerformers?.map((p, i) => (
-                                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-slate-100">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {stats.topPerformers.map((p, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[#0B3C5D] text-white flex items-center justify-center font-bold text-xs">
+                                            <div className="w-9 h-9 rounded-full bg-[#0B3C5D] text-white flex items-center justify-center font-bold text-sm">
                                                 {p.user?.name?.charAt(0)}
                                             </div>
                                             <div>
@@ -187,34 +245,7 @@ const PerformanceDashboard = () => {
                                                 <div className="text-[10px] font-bold text-slate-400 uppercase">{p.user?.role}</div>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-lg font-black text-[#0B3C5D]">{p.totalScore}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                                {stats?.topPerformers?.length === 0 && (
-                                    <div className="text-center text-slate-400 text-sm py-4 italic">No data available</div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Needs Attention Section */}
-                    {stats?.needsAttention?.length > 0 && (
-                        <div className="bg-white p-8 rounded-[24px] shadow-sm border-l-4 border-rose-500">
-                            <h3 className="text-lg font-black text-[#0B3C5D] mb-6 flex items-center gap-2">
-                                <AlertCircle size={20} className="text-rose-500" /> Employees Needing Attention
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {stats.needsAttention.map((p, i) => (
-                                    <div key={i} className="p-4 border border-rose-100 bg-rose-50/30 rounded-xl flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
-                                            {p.user?.name?.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-[#0B3C5D]">{p.user?.name}</div>
-                                            <div className="text-xs font-bold text-rose-500 uppercase">Score: {p.totalScore}</div>
-                                        </div>
+                                        <ScorePill score={p.totalScore} />
                                     </div>
                                 ))}
                             </div>
