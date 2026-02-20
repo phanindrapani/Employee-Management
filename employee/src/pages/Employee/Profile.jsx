@@ -350,6 +350,33 @@ const Profile = () => {
 
                 {/* Right Column (Side Info) */}
                 <div className="space-y-10">
+                    {/* Performance Score Card */}
+                    <section className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-8 hover:shadow-xl transition-all duration-500">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-black text-[#0B3C5D] flex items-center gap-3">
+                                <Activity className="text-[#63C132]" /> Trust Index
+                            </h3>
+                            <div className="px-3 py-1 bg-blue-50 text-[#0B3C5D] rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                Live Score
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-[32px] border border-slate-100">
+                            <div className="w-16 h-16 bg-[#0B3C5D] rounded-2xl flex items-center justify-center text-[#63C132] shadow-lg">
+                                <CheckCircle2 size={32} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Performance</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-4xl font-black text-[#0B3C5D]">{profile?.individualPerformanceScore || profile?.teamPerformanceScore || 0}</span>
+                                    <span className="text-sm font-black text-slate-400">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p className="mt-6 text-[10px] text-slate-500 font-medium italic leading-relaxed text-center">
+                            Calculated based on task completion, on-time delivery, and attendance.
+                        </p>
+                    </section>
+
                     {/* Work Status Card */}
                     <section className="bg-[#0B3C5D] rounded-[48px] shadow-2xl p-10 text-white relative overflow-hidden group">
                         {/* Interactive Background Shape */}

@@ -12,7 +12,8 @@ import {
     Calendar,
     Settings,
     ChevronRight,
-    Loader2
+    Loader2,
+    Users
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -23,11 +24,40 @@ const MyProfile = () => {
     const { addToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [teamAvgScore, setTeamAvgScore] = useState(null);
     const fileInputRef = useRef(null);
 
     const handleImageClick = () => {
         fileInputRef.current?.click();
     };
+
+    // Fetch team members and calculate average performance score
+    useEffect(() => {
+        const fetchTeamAverage = async () => {
+            try {
+                const { data: responseData } = await API.get('/team-lead/team');
+                const members = responseData.members || responseData;
+                if (Array.isArray(members) && members.length > 0) {
+                    const validScores = members
+                        .map(m => m.individualPerformanceScore || 0)
+                        .filter(score => score > 0);
+                    const avg = validScores.length > 0
+                        ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
+                        : 0;
+                    setTeamAvgScore(avg);
+                }
+                // Also trigger backend calculation to sync the score
+                try {
+                    await API.post('/team-lead/team/calculate-score');
+                } catch (err) {
+                    console.log('Score sync:', err);
+                }
+            } catch (error) {
+                console.error('Error fetching team average:', error);
+            }
+        };
+        fetchTeamAverage();
+    }, []);
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -195,16 +225,32 @@ const MyProfile = () => {
                             </div>
                         </div>
 
-                        <div className="mt-6 md:mt-10 p-6 md:p-10 bg-white rounded-[32px] md:rounded-[40px] border border-slate-100 flex flex-col md:flex-row items-center gap-6 md:gap-8 shadow-sm group hover:shadow-md transition-all">
-                            <div className="flex-1 space-y-2 text-center md:text-left">
-                                <h4 className="text-xl md:text-2xl font-black text-[#0B3C5D] tracking-tight">Trust Index</h4>
-                                <p className="text-slate-500 text-xs md:text-sm font-medium leading-relaxed">Composite score based on team delivery, responsiveness, and account completeness.</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mt-6 md:mt-10">
+                            <div className="p-6 md:p-8 bg-slate-50 rounded-[32px] md:rounded-[40px] flex flex-col md:flex-row items-center gap-6 shadow-sm group hover:shadow-md transition-all">
+                                <div className="flex-1 space-y-2 text-center md:text-left">
+                                    <h4 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight">Individual Compliance</h4>
+                                    <p className="text-slate-500 text-[10px] md:text-xs font-medium leading-relaxed">Personal score based on your tasks and attendance.</p>
+                                </div>
+                                <div className="flex items-center gap-3 bg-white px-5 py-3 md:px-6 md:py-4 rounded-[20px] md:rounded-[24px] shrink-0 shadow-sm">
+                                    <CheckCircle2 className="text-[#63C132] size-5 md:size-6" />
+                                    <div>
+                                        <div className="text-[8px] md:text-[8px] font-black uppercase tracking-widest text-slate-400">My Score</div>
+                                        <div className="text-xl md:text-2xl font-black text-[#0B3C5D]">{user.individualPerformanceScore || 0}%</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3 bg-slate-50 px-6 py-4 md:px-8 md:py-6 rounded-[24px] md:rounded-[32px] border border-slate-100 shrink-0">
-                                <CheckCircle2 className="text-[#63C132] size-6 md:size-8" />
-                                <div>
-                                    <div className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-slate-400">Portal Sync</div>
-                                    <div className="text-2xl md:text-3xl font-black text-[#0B3C5D]">{user.teamPerformanceScore || 92}%</div>
+
+                            <div className="p-6 md:p-8 bg-slate-50 rounded-[32px] md:rounded-[40px] flex flex-col md:flex-row items-center gap-6 shadow-sm group hover:shadow-md transition-all">
+                                <div className="flex-1 space-y-2 text-center md:text-left">
+                                    <h4 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight">Team Trust Index</h4>
+                                    <p className="text-slate-500 text-[10px] md:text-xs font-medium leading-relaxed">Aggregated performance of your direct reports.</p>
+                                </div>
+                                <div className="flex items-center gap-3 bg-white px-5 py-3 md:px-6 md:py-4 rounded-[20px] md:rounded-[24px] shrink-0 shadow-sm">
+                                    <Users className="text-[#63C132] size-5 md:size-6" />
+                                    <div>
+                                        <div className="text-[8px] md:text-[8px] font-black uppercase tracking-widest text-[#63C132]">Team Avg</div>
+                                        <div className="text-xl md:text-2xl font-black text-[#0B3C5D]">{teamAvgScore !== null ? `${teamAvgScore}%` : 'Calculating...'}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

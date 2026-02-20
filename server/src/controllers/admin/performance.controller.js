@@ -4,6 +4,7 @@ import Task from '../../models/task.model.js';
 import Attendance from '../../models/attendance.model.js';
 import User from '../../models/user.model.js';
 import Holiday from '../../models/holiday.model.js';
+import Team from '../../models/team.model.js';
 import { getIO } from '../../socket.js';
 
 // ==================================================
@@ -190,6 +191,9 @@ const calculateScore = async (userId, period) => {
 };
 
 export const recalculatePerformanceForUser = async (userId, period) => {
+    const user = await User.findById(userId);
+    if (!user) return null;
+
     const metrics = await calculateScore(userId, period);
     const savedMetric = await PerformanceMetric.findOneAndUpdate(
         { user: userId, period },
@@ -197,8 +201,31 @@ export const recalculatePerformanceForUser = async (userId, period) => {
         { upsert: true, new: true }
     );
 
-    // Sync the calculated score to the User profile so the Profile page reflects it
-    await User.findByIdAndUpdate(userId, { teamPerformanceScore: Math.round(metrics.totalScore) });
+    // 1. Sync individual score to all profiles
+    const individualScore = Math.round(metrics.totalScore);
+    await User.findByIdAndUpdate(userId, { individualPerformanceScore: individualScore });
+
+    // 2. If Team Lead, calculate and sync the averaged TEAM score
+    if (user.role === 'team-lead') {
+        const team = await Team.findOne({ teamLead: userId });
+
+        if (team && team.members && team.members.length > 0) {
+            const allMemberIds = [...team.members];
+
+            const teamMetrics = await PerformanceMetric.find({
+                user: { $in: allMemberIds },
+                period
+            });
+
+            if (teamMetrics.length > 0) {
+                const teamAvg = teamMetrics.reduce((sum, m) => sum + m.totalScore, 0) / teamMetrics.length;
+                await User.findByIdAndUpdate(userId, { teamPerformanceScore: Math.round(teamAvg) });
+            }
+        }
+    }
+    if (user.role === 'employee') {
+        await User.findByIdAndUpdate(userId, { teamPerformanceScore: individualScore });
+    }
 
     // Socket Emit
     try {
@@ -206,6 +233,15 @@ export const recalculatePerformanceForUser = async (userId, period) => {
         io.to(`user:${userId}`).emit('performance:updated', savedMetric);
         io.to('role:admin').emit('performance:updated', savedMetric);
     } catch (e) { console.error('Socket emit error:', e); }
+
+    // 3. Chain update to Manager if applicable (so Lead's team average reflects this change immediately)
+    if (user.reportingManager) {
+        try {
+            await recalculatePerformanceForUser(user.reportingManager, period);
+        } catch (err) {
+            console.error('Failed to update manager score:', err.message);
+        }
+    }
 
     return savedMetric;
 };

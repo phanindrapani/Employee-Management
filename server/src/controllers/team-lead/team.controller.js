@@ -8,7 +8,7 @@ export const getTeamMembers = async (req, res) => {
 
         // Fetch members with workload
         const members = await User.find({ team: teamId })
-            .select('name email phone role experienceLevel skills profilePicture isActive');
+            .select('name email phone role experienceLevel skills profilePicture isActive individualPerformanceScore');
 
         // Fetch team metadata for dynamic header
         const teamInfo = await User.findById(req.user._id)
@@ -53,5 +53,45 @@ export const getTeamMembers = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch team members" });
+    }
+};
+
+// Calculate and update team performance score
+export const calculateTeamPerformanceScore = async (req, res) => {
+    try {
+        const teamLeadId = req.user._id;
+        const teamId = req.user.team;
+
+        // Fetch all team members with their performance scores
+        const members = await User.find({ team: teamId })
+            .select('individualPerformanceScore');
+
+        if (!members || members.length === 0) {
+            // No team members, set score to 0
+            await User.findByIdAndUpdate(teamLeadId, { teamPerformanceScore: 0 });
+            return res.json({ teamAverage: 0, membersCount: 0, message: 'No team members found' });
+        }
+
+        // Calculate average of team members' performance scores
+        const validScores = members
+            .map(m => m.individualPerformanceScore || 0)
+            .filter(score => score > 0);
+
+        const teamAverage = validScores.length > 0
+            ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
+            : 0;
+
+        // Update team lead's teamPerformanceScore
+        await User.findByIdAndUpdate(teamLeadId, { teamPerformanceScore: teamAverage });
+
+        res.json({
+            teamAverage,
+            membersCount: members.length,
+            activeMembersCount: validScores.length,
+            message: 'Team performance score calculated'
+        });
+    } catch (error) {
+        console.error('Calculate team performance error:', error);
+        res.status(500).json({ message: "Failed to calculate team performance score" });
     }
 };

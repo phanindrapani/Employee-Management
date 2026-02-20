@@ -93,6 +93,10 @@ const userSchema = new mongoose.Schema({
         offerletter: { type: String },
         joiningletter: { type: String },
         resume: { type: String },
+    },
+    individualPerformanceScore: {
+        type: Number,
+        default: 0
     }
 }, baseOptions);
 
