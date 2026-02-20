@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users,
     ClipboardList,
@@ -21,6 +21,7 @@ import {
     ResponsiveContainer,
     Cell
 } from 'recharts';
+import useSocketListener from '../hooks/useSocketListener';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -40,20 +41,32 @@ const Dashboard = () => {
     });
     const [loading, setLoading] = useState(!stats.teamSize && !stats.activeProjects);
 
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const { data } = await API.get('/team-lead/stats');
-                setStats(data);
-                localStorage.setItem('ls_tl_stats', JSON.stringify(data));
-                setLoading(false);
-            } catch (error) {
-                console.error("Dashboard fetch error:", error);
-                setLoading(false);
-            }
-        };
-        fetchDashboardData();
+    const fetchDashboardData = useCallback(async () => {
+        try {
+            const { data } = await API.get('/team-lead/stats');
+            setStats(data);
+            localStorage.setItem('ls_tl_stats', JSON.stringify(data));
+        } catch (error) {
+            console.error("Dashboard fetch error:", error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, [fetchDashboardData]);
+
+    useSocketListener('task:created', fetchDashboardData);
+    useSocketListener('task:updated', fetchDashboardData);
+    useSocketListener('task:assigned', fetchDashboardData);
+    useSocketListener('task:deleted', fetchDashboardData);
+    useSocketListener('leave:created', fetchDashboardData);
+    useSocketListener('leave:updated', fetchDashboardData);
+    useSocketListener('project:created', fetchDashboardData);
+    useSocketListener('project:updated', fetchDashboardData);
+    useSocketListener('project:deleted', fetchDashboardData);
+    useSocketListener('performance:updated', fetchDashboardData);
 
     const cards = [
         { title: 'My Team', value: stats.teamSize, sub: 'Active Members', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', path: '/team' },

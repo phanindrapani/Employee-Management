@@ -24,13 +24,13 @@ import {
 import API from '../api';
 
 const Reports = () => {
-    const [loading, setLoading] = useState(() => {
+    const [reportData, setReportData] = useState(() => {
         const cached = localStorage.getItem('ls_tl_reports_data');
-        return !cached;
+        return cached ? JSON.parse(cached) : null;
     });
+    const [loading, setLoading] = useState(!reportData);
 
     const COLORS = ['#0B3C5D', '#63C132', '#1A4B6D', '#74D144'];
-    const [reportData, setReportData] = useState(null);
 
     const fetchReports = async () => {
         try {
