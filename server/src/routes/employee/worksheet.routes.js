@@ -6,7 +6,8 @@ import {
     getTemplate,
     getEntries,
     getAnalysis,
-    exportEntries
+    exportEntries,
+    saveEntries
 } from '../../controllers/employee/worksheet.controller.js';
 
 const router = express.Router();
@@ -14,6 +15,9 @@ const router = express.Router();
 // All routes require authentication
 router.use(protect);
 router.use(authorizeRole(['employee', 'team-lead']));
+
+// POST /api/employee/worksheet/save (Manual bulk entry)
+router.post('/save', saveEntries);
 
 // POST /api/employee/worksheet/import
 router.post('/import', worksheetUpload.single('file'), importWorksheet);
