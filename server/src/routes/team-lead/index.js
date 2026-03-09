@@ -6,6 +6,7 @@ import projectRoutes from './project.routes.js';
 import reportRoutes from './report.routes.js';
 import taskRoutes from './task.routes.js';
 import notificationRoutes from './notification.routes.js';
+import worklogRoutes from './worklog.routes.js';
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use('/projects', projectRoutes);
 router.use('/reports', reportRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/worklogs', worklogRoutes);
 
 export default router;
