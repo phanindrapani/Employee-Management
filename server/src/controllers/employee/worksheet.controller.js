@@ -398,3 +398,114 @@ export const exportEntries = async (req, res) => {
         res.status(500).json({ message: 'Export failed', error: err.message });
     }
 };
+// ─────────────────────────────────────────────────────────────────────────────
+// BULK SAVE ENTRIES (Manual Entry)
+// ─────────────────────────────────────────────────────────────────────────────
+export const saveEntries = async (req, res) => {
+    try {
+        const { entries: rawEntries } = req.body;
+
+        if (!Array.isArray(rawEntries) || rawEntries.length === 0) {
+            return res.status(400).json({ message: 'No entries provided' });
+        }
+
+        if (rawEntries.length > MAX_ROWS) {
+            return res.status(413).json({
+                message: `Maximum row limit is ${MAX_ROWS}. Got ${rawEntries.length} rows.`
+            });
+        }
+
+        const validRows = [];
+        const errors = [];
+        const now = new Date();
+
+        // Map and validate each row
+        rawEntries.forEach((raw, i) => {
+            const row = mapRow(raw);
+            const { valid, errors: rowErrors } = validateRow(row, i);
+
+            if (!valid) {
+                errors.push(...rowErrors.map(e => ({ row: i + 1, field: e.field, message: e.message })));
+            } else {
+                validRows.push(row);
+            }
+        });
+
+        if (errors.length > 0) {
+            return res.status(422).json({
+                message: 'Validation failed for some rows',
+                errors
+            });
+        }
+
+        // Detect overlaps in the batch being saved
+        const overlapIndexes = detectOverlaps(validRows.map((r, i) => ({ ...r, _originalIndex: i })));
+        if (overlapIndexes.size > 0) {
+            const overlapErrors = Array.from(overlapIndexes).map(idx => ({
+                row: idx + 1,
+                field: 'time',
+                message: 'Overlapping time entry within the batch'
+            }));
+            return res.status(422).json({
+                message: 'Overlapping time entries detected',
+                errors: overlapErrors
+            });
+        }
+
+        let savedCount = 0;
+        let skippedCount = 0;
+
+        for (const row of validRows) {
+            try {
+                const result = await WorksheetEntry.findOneAndUpdate(
+                    {
+                        employee: req.user._id,
+                        date: row.date,
+                        startTime: row.startTime,
+                        taskTitle: row.taskTitle
+                    },
+                    {
+                        $setOnInsert: {
+                            ...row,
+                            employee: req.user._id,
+                            sourceApp: 'direct-entry',
+                            importedAt: now,
+                            importedBy: req.user._id,
+                            rawRow: row
+                        }
+                    },
+                    { upsert: true, new: false }
+                );
+                if (result === null) savedCount++;
+                else skippedCount++;
+            } catch (err) {
+                if (err.code === 11000) skippedCount++;
+                else console.error('[Worksheet] Save error:', err.message);
+            }
+        }
+
+        // WebSocket notification
+        try {
+            const io = getIO();
+            const dates = validRows.map(r => r.date).sort();
+            io.to(`user:${req.user._id}`).emit('worksheet:updated', {
+                employeeId: req.user._id,
+                fromDate: dates[0] || null,
+                toDate: dates[dates.length - 1] || null,
+                changedCount: savedCount
+            });
+        } catch (e) { console.error('[Worksheet] Socket emit error:', e.message); }
+
+        res.status(200).json({
+            message: skippedCount > 0
+                ? `${savedCount} entries saved, ${skippedCount} duplicates skipped.`
+                : `${savedCount} entries saved successfully.`,
+            savedRows: savedCount,
+            skippedRows: skippedCount
+        });
+
+    } catch (err) {
+        console.error('[Worksheet] Bulk save error:', err);
+        res.status(500).json({ message: 'Failed to save entries', error: err.message });
+    }
+};
