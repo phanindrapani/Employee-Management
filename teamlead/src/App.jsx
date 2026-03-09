@@ -15,6 +15,7 @@ import Notifications from './pages/Notifications';
 import MyProfile from './pages/MyProfile';
 import ChangePassword from './pages/ChangePassword';
 import TeamPerformance from './pages/TeamPerformance';
+import WorkLogs from './pages/WorkLogs';
 
 import { ToastProvider } from './context/ToastContext';
 import NotificationListener from './components/NotificationListener';
@@ -41,7 +42,7 @@ function App() {
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="profile" element={<MyProfile />} />
                 <Route path="change-password" element={<ChangePassword />} />
-                <Route path="team-performance" element={<TeamPerformance />} />
+                <Route path="worklogs" element={<WorkLogs />} />
               </Route>
 
               {/* Catch all */}

@@ -39,6 +39,7 @@ const Sidebar = ({ isOpen, toggle }) => {
         {
             title: 'OPERATIONS',
             items: [
+                { name: 'Work Logs', path: '/worklogs', icon: ClipboardList },
                 { name: 'Leave Overview', path: '/leaves', icon: CalendarDays },
                 { name: 'Reports', path: '/reports', icon: BarChart3 },
             ]
