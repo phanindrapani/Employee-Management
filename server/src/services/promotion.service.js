@@ -40,15 +40,29 @@ export const promoteUser = async (id, targetRole, session = null) => {
         let update = { role: targetRole };
         let unset = {};
 
-        // CASE 1: Promoting Employee -> Team Lead
-        if (targetRole === 'team-lead') {
+        // CASE 1: Promoting to Manager
+        if (targetRole === 'manager') {
+            update = {
+                ...update,
+                managementLevel: 'Junior'
+            };
+            unset = {
+                experienceLevel: "",
+                leadershipLevel: "",
+                teamPerformanceScore: ""
+            };
+        }
+
+        // CASE 2: Promoting to Team Lead
+        else if (targetRole === 'team-lead') {
             update = {
                 ...update,
                 leadershipLevel: 'Junior', // Default
                 teamPerformanceScore: 0
             };
             unset = {
-                experienceLevel: ""
+                experienceLevel: "",
+                managementLevel: ""
             };
             if (user.team) {
                 const Team = mongoose.model('Team');
@@ -57,11 +71,10 @@ export const promoteUser = async (id, targetRole, session = null) => {
                     { $pull: { members: user._id } },
                     { session: localSession }
                 );
-
             }
         }
 
-        // CASE 2: Demoting Team Lead -> Employee
+        // CASE 3: Demoting to Employee
         else if (targetRole === 'employee') {
             const quotas = await getLeaveQuotas();
             update = {
@@ -71,7 +84,8 @@ export const promoteUser = async (id, targetRole, session = null) => {
             };
             unset = {
                 leadershipLevel: "",
-                teamPerformanceScore: ""
+                teamPerformanceScore: "",
+                managementLevel: ""
             };
         }
 
