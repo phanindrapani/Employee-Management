@@ -19,6 +19,7 @@ import adminHolidayRoutes from "./routes/admin/holiday.routes.js";
 import adminRoutes from "./routes/admin/index.js";
 import employeeRoutes from "./routes/employee/index.js";
 import teamLeadRoutes from "./routes/team-lead/index.js";
+import managerRoutes from "./routes/manager/index.js";
 import notificationRoutes from "./routes/notification.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -73,6 +74,7 @@ app.use("/api/holidays", adminHolidayRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/employee", employeeRoutes);
 app.use("/api/team-lead", teamLeadRoutes);
+app.use("/api/manager", managerRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
