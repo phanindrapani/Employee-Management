@@ -4,7 +4,8 @@ import {
     createPerformanceReview,
     getPerformanceReviews,
     triggerCalculation,
-    getAdminPerformanceStats
+    getAdminPerformanceStats,
+    getEmployeePerformanceProfile
 } from '../../controllers/admin/performance.controller.js';
 
 const router = express.Router();
@@ -16,5 +17,8 @@ router.get('/reviews', protect, authorizeRole(['admin', 'team-lead', 'employee']
 // Advanced Analytics
 router.post('/calculate', protect, authorizeRole(['admin']), triggerCalculation);
 router.get('/dashboard', protect, authorizeRole(['admin']), getAdminPerformanceStats);
+
+// Individual Employee Profile
+router.get('/employee/:id', protect, authorizeRole(['admin', 'manager']), getEmployeePerformanceProfile);
 
 export default router;
