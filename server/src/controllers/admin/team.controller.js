@@ -12,10 +12,10 @@ export const createTeam = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const { name, department, teamLead, members = [] } = req.body;
+        const { name, department, teamLead, manager, members = [] } = req.body;
 
         // 1. Create Team
-        const [team] = await Team.create([{ name, department, teamLead, members }], { session });
+        const [team] = await Team.create([{ name, department, teamLead, manager, members }], { session });
 
         // 2. Promote Lead (if assigned)
         if (teamLead) {
@@ -23,19 +23,31 @@ export const createTeam = async (req, res) => {
             // Use native driver for consistency
             await User.collection.updateOne(
                 { _id: new mongoose.Types.ObjectId(teamLead) },
-                { $set: { team: team._id, reportingManager: new mongoose.Types.ObjectId(teamLead) } },
+                { $set: { team: team._id, reportingManager: manager ? new mongoose.Types.ObjectId(manager) : new mongoose.Types.ObjectId(teamLead) } },
                 { session }
             );
         }
 
-        // 3. Update Members
+        // 3. Promote Manager (if assigned)
+        if (manager) {
+            await promoteUser(manager, 'manager', session);
+            // Managers don't necessarily belong to a team in the same way, 
+            // but we can track their role. Reporting manager for a manager is null/admin.
+            await User.collection.updateOne(
+                { _id: new mongoose.Types.ObjectId(manager) },
+                { $set: { reportingManager: null } },
+                { session }
+            );
+        }
+
+        // 4. Update Members
         if (members.length > 0) {
             await User.updateMany(
                 { _id: { $in: members } },
                 {
                     $set: {
                         team: team._id,
-                        ...(teamLead ? { reportingManager: teamLead } : {})
+                        reportingManager: teamLead ? new mongoose.Types.ObjectId(teamLead) : (manager ? new mongoose.Types.ObjectId(manager) : null)
                     }
                 },
                 { session }
@@ -47,9 +59,10 @@ export const createTeam = async (req, res) => {
         // Socket Emit
         try {
             const io = getIO();
-            const populatedTeam = await Team.findById(team._id).populate('department').populate('teamLead', 'name email');
+            const populatedTeam = await Team.findById(team._id).populate('department').populate('teamLead', 'name email').populate('manager', 'name email');
             io.to('role:admin').emit('team:created', populatedTeam);
             if (teamLead) io.to(`user:${teamLead}`).emit('team:assigned', populatedTeam);
+            if (manager) io.to(`user:${manager}`).emit('team:assigned', populatedTeam);
         } catch (e) { console.error('Socket emit error:', e); }
 
         res.status(201).json(team);
@@ -69,57 +82,48 @@ export const updateTeam = async (req, res) => {
     session.startTransaction();
     try {
         const { id } = req.params;
-        const { name, department, teamLead, members = [] } = req.body;
+        const { name, department, teamLead, manager, members = [] } = req.body;
 
         const team = await Team.findById(id).session(session);
         if (!team) throw new Error("Team not found");
 
         const oldLeadId = team.teamLead ? team.teamLead.toString() : null;
         const newLeadId = teamLead || null;
+        const oldManagerId = team.manager ? team.manager.toString() : null;
+        const newManagerId = manager || null;
 
         // 1. Handle Lead Swap
         if (newLeadId !== oldLeadId) {
-            // Demote Old
             if (oldLeadId) {
-                try {
-                    await promoteUser(oldLeadId, 'employee', session);
-                } catch (e) {
-                    throw e;
-                }
-
-                try {
-                    await User.collection.updateOne(
-                        { _id: new mongoose.Types.ObjectId(oldLeadId) },
-                        { $set: { team: null } },
-                        { session }
-                    );
-                } catch (e) {
-                    throw e;
-                }
+                await promoteUser(oldLeadId, 'employee', session);
+                await User.collection.updateOne(
+                    { _id: new mongoose.Types.ObjectId(oldLeadId) },
+                    { $set: { team: null, reportingManager: null } },
+                    { session }
+                );
             }
-
-            // Promote New
             if (newLeadId) {
-                try {
-                    await promoteUser(newLeadId, 'team-lead', session);
-                } catch (e) {
-                    throw e;
-                }
+                await promoteUser(newLeadId, 'team-lead', session);
+                await User.collection.updateOne(
+                    { _id: new mongoose.Types.ObjectId(newLeadId) },
+                    { $set: { team: id } },
+                    { session }
+                );
+            }
+        }
 
-                try {
-                    await User.collection.updateOne(
-                        { _id: new mongoose.Types.ObjectId(newLeadId) },
-                        {
-                            $set: {
-                                team: id,
-                                reportingManager: new mongoose.Types.ObjectId(newLeadId)
-                            }
-                        },
-                        { session }
-                    );
-                } catch (e) {
-                    throw e;
-                }
+        // 1b. Handle Manager Swap
+        if (newManagerId !== oldManagerId) {
+            if (oldManagerId) {
+
+            }
+            if (newManagerId) {
+                await promoteUser(newManagerId, 'manager', session);
+                await User.collection.updateOne(
+                    { _id: new mongoose.Types.ObjectId(newManagerId) },
+                    { $set: { reportingManager: null } },
+                    { session }
+                );
             }
         }
 
@@ -155,24 +159,27 @@ export const updateTeam = async (req, res) => {
 
         // Step 2b: Always sync reporting manager for current team members
         if (newLeadId) {
-            try {
-                // Non-leads report to the team lead
-                await User.updateMany(
-                    { team: id, _id: { $ne: newLeadId } },
-                    { $set: { reportingManager: newLeadId } },
-                    { session }
-                );
+            // Team lead reports to manager if exists, else self
+            await User.updateOne(
+                { _id: newLeadId },
+                { $set: { reportingManager: newManagerId ? new mongoose.Types.ObjectId(newManagerId) : new mongoose.Types.ObjectId(newLeadId), team: id } },
+                { session }
+            );
 
-                // Team lead reports to themselves
-                await User.updateOne(
-                    { _id: newLeadId },
-                    { $set: { reportingManager: newLeadId, team: id } },
-                    { session }
-                );
+            // Non-leads report to the team lead
+            await User.updateMany(
+                { team: id, _id: { $ne: newLeadId }, role: { $ne: 'manager' } },
+                { $set: { reportingManager: newLeadId } },
+                { session }
+            );
 
-            } catch (e) {
-                throw e;
-            }
+        } else if (newManagerId) {
+            // No lead, everyone reports to manager
+            await User.updateMany(
+                { team: id, role: { $ne: 'manager' } },
+                { $set: { reportingManager: newManagerId } },
+                { session }
+            );
         } else {
             await User.updateMany(
                 { team: id },
@@ -191,6 +198,7 @@ export const updateTeam = async (req, res) => {
                         name: name || team.name,
                         department: department || team.department,
                         teamLead: newLeadId,
+                        manager: newManagerId,
                         members: members
                     }
                 },
@@ -203,7 +211,7 @@ export const updateTeam = async (req, res) => {
         await session.commitTransaction();
 
         // Return updated team
-        const updatedTeam = await Team.findById(id).populate('department').populate('teamLead', 'name email');
+        const updatedTeam = await Team.findById(id).populate('department').populate('teamLead', 'name email').populate('manager', 'name email');
 
         // Socket Emit
         try {
@@ -261,7 +269,7 @@ export const deleteTeam = async (req, res) => {
 
 export const getAllTeams = async (req, res) => {
     try {
-        const teams = await Team.find().populate('department').populate('teamLead', 'name email');
+        const teams = await Team.find().populate('department').populate('teamLead', 'name email').populate('manager', 'name email');
         res.json(teams);
     } catch (error) { res.status(500).json({ msg: "Failed to fetch" }); }
 };

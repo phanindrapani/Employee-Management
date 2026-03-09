@@ -5,6 +5,8 @@ import Attendance from '../../models/attendance.model.js';
 import User from '../../models/user.model.js';
 import Holiday from '../../models/holiday.model.js';
 import Team from '../../models/team.model.js';
+import Project from '../../models/project.model.js';
+import mongoose from 'mongoose';
 import { getIO } from '../../socket.js';
 
 // ==================================================
@@ -235,7 +237,7 @@ export const recalculatePerformanceForUser = async (userId, period) => {
     } catch (e) { console.error('Socket emit error:', e); }
 
     // 3. Chain update to Manager if applicable (so Lead's team average reflects this change immediately)
-    if (user.reportingManager) {
+    if (user.reportingManager && user.reportingManager.toString() !== userId.toString()) {
         try {
             await recalculatePerformanceForUser(user.reportingManager, period);
         } catch (err) {
@@ -289,7 +291,7 @@ export const getAdminPerformanceStats = async (req, res) => {
         });
 
         // Fetch all teams with lead info
-        const teams = await Team.find({}).populate('teamLead', 'name email').populate('members', '_id');
+        const teams = await Team.find({}).populate('teamLead', 'name email').populate('members', 'name role');
 
         // Calculate per-team stats
         const teamStats = await Promise.all(teams.map(async (team) => {
@@ -318,11 +320,20 @@ export const getAdminPerformanceStats = async (req, res) => {
                 avgScore,
                 highestScore,
                 needsAttention,
-                members: teamMetrics.map(m => ({
-                    name: m.user?.name,
-                    score: m.totalScore,
-                    isLead: m.user?._id?.toString() === team.teamLead?._id?.toString()
-                }))
+                members: [
+                    ...(team.teamLead ? [{
+                        name: team.teamLead.name,
+                        score: metrics.find(m => m.user?._id?.toString() === team.teamLead._id.toString())?.totalScore || 0,
+                        isLead: true
+                    }] : []),
+                    ...team.members
+                        .filter(m => m._id.toString() !== team.teamLead?._id?.toString())
+                        .map(m => ({
+                            name: m.name,
+                            score: metrics.find(met => met.user?._id?.toString() === m._id.toString())?.totalScore || 0,
+                            isLead: false
+                        }))
+                ]
             };
         }));
 
@@ -353,6 +364,10 @@ export const getAdminPerformanceStats = async (req, res) => {
     }
 };
 
+/**
+ * GET /admin/performance/employee/:id
+ * Fetches current-period metric and last 6 months of history for a single employee.
+ */
 export const getEmployeePerformanceProfile = async (req, res) => {
     try {
         const { id } = req.params;
