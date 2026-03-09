@@ -133,6 +133,19 @@ const User = mongoose.model('User', userSchema);
 const Admin = User.discriminator('admin', new mongoose.Schema({}));
 
 
+// MANAGER DISCRIMINATOR
+const Manager = User.discriminator('manager', new mongoose.Schema({
+    skills: [{
+        type: String
+    }],
+    managementLevel: {
+        type: String,
+        enum: ['Junior', 'Mid', 'Senior'],
+        default: 'Junior'
+    }
+}));
+
+
 // TEAM LEAD DISCRIMINATOR
 const TeamLead = User.discriminator('team-lead', new mongoose.Schema({
     skills: [{
@@ -164,5 +177,5 @@ const Employee = User.discriminator('employee', new mongoose.Schema({
 // ==================================================
 // EXPORTS
 // ==================================================
-export { User, Admin, TeamLead, Employee };
+export { User, Admin, Manager, TeamLead, Employee };
 export default User;
