@@ -148,7 +148,7 @@ const MyProfile = () => {
                         </div>
                         <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[8px] md:text-[9px] flex items-center justify-center md:justify-start gap-2">
                             <Shield size={10} className="text-[#63C132]" />
-                            Authorized Portal Access
+                            Verified Account
                         </p>
                     </div>
                 </div>
@@ -168,7 +168,7 @@ const MyProfile = () => {
                             {[
                                 { label: 'Email Address', val: user.email, ico: Mail, clr: 'blue' },
                                 { label: 'Phone Number', val: user.phone || 'Not Shared', ico: Phone, clr: '[#63C132]' },
-                                { label: 'Team Context', val: `${user.department?.name || 'HR'} • ${user.team?.name || 'Core'}`, ico: MapPin, clr: 'amber' }
+                                { label: 'Team & Department', val: `${user.department?.name || 'HR'} • ${user.team?.name || 'Core'}`, ico: MapPin, clr: 'amber' }
                             ].map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-[20px] group transition-all">
                                     <div className={`w-10 h-10 bg-${item.clr}-50 text-${item.clr}-500 rounded-xl flex items-center justify-center shrink-0`}>
@@ -185,7 +185,7 @@ const MyProfile = () => {
 
                     <div className="bg-slate-50 p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-slate-100 space-y-4">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-[10px] font-black !text-slate-400 uppercase tracking-[0.2em]">Security Settings</h3>
+                            <h3 className="text-[10px] font-black !text-slate-400 uppercase tracking-[0.2em]">Password & Security</h3>
                             <Settings size={16} className="text-slate-300" />
                         </div>
                         <Link to="/change-password" title="Change Password" className="w-full flex items-center justify-between p-4 bg-white rounded-[20px] shadow-sm hover:shadow-md transition-all group">
@@ -200,7 +200,7 @@ const MyProfile = () => {
                     <div className="bg-white p-6 md:p-10 rounded-[32px] md:rounded-[48px] shadow-sm border border-slate-100">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
                             <h3 className="text-xl font-black text-[#0B3C5D] tracking-tight">Performance Summary</h3>
-                            <div className="px-3 py-1 bg-[#63C132]/10 text-[#63C132] rounded-lg text-[10px] font-black uppercase tracking-widest leading-none">Active Analysis</div>
+                            <div className="px-3 py-1 bg-[#63C132]/10 text-[#63C132] rounded-lg text-[10px] font-black uppercase tracking-widest leading-none">Live Data</div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8">
@@ -209,7 +209,7 @@ const MyProfile = () => {
                                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#0B3C5D] text-white rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-md">
                                         <Briefcase className="size-5 md:size-6" />
                                     </div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Impact Level</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Role Level</p>
                                     <p className="text-2xl md:text-3xl font-black text-[#0B3C5D]">{user.leadershipLevel || user.experienceLevel || 'Mid-Lead'}</p>
                                 </div>
                             </div>
@@ -228,7 +228,7 @@ const MyProfile = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mt-6 md:mt-10">
                             <div className="p-6 md:p-8 bg-slate-50 rounded-[32px] md:rounded-[40px] flex flex-col md:flex-row items-center gap-6 shadow-sm group hover:shadow-md transition-all">
                                 <div className="flex-1 space-y-2 text-center md:text-left">
-                                    <h4 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight">Individual Compliance</h4>
+                                    <h4 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight">Personal Score</h4>
                                     <p className="text-slate-500 text-[10px] md:text-xs font-medium leading-relaxed">Personal score based on your tasks and attendance.</p>
                                 </div>
                                 <div className="flex items-center gap-3 bg-white px-5 py-3 md:px-6 md:py-4 rounded-[20px] md:rounded-[24px] shrink-0 shadow-sm">
@@ -242,8 +242,8 @@ const MyProfile = () => {
 
                             <div className="p-6 md:p-8 bg-slate-50 rounded-[32px] md:rounded-[40px] flex flex-col md:flex-row items-center gap-6 shadow-sm group hover:shadow-md transition-all">
                                 <div className="flex-1 space-y-2 text-center md:text-left">
-                                    <h4 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight">Team Trust Index</h4>
-                                    <p className="text-slate-500 text-[10px] md:text-xs font-medium leading-relaxed">Aggregated performance of your direct reports.</p>
+                                    <h4 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight">Team Average</h4>
+                                    <p className="text-slate-500 text-[10px] md:text-xs font-medium leading-relaxed">Average performance score of your team members.</p>
                                 </div>
                                 <div className="flex items-center gap-3 bg-white px-5 py-3 md:px-6 md:py-4 rounded-[20px] md:rounded-[24px] shrink-0 shadow-sm">
                                     <Users className="text-[#63C132] size-5 md:size-6" />
