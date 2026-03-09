@@ -24,6 +24,7 @@ const TeamManagement = () => {
         name: '',
         department: '',
         teamLead: '',
+        manager: '',
         members: []
     });
 
@@ -54,12 +55,11 @@ const TeamManagement = () => {
     useSocketListener('team:created', fetchData);
     useSocketListener('team:updated', fetchData);
     useSocketListener('team:deleted', fetchData);
-    useSocketListener('team:member_added', fetchData); // If specifically emitted
-    // And if departments/employees change that might affect the lists:
+    useSocketListener('team:member_added', fetchData);
     useSocketListener('department:created', fetchData);
     useSocketListener('department:updated', fetchData);
     useSocketListener('employee:created', fetchData);
-    useSocketListener('employee:updated', fetchData); // Role changes etc
+    useSocketListener('employee:updated', fetchData);
 
     const toggleMember = (id) => {
         setFormData(prev => {
@@ -79,7 +79,7 @@ const TeamManagement = () => {
                 await API.post('/admin/teams', formData);
             }
             setShowModal(false);
-            setFormData({ name: '', department: '', teamLead: '', members: [] });
+            setFormData({ name: '', department: '', teamLead: '', manager: '', members: [] });
             setIsEditing(false);
             setEditingId(null);
             fetchData();
@@ -93,6 +93,7 @@ const TeamManagement = () => {
             name: team.name,
             department: team.department?._id || team.department,
             teamLead: team.teamLead?._id || team.teamLead,
+            manager: team.manager?._id || team.manager || '',
             members: team.members?.map(m => m._id || m) || []
         });
         setEditingId(team._id);
@@ -124,7 +125,7 @@ const TeamManagement = () => {
                 </div>
                 <button
                     onClick={() => {
-                        setFormData({ name: '', department: '', teamLead: '', members: [] });
+                        setFormData({ name: '', department: '', teamLead: '', manager: '', members: [] });
                         setIsEditing(false);
                         setEditingId(null);
                         setShowModal(true);
@@ -170,6 +171,19 @@ const TeamManagement = () => {
                             </div>
 
                             <div className="space-y-3">
+                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 bg-[#63C132] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                            {team.manager?.name?.charAt(0) || 'M'}
+                                        </div>
+                                        <div className="text-xs">
+                                            <p className="font-bold text-slate-900">{team.manager?.name || 'Unassigned'}</p>
+                                            <p className="text-slate-400">Reporting Manager</p>
+                                        </div>
+                                    </div>
+                                    <ShieldCheck size={16} className="text-[#63C132]" />
+                                </div>
+
                                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                                     <div className="flex items-center gap-2">
                                         <div className="w-8 h-8 bg-[#0B3C5D] rounded-full flex items-center justify-center text-white text-xs font-bold">
@@ -224,7 +238,7 @@ const TeamManagement = () => {
                                     <select
                                         className="input-field"
                                         value={formData.department}
-                                        onChange={(e) => setFormData({ ...formData, department: e.target.value, teamLead: '', members: [] })}
+                                        onChange={(e) => setFormData({ ...formData, department: e.target.value, teamLead: '', manager: '', members: [] })}
                                         required
                                     >
                                         <option value="">Select Department</option>
@@ -235,20 +249,37 @@ const TeamManagement = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="label">Team Lead</label>
-                                <select
-                                    className="input-field"
-                                    value={formData.teamLead}
-                                    onChange={(e) => setFormData({ ...formData, teamLead: e.target.value })}
-                                >
-                                    <option value="">Assign Team Lead (Optional)</option>
-                                    {employees
-                                        .filter(emp => !formData.department || emp.department?._id === formData.department || emp.department === formData.department)
-                                        .map(emp => (
-                                            <option key={emp._id} value={emp._id}>{emp.name}</option>
-                                        ))}
-                                </select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="label">Reporting Manager</label>
+                                    <select
+                                        className="input-field"
+                                        value={formData.manager}
+                                        onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
+                                    >
+                                        <option value="">Select Manager</option>
+                                        {employees
+                                            .filter(emp => emp.role === 'manager' || emp.role === 'admin')
+                                            .map(emp => (
+                                                <option key={emp._id} value={emp._id}>{emp.name}</option>
+                                            ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="label">Team Lead</label>
+                                    <select
+                                        className="input-field"
+                                        value={formData.teamLead}
+                                        onChange={(e) => setFormData({ ...formData, teamLead: e.target.value })}
+                                    >
+                                        <option value="">Assign Team Lead (Optional)</option>
+                                        {employees
+                                            .filter(emp => !formData.department || emp.department?._id === formData.department || emp.department === formData.department)
+                                            .map(emp => (
+                                                <option key={emp._id} value={emp._id}>{emp.name}</option>
+                                            ))}
+                                    </select>
+                                </div>
                             </div>
 
                             <div>

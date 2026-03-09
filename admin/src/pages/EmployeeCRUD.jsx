@@ -18,7 +18,8 @@ const EmployeeCRUD = () => {
         skills: '',
         experienceLevel: '',
         phone: '',
-        qualification: ''
+        qualification: '',
+        managementLevel: ''
     };
 
     const navigate = useNavigate();
@@ -216,7 +217,8 @@ const EmployeeCRUD = () => {
                                                             skills: Array.isArray(emp.skills) ? emp.skills.join(', ') : '',
                                                             experienceLevel: emp.experienceLevel || '',
                                                             phone: emp.phone || '',
-                                                            qualification: emp.qualification || ''
+                                                            qualification: emp.qualification || '',
+                                                            managementLevel: emp.managementLevel || ''
                                                         });
                                                         setShowModal(true);
                                                     }}
@@ -277,22 +279,56 @@ const EmployeeCRUD = () => {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Role</label>
+                                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value, experienceLevel: '', leadershipLevel: '', managementLevel: '' })} required>
+                                        <option value="employee">Employee</option>
+                                        <option value="team-lead">Team Lead</option>
+                                        <option value="manager">Manager</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Department</label>
                                     <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} required>
                                         <option value="">Select</option>
                                         {departments.map(dept => <option key={dept._id} value={dept._id}>{dept.name}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Level</label>
-                                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none" value={formData.experienceLevel} onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })} required>
-                                        <option value="">Select</option>
-                                        <option value="Junior">Junior</option>
-                                        <option value="Mid">Mid</option>
-                                        <option value="Senior">Senior</option>
-                                        <option value="Intern">Intern</option>
-                                    </select>
-                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {formData.role === 'employee' && (
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Experience Level</label>
+                                        <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none" value={formData.experienceLevel} onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })} required>
+                                            <option value="">Select</option>
+                                            <option value="Junior">Junior</option>
+                                            <option value="Mid">Mid</option>
+                                            <option value="Senior">Senior</option>
+                                            <option value="Intern">Intern</option>
+                                        </select>
+                                    </div>
+                                )}
+                                {formData.role === 'team-lead' && (
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Leadership Level</label>
+                                        <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none" value={formData.leadershipLevel} onChange={(e) => setFormData({ ...formData, leadershipLevel: e.target.value })} required>
+                                            <option value="">Select</option>
+                                            <option value="Junior">Junior</option>
+                                            <option value="Mid">Mid</option>
+                                            <option value="Senior">Senior</option>
+                                        </select>
+                                    </div>
+                                )}
+                                {formData.role === 'manager' && (
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Management Level</label>
+                                        <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none" value={formData.managementLevel} onChange={(e) => setFormData({ ...formData, managementLevel: e.target.value })} required>
+                                            <option value="">Select</option>
+                                            <option value="Junior">Junior</option>
+                                            <option value="Mid">Mid</option>
+                                            <option value="Senior">Senior</option>
+                                        </select>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex gap-3 pt-6 sticky bottom-0 bg-white mt-auto">
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold">Cancel</button>
