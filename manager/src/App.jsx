@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { ToastProvider } from './context/ToastContext';
+import NotificationListener from './components/NotificationListener';
 import Login from './pages/Login';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import ManagerDashboard from './pages/ManagerDashboard';
@@ -13,6 +14,7 @@ import WorkLogs from './pages/WorkLogs';
 import Leaves from './pages/Leaves';
 import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
+import Tickets from './pages/Tickets';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -26,6 +28,7 @@ function App() {
     <AuthProvider>
       <SocketProvider>
         <ToastProvider>
+          <NotificationListener />
           <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -42,6 +45,7 @@ function App() {
                 <Route path="leaves" element={<Leaves />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="change-password" element={<ChangePassword />} />
+                <Route path="tickets" element={<Tickets />} />
               </Route>
             </Routes>
           </Router>

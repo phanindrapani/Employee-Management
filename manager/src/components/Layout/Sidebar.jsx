@@ -12,7 +12,8 @@ import {
     Briefcase,
     CheckSquare,
     Clock,
-    CalendarDays
+    CalendarDays,
+    Ticket
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import manuenSquare from '../../assets/manuen_square.png';
@@ -41,6 +42,7 @@ const Sidebar = ({ isOpen, toggle }) => {
             items: [
                 { name: 'Work Logs', path: '/work-logs', icon: Clock },
                 { name: 'Leave Oversight', path: '/leaves', icon: CalendarDays },
+                { name: 'Tickets', path: '/tickets', icon: Ticket },
             ]
         },
         {
