@@ -132,6 +132,7 @@ export const assignManager = async (req, res) => {
             message: `New Ticket Assigned: "${ticket.title}"`
         });
         io.to(`user:${managerId}`).emit('ticket:assigned', ticket);
+        io.emit('ticket:updated', ticket);
 
         res.json({ message: `Ticket assigned to manager ${manager.name}`, ticket });
     } catch (error) {
@@ -152,6 +153,10 @@ export const closeTicket = async (req, res) => {
         ticket.status = 'CLOSED';
         ticket.closedAt = new Date();
         await ticket.save();
+
+        const io = getIO();
+        io.emit('ticket:updated', ticket);
+
         res.json({ message: 'Ticket closed', ticket });
     } catch (error) {
         res.status(500).json({ message: 'Failed to close ticket' });
@@ -177,6 +182,8 @@ export const addComment = async (req, res) => {
         // Notification Logic
         try {
             const io = getIO();
+            io.emit('ticket:updated', ticket);
+
             if (isInternal) {
                 // Notify assigned staff
                 const notifyUserIds = [ticket.assignedEmployee, ticket.assignedTeamLead, ticket.assignedManager].filter(id => id);

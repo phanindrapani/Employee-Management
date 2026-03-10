@@ -2,28 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import {
-    Ticket as TicketIcon,
-    Filter,
     Search,
     UserPlus,
     CheckCircle2,
-    Clock,
-    AlertCircle,
-    MoreVertical,
     ChevronRight,
     MessageSquare,
-    Users,
-    Send,
-    X,
-    Trash2,
-    Lock,
-    Globe,
-    Paperclip,
-    ExternalLink,
-    FileText,
-    Image as ImageIcon
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import useSocketListener from '../hooks/useSocketListener';
 
 const BADGE_STYLES = {
     OPEN: 'bg-sky-50 text-sky-600 border-sky-100',
@@ -45,10 +31,19 @@ const PRIORITY_STYLES = {
 
 const Tickets = () => {
     const navigate = useNavigate();
-    const [tickets, setTickets] = useState([]);
-    const [analytics, setAnalytics] = useState(null);
-    const [managers, setManagers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [tickets, setTickets] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_tickets_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [analytics, setAnalytics] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_tickets_analytics');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [managers, setManagers] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_managers_list');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(tickets.length === 0);
     const [filter, setFilter] = useState({ status: '', priority: '', search: '' });
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -68,6 +63,11 @@ const Tickets = () => {
         return () => clearTimeout(timer);
     }, [filter.status, filter.priority, filter.search]);
 
+    useSocketListener('ticket:updated', () => {
+        fetchData();
+        fetchManagers();
+    });
+
     const fetchData = async () => {
         try {
             const [tRes, aRes] = await Promise.all([
@@ -76,6 +76,8 @@ const Tickets = () => {
             ]);
             setTickets(tRes.data.tickets);
             setAnalytics(aRes.data);
+            localStorage.setItem('ls_admin_tickets_list', JSON.stringify(tRes.data.tickets));
+            localStorage.setItem('ls_admin_tickets_analytics', JSON.stringify(aRes.data));
         } catch (error) {
             showToast('Failed to fetch tickets', 'error');
         } finally {
@@ -87,6 +89,7 @@ const Tickets = () => {
         try {
             const { data } = await API.get('/admin/employees', { params: { role: 'manager' } });
             setManagers(data);
+            localStorage.setItem('ls_admin_managers_list', JSON.stringify(data));
         } catch (error) {
             console.error('Failed to fetch managers');
         }
