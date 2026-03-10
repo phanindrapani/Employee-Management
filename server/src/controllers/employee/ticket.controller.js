@@ -164,14 +164,15 @@ export const addComment = async (req, res) => {
 export const getStats = async (req, res) => {
     try {
         const empId = req.user.id;
-        const [total, inProgress, waitingForClient, doubtRaised, resolved] = await Promise.all([
+        const [total, pending, inProgress, waitingForClient, doubtRaised, resolved] = await Promise.all([
             Ticket.countDocuments({ assignedEmployee: empId }),
+            Ticket.countDocuments({ assignedEmployee: empId, status: 'OPEN' }),
             Ticket.countDocuments({ assignedEmployee: empId, status: 'IN_PROGRESS' }),
             Ticket.countDocuments({ assignedEmployee: empId, status: 'WAITING_FOR_CLIENT' }),
             Ticket.countDocuments({ assignedEmployee: empId, status: 'DOUBT_RAISED' }),
             Ticket.countDocuments({ assignedEmployee: empId, status: 'RESOLVED' })
         ]);
-        res.json({ total, inProgress, waitingForClient, doubtRaised, resolved });
+        res.json({ total, pending, inProgress, waitingForClient, doubtRaised, resolved });
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch stats' });
     }

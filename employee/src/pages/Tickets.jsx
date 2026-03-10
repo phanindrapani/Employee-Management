@@ -16,6 +16,8 @@ import {
     Globe
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import useSocketListener from '../hooks/useSocketListener';
+import StatCard from '../components/StatCard';
 
 const BADGE_STLYES = {
     OPEN: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -139,27 +141,32 @@ const Tickets = () => {
 
             {/* Employee Stats */}
             {stats && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-indigo-500">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Total Assigned</span>
-                        <span className="text-3xl font-black text-[#0B3C5D]">{stats.total}</span>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-yellow-500">
-                        <span className="text-[10px] font-black text-yellow-500 uppercase tracking-widest block mb-1">Pending Assignment</span>
-                        <span className="text-3xl font-black text-[#0B3C5D]">{stats.pending}</span>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-blue-500">
-                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1">In Progress</span>
-                        <span className="text-3xl font-black text-[#0B3C5D]">{stats.inProgress}</span>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-rose-500">
-                        <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest block mb-1">Doubt Raised</span>
-                        <span className="text-3xl font-black text-[#0B3C5D]">{stats.doubtRaised}</span>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-green-500">
-                        <span className="text-[10px] font-black text-green-500 uppercase tracking-widest block mb-1">Resolved Today</span>
-                        <span className="text-3xl font-black text-[#0B3C5D]">{stats.resolved}</span>
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <StatCard
+                        title="Total Assigned"
+                        value={stats.total}
+                        titleColor="text-indigo-500"
+                    />
+                    <StatCard
+                        title="Pending Assignment"
+                        value={stats.pending}
+                        titleColor="text-amber-500"
+                    />
+                    <StatCard
+                        title="In Progress"
+                        value={stats.inProgress}
+                        titleColor="text-blue-500"
+                    />
+                    <StatCard
+                        title="Doubt Raised"
+                        value={stats.doubtRaised}
+                        titleColor="text-rose-500"
+                    />
+                    <StatCard
+                        title="Resolved Today"
+                        value={stats.resolved}
+                        titleColor="text-green-500"
+                    />
                 </div>
             )}
 

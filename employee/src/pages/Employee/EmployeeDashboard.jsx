@@ -114,53 +114,27 @@ const EmployeeDashboard = () => {
 
             {/* Main KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div
+                <StatCard
+                    title="Leave Balance"
+                    value={balance.cl + balance.sl + balance.el}
+                    colorClass="border-blue-500"
+                    titleColor="text-blue-500"
                     onClick={() => navigate('/leave-history')}
-                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
-                >
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:scale-110 transition-transform">
-                            <CalendarClock size={24} />
-                        </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2">Available</span>
-                    </div>
-                    <div className="space-y-1">
-                        <h3 className="text-3xl font-black text-[#0B3C5D]">{balance.cl + balance.sl + balance.el}</h3>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Leave Balance</p>
-                    </div>
-                </div>
-
-                <div
+                />
+                <StatCard
+                    title="My Tasks"
+                    value={pendingTasks}
+                    colorClass="border-emerald-500"
+                    titleColor="text-emerald-500"
                     onClick={() => navigate('/tasks')}
-                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
-                >
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform">
-                            <ClipboardList size={24} />
-                        </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 text-right">Incomplete</span>
-                    </div>
-                    <div className="space-y-1">
-                        <h3 className="text-3xl font-black text-[#0B3C5D]">{pendingTasks}</h3>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">My Tasks</p>
-                    </div>
-                </div>
-
-                <div
+                />
+                <StatCard
+                    title="My Projects"
+                    value={activeProjects}
+                    colorClass="border-purple-500"
+                    titleColor="text-purple-500"
                     onClick={() => navigate('/projects')}
-                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
-                >
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-purple-50 rounded-2xl text-purple-600 group-hover:scale-110 transition-transform">
-                            <FolderKanban size={24} />
-                        </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2">Active</span>
-                    </div>
-                    <div className="space-y-1">
-                        <h3 className="text-3xl font-black text-[#0B3C5D]">{activeProjects}</h3>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">My Projects</p>
-                    </div>
-                </div>
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-10 leading-relaxed">
