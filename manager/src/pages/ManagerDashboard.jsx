@@ -69,17 +69,17 @@ const ManagerDashboard = () => {
 
             {/* 1️⃣ Summary KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                <Link to="/manager/teams">
+                <Link to="/team-performance">
                     <StatCard title="Teams" value={stats?.summaryKPIs?.teams || 0} colorClass="border-blue-500" titleColor="text-blue-500" />
                 </Link>
-                <Link to="/manager/projects">
+                <Link to="/projects">
                     <StatCard title="Projects" value={stats?.summaryKPIs?.projects || 0} colorClass="border-indigo-500" titleColor="text-indigo-500" />
                 </Link>
                 <StatCard title="Employees" value={stats?.summaryKPIs?.employees || 0} colorClass="border-slate-400" titleColor="text-slate-400" />
-                <Link to="/manager/tasks">
+                <Link to="/tasks">
                     <StatCard title="Tasks" value={stats?.summaryKPIs?.tasks || 0} colorClass="border-green-500" titleColor="text-green-600" />
                 </Link>
-                <Link to="/manager/tickets">
+                <Link to="/tickets">
                     <StatCard title="Tickets" value={stats?.summaryKPIs?.tickets || 0} colorClass="border-amber-500" titleColor="text-amber-500" />
                 </Link>
                 <StatCard title="Overdue" value={stats?.summaryKPIs?.overdue || 0} colorClass="border-rose-500" titleColor="text-rose-500" />
@@ -145,7 +145,7 @@ const ManagerDashboard = () => {
                             <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest flex items-center gap-2">
                                 <Ticket size={18} className="text-amber-500" /> Ticket Pulse
                             </h3>
-                            <Link to="/manager/tickets" className="p-2 hover:bg-slate-50 rounded-lg">
+                            <Link to="/tickets" className="p-2 hover:bg-slate-50 rounded-lg">
                                 <ArrowUpRight size={16} className="text-slate-300" />
                             </Link>
                         </div>
