@@ -30,7 +30,7 @@ const Login = () => {
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#0B3C5D] opacity-[0.03] rounded-full -mr-48 -mt-48 blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#63C132] opacity-[0.03] rounded-full -ml-48 -mb-48 blur-3xl"></div>
 
-            <div className="max-w-md w-full animate-in fade-in zoom-in-95 duration-700">
+            <div className="max-w-md w-full">
                 <div className="text-center mb-10">
                     <div className="inline-flex items-center justify-center mb-6">
                         <img src={manuenSquare} alt="Manuen" className="w-20 h-20 drop-shadow-2xl animate-pulse" />

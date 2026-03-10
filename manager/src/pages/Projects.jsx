@@ -3,10 +3,12 @@ import API from '../api';
 import { Briefcase, Clock, CheckCircle2, AlertCircle, ChevronRight, BarChart3 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
+import useLocalStorage from '../hooks/useLocalStorage';
+
 const Projects = () => {
-    const [projects, setProjects] = useState([]);
-    const [stats, setStats] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [projects, setProjects] = useLocalStorage('manager_projects_list', []);
+    const [stats, setStats] = useLocalStorage('manager_projects_stats', []);
+    const [loading, setLoading] = useState(!projects.length || !stats.length);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -41,7 +43,7 @@ const Projects = () => {
     if (loading) return <div className="p-8 text-center text-slate-500 font-bold">Loading Projects...</div>;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">

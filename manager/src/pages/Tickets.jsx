@@ -2,11 +2,8 @@ import React, { useState, useEffect } from 'react';
 import API from '../api';
 import {
     Ticket as TicketIcon,
-    Search,
     UserPlus,
     AlertCircle,
-    Users,
-    ChevronRight,
     BarChart3,
     Filter,
     Clock,
@@ -21,6 +18,9 @@ import {
     Image as ImageIcon
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import StatCard from '../components/StatCard';
+import useSocketListener from '../hooks/useSocketListener';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 const BADGE_STLYES = {
     OPEN: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -41,10 +41,10 @@ const PRIORITY_STYLES = {
 };
 
 const Tickets = () => {
-    const [tickets, setTickets] = useState([]);
-    const [stats, setStats] = useState(null);
+    const [tickets, setTickets] = useLocalStorage('manager_tickets_list', []);
+    const [stats, setStats] = useLocalStorage('manager_tickets_stats', null);
     const [teamLeads, setTeamLeads] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!tickets.length || !stats);
     const [filter, setFilter] = useState({ status: '', priority: '' });
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -55,11 +55,6 @@ const Tickets = () => {
     const [isInternalComment, setIsInternalComment] = useState(true);
     const [commentsLoading, setCommentsLoading] = useState(false);
     const { showToast } = useToast();
-
-    useEffect(() => {
-        fetchData();
-        fetchTeamLeads();
-    }, []);
 
     const fetchData = async () => {
         try {
@@ -84,6 +79,17 @@ const Tickets = () => {
             console.error('Failed to fetch team leads');
         }
     };
+
+    useEffect(() => {
+        fetchData();
+        fetchTeamLeads();
+    }, [filter.status, filter.priority]);
+
+    // WebSocket live updates
+    useSocketListener('ticket:assigned', fetchData);
+    useSocketListener('ticket:updated', fetchData);
+    useSocketListener('ticket:status_changed', fetchData);
+    useSocketListener('ticket:comment_added', fetchData);
 
     const handleAssign = async () => {
         if (!assigningTo) return;
@@ -149,54 +155,22 @@ const Tickets = () => {
 
             {/* Manager Stats */}
             {stats && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between">
-                        <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Assigned to Me</p>
-                            <p className="text-3xl font-black text-[#0B3C5D] leading-none">{stats.total}</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400">
-                            <TicketIcon size={20} />
-                        </div>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-yellow-500 flex items-center justify-between">
-                        <div>
-                            <p className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mb-1">Pending</p>
-                            <p className="text-3xl font-black text-[#0B3C5D] leading-none">{stats.pending}</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-2xl bg-yellow-50 flex items-center justify-center text-yellow-500">
-                            <Clock size={20} />
-                        </div>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-red-500 flex items-center justify-between">
-                        <div>
-                            <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-1">Breached</p>
-                            <p className="text-3xl font-black text-[#0B3C5D] leading-none">{stats.breached}</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center text-red-500">
-                            <AlertCircle size={20} />
-                        </div>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-green-500 flex items-center justify-between">
-                        <div>
-                            <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest mb-1">Closed</p>
-                            <p className="text-3xl font-black text-[#0B3C5D] leading-none">{stats.closed}</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-green-500">
-                            <BarChart3 size={20} />
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard title="Assigned to Me" value={stats.total} colorClass="border-blue-500" titleColor="text-blue-600" />
+                    <StatCard title="Pending" value={stats.pending} colorClass="border-yellow-500" titleColor="text-yellow-600" />
+                    <StatCard title="Breached" value={stats.breached} colorClass="border-red-500" titleColor="text-red-600" />
+                    <StatCard title="Closed" value={stats.closed} colorClass="border-green-500" titleColor="text-green-600" />
                 </div>
             )}
 
             {/* Filters */}
-            <div className="bg-[#0B3C5D] p-3 rounded-2xl shadow-xl flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 px-3 text-white/50">
+            <div className="flex flex-wrap items-center gap-3 py-2">
+                <div className="flex items-center gap-2 px-3 text-slate-400">
                     <Filter size={14} />
                     <span className="text-[10px] font-bold uppercase tracking-widest">Filter</span>
                 </div>
                 <select
-                    className="bg-white/10 border-none rounded-xl text-xs text-white px-4 py-2 outline-none focus:ring-1 ring-white/20"
+                    className="bg-white border border-slate-200 rounded-xl text-xs text-slate-600 px-4 py-2 outline-none focus:ring-2 ring-[#0B3C5D]/5 shadow-sm"
                     value={filter.status}
                     onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                 >
@@ -206,12 +180,6 @@ const Tickets = () => {
                     <option value="WAITING_FOR_CLIENT" className="text-slate-800">Waiting for Client</option>
                     <option value="RESOLVED" className="text-slate-800">Resolved</option>
                 </select>
-                <button
-                    onClick={fetchData}
-                    className="ml-auto bg-[#63C132] text-white px-5 py-2 rounded-xl text-xs font-black shadow-lg shadow-[#63C132]/20 hover:scale-105 active:scale-95 transition-all"
-                >
-                    REFRESH DATA
-                </button>
             </div>
 
             {/* List */}
@@ -301,7 +269,7 @@ const Tickets = () => {
             {/* Modal */}
             {showAssignModal && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0B3C5D]/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-md p-10 space-y-8 shadow-2xl animate-in fade-in zoom-in">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-md p-10 space-y-8 shadow-2xl">
                         <div>
                             <h2 className="text-2xl font-black text-[#0B3C5D] tracking-tight italic">DELEGATE<span>TICKET</span></h2>
                             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1 pl-1">Assign to Team Lead</p>
@@ -361,7 +329,7 @@ const Tickets = () => {
             {/* Discussion Modal */}
             {showDiscussionModal && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0B3C5D]/80 backdrop-blur-sm">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 shadow-2xl">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
                         {/* Header */}
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <div className="flex items-center gap-4">

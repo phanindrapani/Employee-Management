@@ -6,7 +6,7 @@ const Profile = () => {
     const { user } = useAuth();
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-4xl mx-auto space-y-8">
             <div>
                 <h1 className="text-4xl font-black tracking-tight mb-2">Manager Profile</h1>
                 <p className="text-slate-500 font-medium">Manage your personal information and security settings.</p>

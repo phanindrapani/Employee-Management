@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
 import { CalendarDays, CheckCircle2, Clock, XCircle, AlertCircle, Bookmark, ChevronRight, User } from 'lucide-react';
+import StatCard from '../components/StatCard';
+
+import useLocalStorage from '../hooks/useLocalStorage';
 
 const Leaves = () => {
-    const [leaves, setLeaves] = useState([]);
-    const [stats, setStats] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [leaves, setLeaves] = useLocalStorage('manager_leaves_list', []);
+    const [stats, setStats] = useLocalStorage('manager_leaves_stats', []);
+    const [loading, setLoading] = useState(!leaves.length || !stats.length);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -39,7 +42,7 @@ const Leaves = () => {
     const totalRequests = stats.reduce((acc, curr) => acc + curr.count, 0);
 
     return (
-        <div className="space-y-8 animate-in zoom-in-95 duration-700">
+        <div className="space-y-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
@@ -62,24 +65,9 @@ const Leaves = () => {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {['pending', 'approved', 'rejected'].map((status) => {
-                    const stat = stats.find(s => s._id === status);
-                    return (
-                        <div key={status} className="bg-white p-6 rounded-[32px] border border-slate-50 flex items-center justify-between group hover:shadow-xl hover:shadow-[#0B3C5D]/5 transition-all">
-                            <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-2xl ${getStatusStyles(status)} border`}>
-                                    {status === 'approved' && <CheckCircle2 size={24} />}
-                                    {status === 'pending' && <Clock size={24} />}
-                                    {status === 'rejected' && <XCircle size={24} />}
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{status}</p>
-                                    <p className="text-2xl font-black text-[#0B3C5D] leading-none">{stat?.count || 0}</p>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+                <StatCard title="Pending" value={stats.find(s => s._id === 'pending')?.count || 0} colorClass="border-amber-500" titleColor="text-amber-500" />
+                <StatCard title="Approved" value={stats.find(s => s._id === 'approved')?.count || 0} colorClass="border-green-500" titleColor="text-green-600" />
+                <StatCard title="Rejected" value={stats.find(s => s._id === 'rejected')?.count || 0} colorClass="border-rose-500" titleColor="text-rose-500" />
             </div>
 
             {/* Requests Feed */}

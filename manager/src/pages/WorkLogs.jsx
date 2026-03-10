@@ -23,11 +23,13 @@ const CustomTooltip = ({ active, payload, label, unit = 'h' }) => {
     return null;
 };
 
+import useLocalStorage from '../hooks/useLocalStorage';
+
 const WorkLogs = () => {
-    const [logs, setLogs] = useState([]);
-    const [stats, setStats] = useState([]);
-    const [analysis, setAnalysis] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [logs, setLogs] = useLocalStorage('manager_worklogs_list', []);
+    const [stats, setStats] = useLocalStorage('manager_worklogs_stats', []);
+    const [analysis, setAnalysis] = useLocalStorage('manager_worklogs_analysis', null);
+    const [loading, setLoading] = useState(!logs.length || !stats.length || !analysis);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTeam, setSelectedTeam] = useState(null);
 
@@ -71,7 +73,7 @@ const WorkLogs = () => {
     if (loading) return <div className="p-12 text-center text-slate-400 font-black tracking-widest uppercase text-[10px]">Retrieving Corporate Timesheets...</div>;
 
     return (
-        <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-700">
+        <div className="space-y-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
