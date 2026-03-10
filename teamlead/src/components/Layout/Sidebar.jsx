@@ -14,7 +14,8 @@ import {
     LogOut,
     ExternalLink,
     TrendingUp,
-    X
+    X,
+    Ticket
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggle }) => {
@@ -34,6 +35,7 @@ const Sidebar = ({ isOpen, toggle }) => {
                 { name: 'Team Performance', path: '/team-performance', icon: TrendingUp },
                 { name: 'Projects', path: '/projects', icon: FolderKanban },
                 { name: 'Tasks', path: '/tasks', icon: ClipboardList },
+                { name: 'Tickets', path: '/tickets', icon: Ticket },
             ]
         },
         {

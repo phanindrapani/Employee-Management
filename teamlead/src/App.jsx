@@ -16,6 +16,7 @@ import MyProfile from './pages/MyProfile';
 import ChangePassword from './pages/ChangePassword';
 import TeamPerformance from './pages/TeamPerformance';
 import WorkLogs from './pages/WorkLogs';
+import Tickets from './pages/Tickets';
 
 import { ToastProvider } from './context/ToastContext';
 import NotificationListener from './components/NotificationListener';
@@ -43,6 +44,7 @@ function App() {
                 <Route path="profile" element={<MyProfile />} />
                 <Route path="change-password" element={<ChangePassword />} />
                 <Route path="worklogs" element={<WorkLogs />} />
+                <Route path="tickets" element={<Tickets />} />
               </Route>
 
               {/* Catch all */}
