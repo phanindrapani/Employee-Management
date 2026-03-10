@@ -20,6 +20,7 @@ import {
     ResponsiveContainer,
     Cell
 } from 'recharts';
+import StatCard from '../components/StatCard';
 
 const getScoreColor = (score) => {
     if (score >= 75) return '#63C132';
@@ -101,30 +102,9 @@ const TeamPerformance = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Users size={24} /></div>
-                        <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Total</span>
-                    </div>
-                    <div className="text-3xl font-black">{members.length}</div>
-                    <div className="text-sm font-bold text-slate-400 mt-1">Team Members</div>
-                </div>
-                <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><Award size={24} /></div>
-                        <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Team Avg</span>
-                    </div>
-                    <div className="text-3xl font-black" style={{ color: getScoreColor(avgScore) }}>{avgScore}%</div>
-                    <div className="text-sm font-bold text-slate-400 mt-1">Average Score</div>
-                </div>
-                <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-rose-50 text-rose-600 rounded-xl"><AlertCircle size={24} /></div>
-                        <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Action</span>
-                    </div>
-                    <div className="text-3xl font-black text-rose-500">{needsAttention.length}</div>
-                    <div className="text-sm font-bold text-slate-400 mt-1">Need Attention (&lt;50%)</div>
-                </div>
+                <StatCard title="Team Members" value={members.length} colorClass="border-blue-500" titleColor="text-blue-500" />
+                <StatCard title="Average Score" value={`${avgScore}%`} colorClass="border-green-500" titleColor="text-green-600" />
+                <StatCard title="Need Attention (<50%)" value={needsAttention.length} colorClass="border-rose-500" titleColor="text-rose-500" />
             </div>
 
             {/* Bar Chart */}

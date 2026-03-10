@@ -86,7 +86,7 @@ const Tickets = () => {
     useEffect(() => {
         fetchData();
         fetchEmployees();
-    }, [fetchData]);
+    }, [filter.status, fetchData]);
 
     // Live updates via WebSocket
     useSocketListener('ticket:assigned', fetchData);
@@ -177,11 +177,11 @@ const Tickets = () => {
 
             {/* List */}
             <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div className="px-8 py-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                <div className="px-8 py-5 flex items-center justify-between">
                     <h3 className="text-sm font-black text-[#0B3C5D] tracking-widest uppercase italic">Active Support Requests</h3>
                     <div className="flex gap-2">
                         <select
-                            className="bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase px-3 py-1.5 outline-none tracking-widest"
+                            className="bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase px-3 py-1.5 outline-none tracking-widest shadow-sm focus:ring-2 ring-[#63C132]/10"
                             value={filter.status}
                             onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                         >
@@ -190,9 +190,6 @@ const Tickets = () => {
                             <option value="IN_PROGRESS">In Progress</option>
                             <option value="RESOLVED">Resolved</option>
                         </select>
-                        <button onClick={fetchData} className="p-1.5 bg-[#63C132] text-white rounded-lg hover:rotate-180 transition-all duration-500">
-                            <RefreshCcw size={14} />
-                        </button>
                     </div>
                 </div>
                 <div className="overflow-x-auto">
