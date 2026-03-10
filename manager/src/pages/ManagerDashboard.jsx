@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import API from '../api';
 import {
-    Users,
-    Target,
-    TrendingUp,
-    Clock,
     CheckCircle2,
     AlertTriangle,
     Briefcase,
@@ -67,7 +63,7 @@ const ManagerDashboard = () => {
                 </div>
             </div>
 
-            {/* 1️⃣ Summary KPI Cards */}
+            {/* Summary KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 <Link to="/team-performance">
                     <StatCard title="Teams" value={stats?.summaryKPIs?.teams || 0} colorClass="border-blue-500" titleColor="text-blue-500" />
@@ -85,7 +81,7 @@ const ManagerDashboard = () => {
                 <StatCard title="Overdue" value={stats?.summaryKPIs?.overdue || 0} colorClass="border-rose-500" titleColor="text-rose-500" />
             </div>
 
-            {/* 2️⃣ Project Health Overview */}
+            {/* Project Health Overview */}
             <div className="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden">
                 <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                     <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest flex items-center gap-2">
@@ -137,7 +133,7 @@ const ManagerDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* 4️⃣ Ticket Overview & 6️⃣ Employee Availability */}
+                {/* Ticket Overview & Employee Availability */}
                 <div className="space-y-8">
                     {/* Ticket Pulse */}
                     <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50">
@@ -188,7 +184,7 @@ const ManagerDashboard = () => {
                     </div>
                 </div>
 
-                {/* 7️⃣ Alerts & Risks */}
+                {/* Alerts & Risks */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden flex flex-col">
                     <div className="px-8 py-6 border-b border-slate-50 bg-rose-50/20">
                         <h3 className="text-sm font-black text-rose-600 uppercase tracking-widest flex items-center gap-2">
@@ -212,7 +208,7 @@ const ManagerDashboard = () => {
                 </div>
             </div>
 
-            {/* 8️⃣ Recent Activity Feed */}
+            {/* Recent Activity Feed */}
             <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50">
                 <div className="flex items-center justify-between mb-10">
                     <div>
