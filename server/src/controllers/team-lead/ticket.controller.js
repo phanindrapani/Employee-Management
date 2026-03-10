@@ -145,7 +145,7 @@ export const getStats = async (req, res) => {
             Ticket.countDocuments({ assignedTeamLead: tlId, status: 'RESOLVED' }),
             Ticket.countDocuments({ assignedTeamLead: tlId, slaBreached: true, status: { $nin: ['CLOSED'] } })
         ]);
-        res.json({ total, assigned, inProgress, resolved, slaBreached });
+        res.json({ total, pendingAssignment: assigned, inProgress, resolved, slaBreached });
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch stats' });
     }

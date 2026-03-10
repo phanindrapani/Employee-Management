@@ -63,10 +63,10 @@ const Tickets = () => {
         return () => clearTimeout(timer);
     }, [filter.status, filter.priority, filter.search]);
 
-    useSocketListener('ticket:updated', () => {
-        fetchData();
-        fetchManagers();
-    });
+    useSocketListener('ticket:updated', fetchData);
+    useSocketListener('ticket:assigned', fetchData);
+    useSocketListener('ticket:status_changed', fetchData);
+    useSocketListener('ticket:comment_added', fetchData);
 
     const fetchData = async () => {
         try {

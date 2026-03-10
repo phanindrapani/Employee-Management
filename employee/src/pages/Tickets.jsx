@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import API from '../api';
 import {
     Ticket as TicketIcon,
@@ -38,9 +38,15 @@ const PRIORITY_STYLES = {
 };
 
 const Tickets = () => {
-    const [tickets, setTickets] = useState([]);
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [tickets, setTickets] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_tickets');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('ls_emp_ticket_stats');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [loading, setLoading] = useState(!localStorage.getItem('ls_emp_tickets'));
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [showDiscussionModal, setShowDiscussionModal] = useState(false);
@@ -52,11 +58,7 @@ const Tickets = () => {
     const [commentsLoading, setCommentsLoading] = useState(false);
     const { showToast } = useToast();
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [tRes, sRes] = await Promise.all([
                 API.get('/employee/tickets'),
@@ -64,12 +66,25 @@ const Tickets = () => {
             ]);
             setTickets(tRes.data);
             setStats(sRes.data);
+            localStorage.setItem('ls_emp_tickets', JSON.stringify(tRes.data));
+            localStorage.setItem('ls_emp_ticket_stats', JSON.stringify(sRes.data));
         } catch (error) {
             showToast('Failed to load tickets', 'error');
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // WebSocket live updates
+    useSocketListener('ticket:assigned', fetchData);
+    useSocketListener('ticket:updated', fetchData);
+    useSocketListener('ticket:status_changed', fetchData);
+    useSocketListener('ticket:comment_added', fetchData);
+
 
     const handleUpdateStatus = async () => {
         if (statusType === 'RESOLVED' && !resolutionNote) {
