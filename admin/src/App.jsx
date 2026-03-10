@@ -20,6 +20,7 @@ import EmployeePerformance from './pages/EmployeePerformance';
 import PerformanceDashboard from './pages/PerformanceDashboard';
 import LeaveSettings from './pages/LeaveSettings';
 import Profile from './pages/Profile';
+import Tickets from './pages/Tickets';
 
 
 const PrivateRoute = ({ children }) => {
@@ -71,6 +72,7 @@ function App() {
                 <Route path="performance-dashboard" element={<PerformanceDashboard />} />
                 <Route path="leave-settings" element={<LeaveSettings />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="tickets" element={<Tickets />} />
 
                 <Route path="change-password" element={<ChangePassword />} />
               </Route>

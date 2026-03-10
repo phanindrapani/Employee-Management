@@ -17,7 +17,8 @@ import {
     PieChart,
     Sliders,
     UserCircle,
-    X
+    X,
+    Ticket
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggle }) => {
@@ -72,6 +73,12 @@ const Sidebar = ({ isOpen, toggle }) => {
                 { name: 'My Profile', path: '/profile', icon: UserCircle, roles: ['admin', 'employee'] },
 
                 { name: 'Security', path: '/change-password', icon: ShieldCheck, roles: ['admin', 'employee'] },
+            ]
+        },
+        {
+            title: 'Support',
+            items: [
+                { name: 'Manage Tickets', path: '/tickets', icon: Ticket, roles: ['admin'] },
             ]
         }
     ];

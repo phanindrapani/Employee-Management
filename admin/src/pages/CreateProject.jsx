@@ -9,6 +9,7 @@ const CreateProject = () => {
         return cached ? JSON.parse(cached) : [];
     });
     const [loading, setLoading] = useState(teams.length === 0);
+    const [clients, setClients] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -16,6 +17,7 @@ const CreateProject = () => {
         startDate: '',
         endDate: '',
         assignedTeam: '',
+        clientId: '',
         status: 'upcoming',
         progress: 0
     });
@@ -31,6 +33,9 @@ const CreateProject = () => {
                 setTeams(teamsData);
                 localStorage.setItem('ls_admin_teams_list', JSON.stringify(teamsData));
 
+                const { data: clientsData } = await API.get('/admin/employees?role=client');
+                setClients(clientsData);
+
                 if (isEdit) {
                     const { data: projectData } = await API.get('/admin/projects');
                     localStorage.setItem('ls_admin_projects_list', JSON.stringify(projectData));
@@ -43,6 +48,7 @@ const CreateProject = () => {
                             startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
                             endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
                             assignedTeam: project.assignedTeam?._id || project.assignedTeam,
+                            clientId: project.clientId?._id || project.clientId || '',
                             status: project.status,
                             progress: project.progress
                         });
@@ -68,6 +74,7 @@ const CreateProject = () => {
                         startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
                         endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
                         assignedTeam: project.assignedTeam?._id || project.assignedTeam,
+                        clientId: project.clientId?._id || project.clientId || '',
                         status: project.status,
                         progress: project.progress
                     });
@@ -146,6 +153,20 @@ const CreateProject = () => {
                                     <option value="">Select a team</option>
                                     {teams.map(team => (
                                         <option key={team._id} value={team._id}>{team.name} ({team.department?.name})</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="label">Client (Required for Ticket Raising)</label>
+                                <select
+                                    className="input-field"
+                                    value={formData.clientId}
+                                    onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select a client</option>
+                                    {clients.map(client => (
+                                        <option key={client._id} value={client._id}>{client.name} {client.company ? `(${client.company})` : ''}</option>
                                     ))}
                                 </select>
                             </div>

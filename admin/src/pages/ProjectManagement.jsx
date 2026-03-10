@@ -103,12 +103,19 @@ const ProjectManagement = () => {
                             <h3 className="text-xl font-bold mb-2">{project.name}</h3>
                             <p className="text-slate-500 text-sm mb-6 line-clamp-2">{project.description}</p>
 
-                            <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                 <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                                     <Users2 size={18} className="text-[#0B3C5D]" />
                                     <div className="text-xs">
                                         <p className="text-slate-400 font-medium">Team</p>
-                                        <p className="font-bold">{project.assignedTeam?.name || 'Not assigned'}</p>
+                                        <p className="font-bold truncate max-w-[120px]">{project.assignedTeam?.name || 'Not assigned'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                                    <div className="w-[18px] h-[18px] flex items-center justify-center bg-[#0B3C5D] rounded text-white text-[10px] font-bold">C</div>
+                                    <div className="text-xs">
+                                        <p className="text-slate-400 font-medium">Client</p>
+                                        <p className="font-bold truncate max-w-[120px]">{project.clientId?.name || 'Internal'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
@@ -138,7 +145,7 @@ const ProjectManagement = () => {
                     ))
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 
