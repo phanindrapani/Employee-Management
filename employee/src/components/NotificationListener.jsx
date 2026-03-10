@@ -3,22 +3,24 @@ import useSocketListener from '../hooks/useSocketListener';
 import { useToast } from '../context/ToastContext';
 
 const NotificationListener = () => {
-    const { addToast } = useToast();
+    const { showToast } = useToast();
 
-    useSocketListener('notification:new', (data) => {
-        addToast(data.message, 'info');
+    useSocketListener('notification', (data) => {
+        showToast(data.message, 'info');
     });
 
     useSocketListener('leave:updated', (data) => {
-        addToast(`Leave Request ${data.status}`, data.status === 'approved' || data.status === 'tl-approved' ? 'success' : 'warning');
+        showToast(`Leave Request ${data.status}`, data.status === 'approved' || data.status === 'tl-approved' ? 'success' : 'warning');
     });
 
     useSocketListener('task:assigned', (data) => {
-        addToast(`New Task Assigned: ${data.title}`, 'info');
+        showToast(`New Task Assigned: ${data.title}`, 'info');
     });
 
+
+
     useSocketListener('performance:updated', (data) => {
-        addToast(`Your performance Score Updated: ${data.totalScore}`, 'success');
+        showToast(`Your performance Score Updated: ${data.totalScore}`, 'success');
     });
 
     return null;

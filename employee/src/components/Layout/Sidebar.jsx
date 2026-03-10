@@ -17,7 +17,8 @@ import {
     ShieldCheck,
     Clock3,
     TableProperties,
-    X
+    X,
+    Ticket
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggle }) => {
@@ -35,6 +36,7 @@ const Sidebar = ({ isOpen, toggle }) => {
                 { name: 'Summary', path: '/', icon: Home },
                 { name: 'My Tasks', path: '/tasks', icon: ClipboardList },
                 { name: 'My Projects', path: '/projects', icon: FolderKanban },
+                { name: 'My Tickets', path: '/tickets', icon: Ticket },
             ]
         },
         {

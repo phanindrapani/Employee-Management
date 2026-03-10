@@ -7,7 +7,7 @@ export const useToast = () => useContext(ToastContext);
 export const ToastProvider = ({ children }) => {
     const [toasts, setToasts] = useState([]);
 
-    const addToast = useCallback((message, type = 'info') => {
+    const showToast = useCallback((message, type = 'info') => {
         const id = Date.now();
         setToasts((prev) => [...prev, { id, message, type }]);
         setTimeout(() => removeToast(id), 5000);
@@ -17,11 +17,9 @@ export const ToastProvider = ({ children }) => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, []);
 
-    // Backward-compatible alias used by some screens.
-    const showToast = addToast;
-
+    // Simplified exports.
     return (
-        <ToastContext.Provider value={{ addToast, showToast, removeToast }}>
+        <ToastContext.Provider value={{ showToast, removeToast }}>
             {children}
             <div className="fixed top-5 right-5 z-50 flex flex-col gap-2">
                 {toasts.map((toast) => (

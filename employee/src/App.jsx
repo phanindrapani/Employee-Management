@@ -17,6 +17,7 @@ import Profile from './pages/Employee/Profile';
 import Documents from './pages/Employee/Documents';
 import Attendance from './pages/Employee/Attendance';
 import WorksheetInsights from './pages/Employee/WorksheetInsights';
+import Tickets from './pages/Tickets';
 
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
@@ -59,6 +60,7 @@ function App() {
                 <Route path="tasks" element={<MyTasks />} />
                 <Route path="attendance" element={<Attendance />} />
                 <Route path="worksheet" element={<WorksheetInsights />} />
+                <Route path="tickets" element={<Tickets />} />
                 <Route path="documents" element={<Documents />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="change-password" element={<ChangePassword />} />
