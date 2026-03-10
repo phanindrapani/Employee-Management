@@ -35,6 +35,7 @@ const Sidebar = ({ isOpen, toggle }) => {
             title: 'Organization',
             items: [
                 { name: 'Employees', path: '/employees', icon: Users, roles: ['admin'] },
+                { name: 'Clients & Partners', path: '/clients', icon: Building2, roles: ['admin'] },
                 { name: 'Departments', path: '/departments', icon: Building2, roles: ['admin'] },
                 { name: 'Teams', path: '/teams', icon: Users2, roles: ['admin'] },
             ]

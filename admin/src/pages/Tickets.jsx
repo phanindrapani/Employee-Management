@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import {
     Ticket as TicketIcon,
@@ -43,6 +44,7 @@ const PRIORITY_STYLES = {
 };
 
 const Tickets = () => {
+    const navigate = useNavigate();
     const [tickets, setTickets] = useState([]);
     const [analytics, setAnalytics] = useState(null);
     const [managers, setManagers] = useState([]);
@@ -50,18 +52,21 @@ const Tickets = () => {
     const [filter, setFilter] = useState({ status: '', priority: '', search: '' });
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [showAssignModal, setShowAssignModal] = useState(false);
-    const [showDiscussionModal, setShowDiscussionModal] = useState(false);
     const [assigningTo, setAssigningTo] = useState('');
     const [assignNote, setAssignNote] = useState('');
-    const [commentText, setCommentText] = useState('');
-    const [isInternalComment, setIsInternalComment] = useState(true);
-    const [commentsLoading, setCommentsLoading] = useState(false);
     const { showToast } = useToast();
 
     useEffect(() => {
-        fetchData();
         fetchManagers();
     }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchData();
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [filter.status, filter.priority, filter.search]);
 
     const fetchData = async () => {
         try {
@@ -104,38 +109,8 @@ const Tickets = () => {
         }
     };
 
-    const handleAddComment = async () => {
-        if (!commentText.trim()) return;
-        setCommentsLoading(true);
-        try {
-            await API.post(`/admin/tickets/${selectedTicket._id}/comment`, {
-                message: commentText,
-                isInternal: isInternalComment
-            });
-            setCommentText('');
-            const { data } = await API.get(`/admin/tickets/${selectedTicket._id}`);
-            // The admin get ticket might return just the ticket or an object. Based on other portals it returns the ticket.
-            setSelectedTicket(data);
-            showToast('Comment added', 'success');
-        } catch (error) {
-            showToast('Failed to add comment', 'error');
-        } finally {
-            setCommentsLoading(false);
-        }
-    };
-
-    const openDiscussion = async (ticket) => {
-        setCommentsLoading(true);
-        setSelectedTicket(ticket);
-        setShowDiscussionModal(true);
-        try {
-            const { data } = await API.get(`/admin/tickets/${ticket._id}`);
-            setSelectedTicket(data);
-        } catch (error) {
-            showToast('Failed to load discussion', 'error');
-        } finally {
-            setCommentsLoading(false);
-        }
+    const openDiscussion = (ticket) => {
+        navigate(`/tickets/${ticket._id}`);
     };
 
     const handleClose = async (id) => {
@@ -204,10 +179,7 @@ const Tickets = () => {
                 <select
                     className="bg-slate-50 border-none rounded-xl text-sm px-4 py-2 outline-none focus:ring-2 ring-[#63C132]/20"
                     value={filter.status}
-                    onChange={(e) => {
-                        setFilter({ ...filter, status: e.target.value });
-                        // trigger fetch on change
-                    }}
+                    onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                 >
                     <option value="">All Statuses</option>
                     <option value="OPEN">Open</option>
@@ -217,12 +189,17 @@ const Tickets = () => {
                     <option value="RESOLVED">Resolved</option>
                     <option value="CLOSED">Closed</option>
                 </select>
-                <button
-                    onClick={fetchData}
-                    className="bg-[#0B3C5D] text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-[#1A4B6D] transition-colors"
+                <select
+                    className="bg-slate-50 border-none rounded-xl text-sm px-4 py-2 outline-none focus:ring-2 ring-[#63C132]/20"
+                    value={filter.priority}
+                    onChange={(e) => setFilter({ ...filter, priority: e.target.value })}
                 >
-                    Apply Filter
-                </button>
+                    <option value="">All Priorities</option>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="CRITICAL">Critical</option>
+                </select>
             </div>
 
             {/* Table */}
@@ -255,7 +232,7 @@ const Tickets = () => {
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
                                             <span className="font-semibold text-slate-700">{ticket.clientId?.name}</span>
-                                            <span className="text-slate-400 text-xs uppercase font-bold tracking-tighter">{ticket.clientId?.company || 'Personal'}</span>
+                                            <span className="text-slate-400 text-xs uppercase font-bold tracking-tighter">{ticket.clientId?.company || ''}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -312,6 +289,13 @@ const Tickets = () => {
                                                     <CheckCircle2 size={18} />
                                                 </button>
                                             )}
+                                            <button
+                                                onClick={() => openDiscussion(ticket)}
+                                                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100/50 rounded-lg transition-all ml-2"
+                                                title="View Details"
+                                            >
+                                                <ChevronRight size={18} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -379,151 +363,6 @@ const Tickets = () => {
                             >
                                 CONFIRM ASSIGN
                             </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Discussion Modal */}
-            {showDiscussionModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0B3C5D]/80 backdrop-blur-sm">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 shadow-2xl text-left">
-                        {/* Header */}
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-[#0B3C5D] flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                                    <MessageSquare size={20} />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight leading-none italic">TICKET<span>DISCUSSION</span></h2>
-                                    <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest leading-none">
-                                        {selectedTicket?.ticketCode} - {selectedTicket?.title}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowDiscussionModal(false)}
-                                className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-100 transition-all active:scale-90"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {/* Comments Body */}
-                        <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/30">
-                            {/* Ticket Description & Attachments */}
-                            {selectedTicket && (
-                                <div className="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Ticket Description</h3>
-                                    <p className="text-sm text-slate-600 leading-relaxed white-space-pre-wrap">{selectedTicket.description}</p>
-
-                                    {selectedTicket.attachments?.length > 0 && (
-                                        <div className="mt-4 pt-4 border-t border-slate-50">
-                                            <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                <Paperclip size={12} /> Attachments ({selectedTicket.attachments.length})
-                                            </h4>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {selectedTicket.attachments.map((file, idx) => (
-                                                    <a key={idx} href={file.dataUrl} target="_blank" rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:border-[#63C132] hover:bg-white transition-all group">
-                                                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-400 group-hover:text-[#63C132] shadow-sm">
-                                                            {file.mimeType?.startsWith('image/') ? <ImageIcon size={16} /> : <FileText size={16} />}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-[10px] font-bold text-slate-600 truncate">{file.fileName}</p>
-                                                            <p className="text-[8px] text-slate-400 uppercase font-black">{(file.size / 1024).toFixed(0)} KB</p>
-                                                        </div>
-                                                        <ExternalLink size={12} className="text-slate-300 group-hover:text-[#63C132]" />
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {commentsLoading ? (
-                                <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
-                                    <div className="w-8 h-8 border-4 border-[#63C132] border-t-transparent rounded-full animate-spin"></div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Updating Discussion...</p>
-                                </div>
-                            ) : selectedTicket?.comments?.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-4">
-                                    <MessageSquare size={48} className="opacity-20" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest">No messages yet</p>
-                                </div>
-                            ) : (
-                                selectedTicket?.comments?.map((c, idx) => (
-                                    <div key={idx} className={`flex ${c.role === 'admin' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[80%] space-y-2`}>
-                                            <div className={`flex items-center gap-2 px-2 ${c.role === 'admin' ? 'flex-row-reverse' : ''}`}>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">
-                                                    {c.userId?.name || c.role} · {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </span>
-                                                {c.isInternal && (
-                                                    <span className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[8px] font-black border border-amber-100 uppercase">
-                                                        <Lock size={8} /> Internal
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className={`p-4 rounded-3xl text-sm font-medium leading-relaxed shadow-sm text-left ${c.role === 'admin'
-                                                ? (c.isInternal ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-[#0B3C5D] text-white shadow-indigo-100')
-                                                : 'bg-white text-[#0B3C5D] border border-slate-100'
-                                                }`}>
-                                                {c.message}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
-                        {/* Input Footer */}
-                        <div className="p-6 bg-white border-t border-slate-100">
-                            <div className="flex flex-col gap-4">
-                                <div className="flex items-center justify-between px-2">
-                                    <div className="flex items-center gap-4">
-                                        <button
-                                            onClick={() => setIsInternalComment(true)}
-                                            className={`flex items-center gap-2 py-1.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${isInternalComment
-                                                ? 'bg-amber-100 text-amber-700 shadow-sm'
-                                                : 'text-slate-400 hover:text-slate-600'
-                                                }`}
-                                        >
-                                            <Lock size={12} /> Internal Only
-                                        </button>
-                                        <button
-                                            onClick={() => setIsInternalComment(false)}
-                                            className={`flex items-center gap-2 py-1.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!isInternalComment
-                                                ? 'bg-blue-100 text-blue-700 shadow-sm'
-                                                : 'text-slate-400 hover:text-slate-600'
-                                                }`}
-                                        >
-                                            <Globe size={12} /> Send to Client
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="relative">
-                                    <textarea
-                                        value={commentText}
-                                        onChange={(e) => setCommentText(e.target.value)}
-                                        placeholder={isInternalComment ? "Add an internal note for managers & engineers..." : "Send a message to the client..."}
-                                        className={`w-full p-6 pr-20 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm outline-none focus:ring-4 transition-all resize-none min-h-[100px] font-bold text-slate-700 text-left ${isInternalComment ? 'focus:ring-amber-500/10' : 'focus:ring-blue-500/10'
-                                            }`}
-                                    />
-                                    <button
-                                        onClick={handleAddComment}
-                                        disabled={!commentText.trim() || commentsLoading}
-                                        className={`absolute right-4 bottom-4 w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-all active:scale-90 disabled:opacity-50 disabled:scale-100 ${isInternalComment
-                                            ? 'bg-amber-500 shadow-amber-200 hover:bg-amber-600'
-                                            : 'bg-[#0B3C5D] shadow-indigo-200 hover:bg-[#1A4B6D]'
-                                            }`}
-                                    >
-                                        <Send size={20} />
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

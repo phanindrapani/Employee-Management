@@ -21,7 +21,8 @@ import PerformanceDashboard from './pages/PerformanceDashboard';
 import LeaveSettings from './pages/LeaveSettings';
 import Profile from './pages/Profile';
 import Tickets from './pages/Tickets';
-
+import TicketDetail from './pages/TicketDetail';
+import Clients from './pages/Clients';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -73,6 +74,8 @@ function App() {
                 <Route path="leave-settings" element={<LeaveSettings />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="tickets" element={<Tickets />} />
+                <Route path="tickets/:id" element={<TicketDetail />} />
+                <Route path="clients" element={<Clients />} />
 
                 <Route path="change-password" element={<ChangePassword />} />
               </Route>

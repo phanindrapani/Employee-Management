@@ -46,11 +46,19 @@ async function uploadProfilePicture(files) {
 export const getEmployees = async (req, res) => {
   try {
     const { role } = req.query;
-    let query = req.user?.role === 'admin' ? { role: { $ne: 'admin' } } : { role: 'employee' };
 
-    // If a specific role is requested, add it to the query
+    let query = req.user?.role === 'admin'
+      ? { role: { $in: ['employee', 'manager', 'team-lead'] } }
+      : { role: 'employee' };
+
     if (role) {
-      query.role = role;
+      if (req.user?.role === 'admin' && ['employee', 'manager', 'team-lead'].includes(role)) {
+        query.role = role;
+      } else if (req.user?.role !== 'admin' && role === 'employee') {
+        query.role = role;
+      } else {
+        query.role = role;
+      }
     }
 
     const employees = await User.find(query)
