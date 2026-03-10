@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Users,
-    ClipboardList,
-    FolderKanban,
-    CalendarClock,
     TrendingUp,
     CheckCircle2,
     Clock,
@@ -22,6 +18,7 @@ import {
     Cell
 } from 'recharts';
 import useSocketListener from '../hooks/useSocketListener';
+import StatCard from '../components/StatCard';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -68,18 +65,11 @@ const Dashboard = () => {
     useSocketListener('project:deleted', fetchDashboardData);
     useSocketListener('performance:updated', fetchDashboardData);
 
-    const cards = [
-        { title: 'My Team', value: stats.teamSize, sub: 'Active Members', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', path: '/team' },
-        { title: 'Active Projects', value: stats.activeProjects, sub: 'Assigned to Team', icon: FolderKanban, color: 'text-[#63C132]', bg: 'bg-[#63C132]/10', path: '/projects' },
-        { title: 'Pending Tasks', value: stats.pendingTasks, sub: 'Action Required', icon: ClipboardList, color: 'text-amber-500', bg: 'bg-amber-50', path: '/tasks' },
-        { title: 'On Leave Today', value: stats.onLeaveToday, sub: 'Resource Availability', icon: CalendarClock, color: 'text-rose-500', bg: 'bg-rose-50', path: '/leaves' },
-    ];
-
     if (loading) {
         return <div className="animate-pulse space-y-8">
             <div className="h-12 w-64 bg-slate-200 rounded-2xl"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map(i => <div key={i} className="h-40 bg-white rounded-[32px] shadow-sm"></div>)}
+                {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-white rounded-3xl shadow-sm"></div>)}
             </div>
         </div>;
     }
@@ -100,23 +90,10 @@ const Dashboard = () => {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                {cards.map((card, idx) => (
-                    <div
-                        key={idx}
-                        onClick={() => navigate(card.path)}
-                        className="bg-white p-6 md:p-8 rounded-[24px] md:rounded-[32px] shadow-sm border border-slate-100 hover:shadow-xl hover:scale-[1.02] transition-all group overflow-hidden relative cursor-pointer"
-                    >
-                        <div className={`absolute top-0 right-0 w-20 md:w-24 h-20 md:h-24 ${card.bg} rounded-full -mr-10 md:-mr-12 -mt-10 md:-mt-12 transition-transform group-hover:scale-110`}></div>
-                        <div className={`${card.bg} ${card.color} w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 relative z-10`}>
-                            <card.icon size={24} className="md:size-[28px]" />
-                        </div>
-                        <div className="relative z-10">
-                            <h3 className="text-[10px] md:text-xs font-black !text-slate-400 uppercase tracking-widest mb-1">{card.title}</h3>
-                            <div className="text-2xl md:text-3xl font-black text-[#0B3C5D] mb-1">{card.value}</div>
-                            <p className="text-[10px] md:text-xs font-bold text-slate-400">{card.sub}</p>
-                        </div>
-                    </div>
-                ))}
+                <StatCard title="My Team" value={stats.teamSize} colorClass="border-blue-500" titleColor="text-blue-500" onClick={() => navigate('/team')} />
+                <StatCard title="Active Projects" value={stats.activeProjects} colorClass="border-green-500" titleColor="text-green-600" onClick={() => navigate('/projects')} />
+                <StatCard title="Pending Tasks" value={stats.pendingTasks} colorClass="border-amber-500" titleColor="text-amber-500" onClick={() => navigate('/tasks')} />
+                <StatCard title="On Leave Today" value={stats.onLeaveToday} colorClass="border-rose-500" titleColor="text-rose-500" onClick={() => navigate('/leaves')} />
             </div>
 
             {/* Bottom Section: Summary & Activity */}

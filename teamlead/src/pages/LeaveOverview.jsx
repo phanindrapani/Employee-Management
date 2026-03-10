@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Calendar,
-    Users,
     CalendarDays,
     Clock,
     CheckCircle2,
@@ -10,6 +8,7 @@ import {
     ArrowRight
 } from 'lucide-react';
 import API from '../api';
+import StatCard from '../components/StatCard';
 
 const LeaveOverview = () => {
     const [leaves, setLeaves] = useState(() => {
@@ -43,7 +42,7 @@ const LeaveOverview = () => {
 
         try {
             await API.put(`/team-lead/leaves/${id}/status`, { status, rejectionReason });
-            fetchTeamLeaves(); // Refresh list
+            fetchTeamLeaves();
         } catch (error) {
             console.error("Leave action error:", error);
             alert(error.response?.data?.message || "Failed to process leave request");
@@ -72,44 +71,20 @@ const LeaveOverview = () => {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-10">
             {/* Header */}
             <div className="flex justify-between items-end">
                 <div>
                     <h1 className="text-4xl font-black text-[#0B3C5D] tracking-tight mb-2">Leave Intelligence</h1>
-                    <p className="text-slate-500 font-medium">Resource Management • Team Availability & Absence Tracking</p>
+                    <p className="text-slate-500 font-medium">Resource Management • Team Availability &amp; Absence Tracking</p>
                 </div>
             </div>
 
             {/* Quick Summary Widgets */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-lg transition-all">
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Requests</div>
-                        <div className="text-3xl font-black text-[#0B3C5D]">{stats.totalRequests}</div>
-                    </div>
-                    <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center">
-                        <CalendarDays size={24} />
-                    </div>
-                </div>
-                <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-lg transition-all">
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Approved Cases</div>
-                        <div className="text-3xl font-black text-[#63C132]">{stats.approved}</div>
-                    </div>
-                    <div className="w-12 h-12 bg-[#63C132]/10 text-[#63C132] rounded-2xl flex items-center justify-center">
-                        <CheckCircle2 size={24} />
-                    </div>
-                </div>
-                <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-lg transition-all">
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending Sync</div>
-                        <div className="text-3xl font-black text-amber-500">{stats.pending}</div>
-                    </div>
-                    <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
-                        <Clock size={24} />
-                    </div>
-                </div>
+                <StatCard title="Total Requests" value={stats.totalRequests} colorClass="border-blue-500" titleColor="text-blue-500" />
+                <StatCard title="Approved Cases" value={stats.approved} colorClass="border-green-500" titleColor="text-green-600" />
+                <StatCard title="Pending Sync" value={stats.pending} colorClass="border-amber-500" titleColor="text-amber-500" />
             </div>
 
             {/* Leave History Table */}

@@ -36,6 +36,7 @@ function App() {
               <Route path="/" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="team" element={<MyTeam />} />
+                <Route path="team-performance" element={<TeamPerformance />} />
                 <Route path="projects" element={<TeamProjects />} />
                 <Route path="tasks" element={<TaskManagement />} />
                 <Route path="leaves" element={<LeaveOverview />} />

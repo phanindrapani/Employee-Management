@@ -24,10 +24,21 @@ const CustomTooltip = ({ active, payload, label, unit = 'h' }) => {
 };
 
 const WorkLogs = () => {
-    const [logs, setLogs] = useState([]);
-    const [stats, setStats] = useState([]);
-    const [analysis, setAnalysis] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [logs, setLogs] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_worklogs');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_worklogs_stats');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [analysis, setAnalysis] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_worklogs_analysis');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [loading, setLoading] = useState(() => {
+        return !localStorage.getItem('ls_tl_worklogs');
+    });
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
@@ -41,6 +52,9 @@ const WorkLogs = () => {
                 setLogs(logsRes.data);
                 setStats(statsRes.data);
                 setAnalysis(analysisRes.data);
+                localStorage.setItem('ls_tl_worklogs', JSON.stringify(logsRes.data));
+                localStorage.setItem('ls_tl_worklogs_stats', JSON.stringify(statsRes.data));
+                localStorage.setItem('ls_tl_worklogs_analysis', JSON.stringify(analysisRes.data));
             } catch (error) {
                 console.error('Failed to fetch work logs', error);
             } finally {
@@ -70,7 +84,7 @@ const WorkLogs = () => {
     if (loading) return <div className="p-12 text-center text-slate-400 font-black tracking-widest uppercase text-[10px]">Retrieving Corporate Timesheets...</div>;
 
     return (
-        <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-700">
+        <div className="space-y-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-5">

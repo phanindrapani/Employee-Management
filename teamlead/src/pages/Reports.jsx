@@ -22,6 +22,7 @@ import {
     Users
 } from 'lucide-react';
 import API from '../api';
+import StatCard from '../components/StatCard';
 
 const Reports = () => {
     const [reportData, setReportData] = useState(() => {
@@ -53,7 +54,7 @@ const Reports = () => {
     </div>;
 
     return (
-        <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-6 md:space-y-10">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
                 <div>
@@ -63,34 +64,25 @@ const Reports = () => {
             </div>
 
             {/* Top Analysis Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-[#63C132]/10 text-[#63C132] rounded-xl md:rounded-2xl flex items-center justify-center">
-                        <Target className="size-5 md:size-6" />
-                    </div>
-                    <div>
-                        <div className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Achievement Rate</div>
-                        <div className="text-base md:text-lg font-black text-[#0B3C5D]">{reportData?.summary?.achievementRate || 0}% Rate</div>
-                    </div>
-                </div>
-                <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 text-blue-500 rounded-xl md:rounded-2xl flex items-center justify-center">
-                        <Users className="size-5 md:size-6" />
-                    </div>
-                    <div>
-                        <div className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Active Professionals</div>
-                        <div className="text-base md:text-lg font-black text-[#0B3C5D]">{reportData?.summary?.teamSize || 0} Member(s)</div>
-                    </div>
-                </div>
-                <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 flex items-center gap-4 group hover:shadow-lg transition-all sm:col-span-2 md:col-span-1">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-50 text-amber-500 rounded-xl md:rounded-2xl flex items-center justify-center">
-                        <BarChart3 className="size-5 md:size-6" />
-                    </div>
-                    <div>
-                        <div className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Milestones Completed</div>
-                        <div className="text-base md:text-lg font-black text-[#0B3C5D]">{reportData?.summary?.totalCompleted || 0} Tasks</div>
-                    </div>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                <StatCard
+                    title="Achievement Rate"
+                    value={`${reportData?.summary?.achievementRate || 0}%`}
+                    colorClass="border-green-500"
+                    titleColor="text-green-600"
+                />
+                <StatCard
+                    title="Active Professionals"
+                    value={reportData?.summary?.teamSize || 0}
+                    colorClass="border-blue-500"
+                    titleColor="text-blue-500"
+                />
+                <StatCard
+                    title="Milestones Completed"
+                    value={reportData?.summary?.totalCompleted || 0}
+                    colorClass="border-amber-500"
+                    titleColor="text-amber-500"
+                />
             </div>
 
             {/* Top Row: Productivity & Completion */}

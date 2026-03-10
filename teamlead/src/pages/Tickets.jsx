@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import API from '../api';
 import {
     Ticket as TicketIcon,
@@ -21,6 +21,8 @@ import {
     Image as ImageIcon
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import StatCard from '../components/StatCard';
+import useSocketListener from '../hooks/useSocketListener';
 
 const BADGE_STLYES = {
     OPEN: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -41,10 +43,18 @@ const PRIORITY_STYLES = {
 };
 
 const Tickets = () => {
-    const [tickets, setTickets] = useState([]);
-    const [stats, setStats] = useState(null);
+    const [tickets, setTickets] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_tickets');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('ls_tl_ticket_stats');
+        return cached ? JSON.parse(cached) : null;
+    });
     const [employees, setEmployees] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(
+        !localStorage.getItem('ls_tl_tickets')
+    );
     const [filter, setFilter] = useState({ status: '', priority: '' });
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -56,12 +66,7 @@ const Tickets = () => {
     const [commentsLoading, setCommentsLoading] = useState(false);
     const { showToast } = useToast();
 
-    useEffect(() => {
-        fetchData();
-        fetchEmployees();
-    }, []);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [tRes, sRes] = await Promise.all([
                 API.get('/team-lead/tickets', { params: filter }),
@@ -69,12 +74,25 @@ const Tickets = () => {
             ]);
             setTickets(tRes.data);
             setStats(sRes.data);
+            localStorage.setItem('ls_tl_tickets', JSON.stringify(tRes.data));
+            localStorage.setItem('ls_tl_ticket_stats', JSON.stringify(sRes.data));
         } catch (error) {
             showToast('Failed to fetch tickets', 'error');
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter]);
+
+    useEffect(() => {
+        fetchData();
+        fetchEmployees();
+    }, [fetchData]);
+
+    // Live updates via WebSocket
+    useSocketListener('ticket:assigned', fetchData);
+    useSocketListener('ticket:updated', fetchData);
+    useSocketListener('ticket:status_changed', fetchData);
+    useSocketListener('ticket:comment_added', fetchData);
 
     const fetchEmployees = async () => {
         try {
@@ -149,35 +167,11 @@ const Tickets = () => {
 
             {/* TL Stats */}
             {stats && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-lg transition-all border-b-4 border-b-blue-500">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Team Total</span>
-                        <div className="flex items-end justify-between mt-2">
-                            <span className="text-4xl font-black text-[#0B3C5D]">{stats.total}</span>
-                            <TicketIcon size={24} className="text-blue-100 mb-1" />
-                        </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-lg transition-all border-b-4 border-b-yellow-500">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">In Progress</span>
-                        <div className="flex items-end justify-between mt-2">
-                            <span className="text-4xl font-black text-[#0B3C5D]">{stats.inProgress}</span>
-                            <Clock size={24} className="text-yellow-100 mb-1" />
-                        </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-lg transition-all border-b-4 border-b-green-500">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resolved</span>
-                        <div className="flex items-end justify-between mt-2">
-                            <span className="text-4xl font-black text-[#0B3C5D]">{stats.resolved}</span>
-                            <CheckCircle size={24} className="text-green-100 mb-1" />
-                        </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-lg transition-all border-b-4 border-b-indigo-500">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pending Me</span>
-                        <div className="flex items-end justify-between mt-2">
-                            <span className="text-4xl font-black text-[#0B3C5D]">{stats.pendingAssignment}</span>
-                            <UserPlus size={24} className="text-indigo-100 mb-1" />
-                        </div>
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatCard title="Team Total" value={stats.total} colorClass="border-blue-500" titleColor="text-blue-500" />
+                    <StatCard title="In Progress" value={stats.inProgress} colorClass="border-amber-500" titleColor="text-amber-500" />
+                    <StatCard title="Resolved" value={stats.resolved} colorClass="border-green-500" titleColor="text-green-500" />
+                    <StatCard title="Pending Me" value={stats.pendingAssignment} colorClass="border-indigo-500" titleColor="text-indigo-500" />
                 </div>
             )}
 

@@ -18,6 +18,7 @@ import {
 import API from '../api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useSocketListener from '../hooks/useSocketListener';
+import StatCard from '../components/StatCard';
 
 const AssignTaskModal = ({ onClose, onSuccess, projects, members, taskToEdit }) => {
     const [formData, setFormData] = useState({
@@ -426,36 +427,25 @@ const TaskManagement = () => {
             </div>
 
             {/* KPI Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                <div className="bg-[#63C132]/5 p-5 md:p-6 rounded-[24px] md:rounded-[32px] border border-[#63C132]/10 flex items-center gap-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-[#63C132] text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-[#63C132]/20">
-                        <CheckCircle2 size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completed</div>
-                        <div className="text-xl md:text-2xl font-black text-[#0B3C5D]">{tasks.filter(t => t.status === 'done').length}</div>
-                    </div>
-                </div>
-                <div className="bg-blue-50 p-5 md:p-6 rounded-[24px] md:rounded-[32px] border border-blue-100 flex items-center gap-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                        <Clock size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">In Progress</div>
-                        <div className="text-xl md:text-2xl font-black text-[#0B3C5D]">{tasks.filter(t => t.status === 'in-progress').length}</div>
-                    </div>
-                </div>
-                <div className="bg-rose-50 p-5 md:p-6 rounded-[24px] md:rounded-[32px] border border-rose-100 flex items-center gap-4 sm:col-span-2 lg:col-span-1">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-rose-500 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20">
-                        <AlertTriangle size={24} />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Urgent Attention</div>
-                        <div className="text-xl md:text-2xl font-black text-[#0B3C5D]">
-                            {tasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'done').length}
-                        </div>
-                    </div>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                <StatCard
+                    title="Completed"
+                    value={tasks.filter(t => t.status === 'done').length}
+                    colorClass="border-green-500"
+                    titleColor="text-green-600"
+                />
+                <StatCard
+                    title="In Progress"
+                    value={tasks.filter(t => t.status === 'in-progress').length}
+                    colorClass="border-blue-500"
+                    titleColor="text-blue-500"
+                />
+                <StatCard
+                    title="Urgent Attention"
+                    value={tasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'done').length}
+                    colorClass="border-rose-500"
+                    titleColor="text-rose-500"
+                />
             </div>
 
             {/* Toolbar */}
