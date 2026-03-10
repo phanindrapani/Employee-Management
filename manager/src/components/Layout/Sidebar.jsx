@@ -69,8 +69,8 @@ const Sidebar = ({ isOpen, toggle }) => {
                 <button onClick={toggle} className="lg:hidden absolute top-4 right-4 text-gray-300 hover:text-white p-1">
                     <X size={20} />
                 </button>
-                <span className="text-xl font-black tracking-tighter text-[#63C132] text-center italic">MANAGER<span>PORTAL</span></span>
-                <span className="text-[10px] font-bold text-slate-400 tracking-[0.3em] uppercase">Control Center</span>
+                <span className="text-xl font-black tracking-tighter text-[#63C132] text-center uppercase">CORPORATE ERP</span>
+                <span className="text-[10px] font-bold text-slate-400 tracking-[0.3em] uppercase">Manager Portal</span>
             </div>
 
             {/* Navigation */}
@@ -105,23 +105,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 
             {/* User Profile / Logout */}
             <div className="p-4 border-t border-[#1A4B6D]">
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 mb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#63C132] flex items-center justify-center font-black text-white text-xs">
-                            {user?.name?.charAt(0) || 'M'}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs font-black truncate">{user?.name || 'Manager'}</p>
-                            <p className="text-[8px] font-bold text-slate-400 truncate uppercase tracking-widest">{user?.role}</p>
-                        </div>
-                    </div>
-                </div>
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-colors font-semibold text-sm"
+                    className="flex items-center gap-3 px-3 py-3 w-full text-slate-400 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-200 group"
                 >
-                    <LogOut size={18} />
-                    Sign Out
+                    <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
+                    <span className="text-sm font-bold">Logout</span>
                 </button>
             </div>
         </aside>
