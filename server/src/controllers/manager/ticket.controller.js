@@ -145,7 +145,7 @@ export const getAnalytics = async (req, res) => {
             Ticket.countDocuments({ assignedManager: managerId, status: 'IN_PROGRESS' }),
             Ticket.countDocuments({ assignedManager: managerId, status: 'RESOLVED' }),
             Ticket.countDocuments({ assignedManager: managerId, status: 'CLOSED' }),
-            Ticket.countDocuments({ assignedManager: managerId, slaBreached: true, status: { $nin: ['CLOSED'] } })
+            Ticket.countDocuments({ assignedManager: managerId, slaBreached: true, status: { $nin: ['RESOLVED', 'CLOSED'] } })
         ]);
 
         const byPriority = await Ticket.aggregate([
@@ -169,8 +169,8 @@ export const getStats = async (req, res) => {
         const tickets = await Ticket.find({ assignedManager: managerId })
             .select('status slaBreached priority createdAt resolvedAt');
 
-        const pending = tickets.filter(t => !['CLOSED'].includes(t.status)).length;
-        const breached = tickets.filter(t => t.slaBreached && t.status !== 'CLOSED').length;
+        const pending = tickets.filter(t => !['RESOLVED', 'CLOSED'].includes(t.status)).length;
+        const breached = tickets.filter(t => t.slaBreached && !['RESOLVED', 'CLOSED'].includes(t.status)).length;
 
         res.json({
             total: tickets.length,

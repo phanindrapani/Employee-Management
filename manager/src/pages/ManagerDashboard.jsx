@@ -16,7 +16,9 @@ import {
     ArrowUpRight,
     UserMinus,
     LayoutDashboard,
-    ClipboardList
+    ClipboardList,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { Link } from 'react-router-dom';
@@ -25,6 +27,7 @@ import StatCard from '../components/StatCard';
 const ManagerDashboard = () => {
     const [stats, setStats] = useLocalStorage('manager_dashboard_stats', null);
     const [loading, setLoading] = useState(!stats);
+    const [showAllActivities, setShowAllActivities] = useState(false);
 
     const fetchDashboardStats = useCallback(async () => {
         try {
@@ -221,7 +224,7 @@ const ManagerDashboard = () => {
                     <LayoutDashboard className="text-slate-50" size={48} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 relative before:absolute before:left-0 md:before:left-1/2 before:top-0 before:bottom-0 before:w-[1px] before:bg-slate-50 before:hidden md:before:block">
-                    {stats?.recentActivity?.map((act, i) => (
+                    {stats?.recentActivity?.slice(0, showAllActivities ? undefined : 6).map((act, i) => (
                         <div key={i} className="flex items-start gap-6 group">
                             <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center font-black text-[#0B3C5D] group-hover:bg-[#0B3C5D] group-hover:text-white transition-all">
                                 {act.assignedTo?.name?.charAt(0)}
@@ -242,6 +245,21 @@ const ManagerDashboard = () => {
                         </div>
                     ))}
                 </div>
+
+                {stats?.recentActivity?.length > 6 && (
+                    <div className="mt-10 pt-8 border-t border-slate-50 flex justify-center">
+                        <button
+                            onClick={() => setShowAllActivities(!showAllActivities)}
+                            className="flex items-center gap-2 px-8 py-3 bg-slate-50 hover:bg-[#0B3C5D] text-[#0B3C5D] hover:text-white rounded-[20px] text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                        >
+                            {showAllActivities ? (
+                                <>Show Less <ChevronUp size={14} /></>
+                            ) : (
+                                <>View All Activities <ChevronDown size={14} /></>
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

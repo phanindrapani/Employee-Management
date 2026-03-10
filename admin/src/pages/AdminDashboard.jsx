@@ -17,7 +17,9 @@ import {
     Layers,
     UserPlus,
     FolderPlus,
-    CalendarPlus
+    CalendarPlus,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import {
     BarChart,
@@ -41,6 +43,7 @@ const AdminDashboard = () => {
         return cached ? JSON.parse(cached) : null;
     });
     const [loading, setLoading] = useState(!data);
+    const [showAllActivities, setShowAllActivities] = useState(false);
 
     const fetchStats = async () => {
         try {
@@ -304,7 +307,7 @@ const AdminDashboard = () => {
                                 <Activity size={18} /> Recent Activity
                             </h3>
                             <div className="space-y-6">
-                                {recentActivity.map((activity, index) => (
+                                {recentActivity.slice(0, showAllActivities ? undefined : 6).map((activity, index) => (
                                     <div key={index} className="flex gap-4">
                                         <div className="flex flex-col items-center">
                                             <div className={`w-2 h-2 rounded-full mt-2 ring-4 ring-white ${activity.type === 'leave' ? 'bg-amber-500' :
@@ -319,6 +322,21 @@ const AdminDashboard = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            {recentActivity.length > 6 && (
+                                <div className="mt-8 pt-6 border-t border-slate-50 flex justify-center">
+                                    <button
+                                        onClick={() => setShowAllActivities(!showAllActivities)}
+                                        className="flex items-center gap-2 text-xs font-bold text-[#3B82F6] hover:text-[#2563EB] transition-colors"
+                                    >
+                                        {showAllActivities ? (
+                                            <>Show Less <ChevronUp size={14} /></>
+                                        ) : (
+                                            <>View All Activities <ChevronDown size={14} /></>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Quick Actions */}

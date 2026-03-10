@@ -39,7 +39,7 @@ export const getManagerDashboardStats = async (req, res) => {
                 }
             ]),
             Ticket.aggregate([
-                { $match: { assignedTo: { $in: [managerId, ...memberIds] } } }, // Simplifying ticket scope
+                { $match: { projectId: { $in: projectIds } } }, // Proper scope by project ids 
                 {
                     $group: {
                         _id: "$status",
@@ -50,12 +50,16 @@ export const getManagerDashboardStats = async (req, res) => {
             User.countDocuments({ _id: { $in: memberIds } })
         ]);
 
+        const openTicketsCount = ticketStats
+            .filter(s => s._id === 'OPEN' || s._id === 'ASSIGNED' || s._id === 'REOPENED')
+            .reduce((acc, curr) => acc + curr.count, 0);
+
         const summaryKPIs = {
             teams: teams.length,
             projects: projects.length,
             employees: employeeCount,
             tasks: taskStats[0]?.total || 0,
-            tickets: ticketStats.find(s => s._id === 'open' || s._id === 'todo')?.count || 0,
+            tickets: openTicketsCount,
             overdue: taskStats[0]?.overdue || 0
         };
 
@@ -76,10 +80,14 @@ export const getManagerDashboardStats = async (req, res) => {
 
         // --- Ticket Overview ---
         const ticketPulse = {
-            open: ticketStats.find(s => s._id === 'open' || s._id === 'todo')?.count || 0,
-            waiting: ticketStats.find(s => s._id === 'waiting')?.count || 0,
-            inProgress: ticketStats.find(s => s._id === 'in-progress')?.count || 0,
-            resolvedToday: await Ticket.countDocuments({ status: 'done', updatedAt: { $gte: startOfToday } })
+            open: openTicketsCount,
+            waiting: ticketStats.find(s => s._id === 'WAITING_FOR_CLIENT' || s._id === 'DOUBT_RAISED')?.count || 0,
+            inProgress: ticketStats.find(s => s._id === 'IN_PROGRESS')?.count || 0,
+            resolvedToday: await Ticket.countDocuments({
+                projectId: { $in: projectIds },
+                status: 'RESOLVED',
+                updatedAt: { $gte: startOfToday }
+            })
         };
 
         // --- Employee Availability ---
