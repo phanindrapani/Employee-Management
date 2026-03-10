@@ -51,23 +51,6 @@ const Tickets = () => {
     const [assignNote, setAssignNote] = useState('');
     const { showToast } = useToast();
 
-    useEffect(() => {
-        fetchManagers();
-    }, []);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchData();
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [filter.status, filter.priority, filter.search]);
-
-    useSocketListener('ticket:updated', fetchData);
-    useSocketListener('ticket:assigned', fetchData);
-    useSocketListener('ticket:status_changed', fetchData);
-    useSocketListener('ticket:comment_added', fetchData);
-
     const fetchData = async () => {
         try {
             const [tRes, aRes] = await Promise.all([
@@ -94,6 +77,23 @@ const Tickets = () => {
             console.error('Failed to fetch managers');
         }
     };
+
+    useEffect(() => {
+        fetchManagers();
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchData();
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [filter.status, filter.priority, filter.search]);
+
+    useSocketListener('ticket:updated', fetchData);
+    useSocketListener('ticket:assigned', fetchData);
+    useSocketListener('ticket:status_changed', fetchData);
+    useSocketListener('ticket:comment_added', fetchData);
 
     const handleAssign = async () => {
         if (!assigningTo) return;
@@ -168,19 +168,19 @@ const Tickets = () => {
             )}
 
             {/* Filters */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4 py-2">
                 <div className="relative flex-1 min-w-[200px]">
                     <input
                         type="text"
                         placeholder="Search ticket code or title..."
-                        className="w-full px-4 py-2 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 ring-[#63C132]/20 outline-none"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 ring-[#63C132]/10 outline-none shadow-sm"
                         value={filter.search}
                         onChange={(e) => setFilter({ ...filter, search: e.target.value })}
                         onKeyDown={(e) => e.key === 'Enter' && fetchData()}
                     />
                 </div>
                 <select
-                    className="bg-slate-50 border-none rounded-xl text-sm px-4 py-2 outline-none focus:ring-2 ring-[#63C132]/20"
+                    className="bg-white border border-slate-200 rounded-xl text-sm px-4 py-2 outline-none focus:ring-2 ring-[#63C132]/10 shadow-sm"
                     value={filter.status}
                     onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                 >
@@ -193,7 +193,7 @@ const Tickets = () => {
                     <option value="CLOSED">Closed</option>
                 </select>
                 <select
-                    className="bg-slate-50 border-none rounded-xl text-sm px-4 py-2 outline-none focus:ring-2 ring-[#63C132]/20"
+                    className="bg-white border border-slate-200 rounded-xl text-sm px-4 py-2 outline-none focus:ring-2 ring-[#63C132]/10 shadow-sm"
                     value={filter.priority}
                     onChange={(e) => setFilter({ ...filter, priority: e.target.value })}
                 >
