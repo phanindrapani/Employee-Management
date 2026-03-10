@@ -102,37 +102,29 @@ const PerformanceDashboard = () => {
                 <>
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Users size={24} /></div>
-                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Teams</span>
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-blue-500 flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500 mb-1">Teams</p>
+                                <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{stats?.summary?.totalTeams || 0}</h3>
                             </div>
-                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.totalTeams || 0}</div>
-                            <div className="text-sm font-bold text-slate-400 mt-1">Active Teams</div>
                         </div>
-                        <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><Award size={24} /></div>
-                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Org Avg</span>
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-emerald-500 flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-500 mb-1">Org Avg</p>
+                                <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{stats?.summary?.orgAvgScore || 0}%</h3>
                             </div>
-                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.orgAvgScore || 0}%</div>
-                            <div className="text-sm font-bold text-slate-400 mt-1">Organization Average</div>
                         </div>
-                        <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><TrendingUp size={24} /></div>
-                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Best</span>
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-amber-500 flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-1">Best Score</p>
+                                <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{stats?.summary?.highestTeamAvg || 0}%</h3>
                             </div>
-                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.highestTeamAvg || 0}%</div>
-                            <div className="text-sm font-bold text-slate-400 mt-1">Highest Team Avg</div>
                         </div>
-                        <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-50">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-rose-50 text-rose-600 rounded-xl"><AlertCircle size={24} /></div>
-                                <span className="bg-slate-50 px-2 py-1 rounded text-[10px] font-black uppercase text-slate-400">Action</span>
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-rose-500 flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-rose-500 mb-1">Action Needed</p>
+                                <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{stats?.summary?.teamsNeedingAttention || 0}</h3>
                             </div>
-                            <div className="text-3xl font-black text-[#0B3C5D]">{stats?.summary?.teamsNeedingAttention || 0}</div>
-                            <div className="text-sm font-bold text-slate-400 mt-1">Teams Need Attention</div>
                         </div>
                     </div>
 

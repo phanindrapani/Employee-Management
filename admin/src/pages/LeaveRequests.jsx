@@ -85,40 +85,28 @@ const LeaveRequests = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-[#FFFBEB] p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between">
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-amber-500 flex flex-col justify-between hover:shadow-md transition-all duration-300">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Pending Requests</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-1">Pending Requests</p>
                         <h3 className="text-3xl font-black text-[#0B3C5D]">{stats.pending}</h3>
                     </div>
-                    <div className="p-3 bg-white/50 rounded-xl">
-                        <Filter className="text-amber-500" />
-                    </div>
                 </div>
-                <div className="bg-[#F0FFF4] p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between">
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-[#63C132] flex flex-col justify-between hover:shadow-md transition-all duration-300">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#63C132] mb-1">Approved Leaves</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#63C132] mb-1">Approved Leaves</p>
                         <h3 className="text-3xl font-black text-[#0B3C5D]">{stats.approved}</h3>
                     </div>
-                    <div className="p-3 bg-white/50 rounded-xl">
-                        <CheckCircle className="text-[#63C132]" />
-                    </div>
                 </div>
-                <div className="bg-[#FEF2F2] p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between">
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-red-500 flex flex-col justify-between hover:shadow-md transition-all duration-300">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">Rejected Leaves</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-red-500 mb-1">Rejected Leaves</p>
                         <h3 className="text-3xl font-black text-[#0B3C5D]">{stats.rejected}</h3>
                     </div>
-                    <div className="p-3 bg-white/50 rounded-xl">
-                        <XCircle className="text-red-500" />
-                    </div>
                 </div>
-                <div className="bg-[#F0F7FF] p-6 rounded-[24px] border border-white shadow-sm flex items-center justify-between">
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-[#0B3C5D] flex flex-col justify-between hover:shadow-md transition-all duration-300">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#0B3C5D] mb-1">Total Requests</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#0B3C5D] mb-1">Total Requests</p>
                         <h3 className="text-3xl font-black text-[#0B3C5D]">{stats.total}</h3>
-                    </div>
-                    <div className="p-3 bg-white/50 rounded-xl">
-                        <ClipboardList className="text-[#0B3C5D]" />
                     </div>
                 </div>
             </div>

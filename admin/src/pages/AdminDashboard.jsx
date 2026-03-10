@@ -117,64 +117,64 @@ const AdminDashboard = () => {
                         {/* Organization Stats */}
                         <div
                             onClick={() => navigate('/employees')}
-                            className="card p-5 border-l-4 border-[#0B3C5D] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
+                            className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-[#0B3C5D] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
                         >
                             <div>
-                                <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Employees</h4>
+                                <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Total Employees</h4>
                                 <div className="text-3xl font-black text-[#0B3C5D] mt-1">{summary.employees}</div>
                             </div>
-                            <div className="flex items-center gap-4 mt-4 text-xs font-medium text-slate-500">
-                                <div className="flex items-center gap-1"><Users size={14} /> {summary.teams} Teams</div>
-                                <div className="flex items-center gap-1"><Building2 size={14} /> {summary.departments} Depts</div>
+                            <div className="flex items-center gap-4 mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <span>{summary.teams} Teams</span>
+                                <span>{summary.departments} Depts</span>
                             </div>
                         </div>
 
                         {/* Project Stats */}
                         <div
                             onClick={() => navigate('/projects')}
-                            className="card p-5 border-l-4 border-[#3B82F6] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
+                            className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-[#3B82F6] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
                         >
                             <div>
-                                <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Active Projects</h4>
+                                <h4 className="text-sky-500 text-[10px] font-bold uppercase tracking-widest">Active Projects</h4>
                                 <div className="text-3xl font-black text-[#3B82F6] mt-1">{summary.projects.ongoing}</div>
                             </div>
-                            <div className="flex items-center gap-3 mt-4 text-xs font-medium text-slate-500">
-                                <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">{summary.projects.completed} Done</span>
-                                <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded">{summary.projects.total} Total</span>
+                            <div className="flex items-center gap-3 mt-4 text-[10px] font-bold uppercase tracking-widest">
+                                <span className="text-emerald-500">{summary.projects.completed} Done</span>
+                                <span className="text-slate-400">{summary.projects.total} Total</span>
                             </div>
                         </div>
 
                         {/* Leave Stats */}
                         <div
                             onClick={() => navigate('/leaves')}
-                            className="card p-5 border-l-4 border-[#F59E0B] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
+                            className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-[#F59E0B] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
                         >
                             <div>
-                                <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Pending Leaves</h4>
+                                <h4 className="text-amber-500 text-[10px] font-bold uppercase tracking-widest">Pending Leaves</h4>
                                 <div className="text-3xl font-black text-[#F59E0B] mt-1">{summary.leaves.pending}</div>
                             </div>
-                            <div className="flex items-center gap-3 mt-4 text-xs font-medium text-slate-500">
-                                <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">{summary.leaves.approvedThisMonth} Approved</span>
-                                <span className="text-red-600 bg-red-50 px-2 py-0.5 rounded">{summary.leaves.rejectedThisMonth} Rejected</span>
+                            <div className="flex items-center gap-3 mt-4 text-[10px] font-bold uppercase tracking-widest">
+                                <span className="text-emerald-500">{summary.leaves.approvedThisMonth} Approved</span>
+                                <span className="text-rose-500">{summary.leaves.rejectedThisMonth} Rejected</span>
                             </div>
                         </div>
 
                         {/* Holiday Stats */}
                         <div
                             onClick={() => navigate('/holidays')}
-                            className="card p-5 border-l-4 border-[#EC4899] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
+                            className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-[#EC4899] flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
                         >
                             <div>
-                                <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Next Holiday</h4>
-                                <div className="font-bold text-[#EC4899] mt-1 truncate" title={summary.holidays.upcoming?.name || 'None'}>
+                                <h4 className="text-pink-500 text-[10px] font-bold uppercase tracking-widest">Next Holiday</h4>
+                                <div className="text-xl font-black text-[#EC4899] mt-1 truncate" title={summary.holidays.upcoming?.name || 'None'}>
                                     {summary.holidays.upcoming?.name || 'None'}
                                 </div>
-                                <div className="text-xs text-slate-400 font-medium">
-                                    {summary.holidays.upcoming ? new Date(summary.holidays.upcoming.date).toLocaleDateString() : '-'}
+                                <div className="text-[10px] text-slate-400 font-bold uppercase mt-1">
+                                    {summary.holidays.upcoming ? new Date(summary.holidays.upcoming.date).toLocaleDateString() : 'No upcoming'}
                                 </div>
                             </div>
-                            <div className="mt-4 text-xs font-medium text-slate-500 flex items-center gap-1">
-                                <CalendarDays size={14} /> {summary.holidays.total} Total this year
+                            <div className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                {summary.holidays.total} Total this year
                             </div>
                         </div>
                     </div>

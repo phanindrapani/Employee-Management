@@ -89,11 +89,11 @@ const ProjectReports = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Total Projects" value={stats.total} icon={FolderKanban} colorClass="bg-blue-50 text-blue-600" />
-                <StatCard title="Completed" value={stats.completed} icon={CheckCircle2} colorClass="bg-green-50 text-green-600" />
-                <StatCard title="Ongoing" value={stats.ongoing} icon={Clock} colorClass="bg-amber-50 text-amber-600" />
-                <StatCard title="Upcoming" value={stats.upcoming} icon={Clock} colorClass="bg-purple-50 text-purple-600" />
-                <StatCard title="Delayed" value={stats.delayed} icon={AlertOctagon} colorClass="bg-red-50 text-red-600" />
+                <StatCard title="Total Projects" value={stats.total} colorClass="border-blue-500" titleColor="text-blue-500" />
+                <StatCard title="Completed" value={stats.completed} colorClass="border-green-500" titleColor="text-green-500" />
+                <StatCard title="Ongoing" value={stats.ongoing} colorClass="border-amber-500" titleColor="text-amber-500" />
+                <StatCard title="Upcoming" value={stats.upcoming} colorClass="border-purple-500" titleColor="text-purple-500" />
+                <StatCard title="Delayed" value={stats.delayed} colorClass="border-red-500" titleColor="text-red-500" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

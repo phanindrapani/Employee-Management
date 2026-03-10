@@ -24,15 +24,15 @@ import {
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
-const BADGE_STLYES = {
-    OPEN: 'bg-blue-100 text-blue-800 border-blue-200',
-    ASSIGNED: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    IN_PROGRESS: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    WAITING_FOR_CLIENT: 'bg-purple-100 text-purple-800 border-purple-200',
-    DOUBT_RAISED: 'bg-rose-100 text-rose-800 border-rose-200',
-    RESOLVED: 'bg-green-100 text-green-800 border-green-200',
-    CLOSED: 'bg-gray-100 text-gray-800 border-gray-200',
-    REOPENED: 'bg-red-100 text-red-800 border-red-200'
+const BADGE_STYLES = {
+    OPEN: 'bg-sky-50 text-sky-600 border-sky-100',
+    ASSIGNED: 'bg-amber-50 text-amber-600 border-amber-100',
+    IN_PROGRESS: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+    WAITING_FOR_CLIENT: 'bg-purple-50 text-purple-600 border-purple-100',
+    DOUBT_RAISED: 'bg-rose-50 text-rose-600 border-rose-100',
+    RESOLVED: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    CLOSED: 'bg-slate-50 text-slate-400 border-slate-100',
+    REOPENED: 'bg-red-50 text-red-600 border-red-100'
 };
 
 const PRIORITY_STYLES = {
@@ -155,7 +155,6 @@ const Tickets = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-black text-[#0B3C5D] tracking-tight flex items-center gap-2">
-                        <TicketIcon className="text-[#63C132]" />
                         TICKET MANAGEMENT
                     </h1>
                     <p className="text-slate-500 text-sm font-medium">Monitor and assign client support requests</p>
@@ -165,25 +164,25 @@ const Tickets = () => {
             {/* Stats */}
             {analytics && (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Tickets</p>
                         <p className="text-2xl font-black text-[#0B3C5D]">{analytics.summary.total}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-blue-500">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-blue-500">Open</p>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-sky-500">
+                        <p className="text-[10px] font-bold text-sky-500 uppercase tracking-widest mb-1">Open</p>
                         <p className="text-2xl font-black text-[#0B3C5D]">{analytics.summary.open}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-yellow-500">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-yellow-500">Assigned</p>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-amber-500">
+                        <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1">Assigned</p>
                         <p className="text-2xl font-black text-[#0B3C5D]">{analytics.summary.assigned}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-green-500">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-green-500">Resolved</p>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-emerald-500">
+                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Resolved</p>
                         <p className="text-2xl font-black text-[#0B3C5D]">{analytics.summary.resolved}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-red-500 col-span-2 lg:col-span-1">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-red-500 flex items-center gap-1">
-                            <AlertCircle size={10} /> SLA Breached
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-rose-500 col-span-2 lg:col-span-1">
+                        <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">
+                            SLA Breached
                         </p>
                         <p className="text-2xl font-black text-[#0B3C5D]">{analytics.summary.slaBreached}</p>
                     </div>
@@ -193,11 +192,10 @@ const Tickets = () => {
             {/* Filters */}
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap items-center gap-4">
                 <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     <input
                         type="text"
                         placeholder="Search ticket code or title..."
-                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 ring-[#63C132]/20 outline-none"
+                        className="w-full px-4 py-2 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 ring-[#63C132]/20 outline-none"
                         value={filter.search}
                         onChange={(e) => setFilter({ ...filter, search: e.target.value })}
                         onKeyDown={(e) => e.key === 'Enter' && fetchData()}
@@ -264,7 +262,7 @@ const Tickets = () => {
                                         <span className={PRIORITY_STYLES[ticket.priority]}>{ticket.priority}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${BADGE_STLYES[ticket.status]}`}>
+                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${BADGE_STYLES[ticket.status]}`}>
                                             {ticket.status.replace(/_/g, ' ')}
                                         </span>
                                         {ticket.status === 'DOUBT_RAISED' && ticket.doubtNote && (

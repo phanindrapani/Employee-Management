@@ -43,7 +43,11 @@ export const getGlobalSummary = async () => {
                 $facet: {
                     pending: [{ $match: { status: 'pending' } }, { $count: "count" }],
                     approvedThisMonth: [
-                        { $match: { status: 'approved', fromDate: { $gte: startOfMonth } } },
+                        { $match: { status: 'approved', updatedAt: { $gte: startOfMonth } } },
+                        { $count: "count" }
+                    ],
+                    rejectedThisMonth: [
+                        { $match: { status: 'rejected', updatedAt: { $gte: startOfMonth } } },
                         { $count: "count" }
                     ]
                 }
@@ -87,7 +91,8 @@ export const getGlobalSummary = async () => {
         projects: projectAgg[0] || { total: 0, upcoming: 0, ongoing: 0, completed: 0, onHold: 0 },
         leaves: {
             pending: leaveAgg[0].pending[0]?.count || 0,
-            approvedThisMonth: leaveAgg[0].approvedThisMonth[0]?.count || 0
+            approvedThisMonth: leaveAgg[0].approvedThisMonth[0]?.count || 0,
+            rejectedThisMonth: leaveAgg[0].rejectedThisMonth[0]?.count || 0
         },
         holidays: {
             upcoming: holidayStats[0].upcoming[0] || null,

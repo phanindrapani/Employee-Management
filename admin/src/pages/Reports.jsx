@@ -101,48 +101,32 @@ const Reports = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-50">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Leaves</span>
-                        <div className="p-2 bg-[#F0FFF4] text-[#63C132] rounded-xl shadow-inner">
-                            <ArrowUpRight size={18} />
-                        </div>
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 border-l-4 border-[#63C132] flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#63C132] mb-1">Total Leaves</p>
+                        <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{reportData.summary.totalLeaves}</h3>
                     </div>
-                    <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.totalLeaves}</div>
-                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter italic">Approved this year</div>
                 </div>
 
-                <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-50">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Average Leave</span>
-                        <div className="p-2 bg-[#FFF5F5] text-[#E53E3E] rounded-xl shadow-inner">
-                            <ArrowDownRight size={18} />
-                        </div>
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 border-l-4 border-red-500 flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-red-500 mb-1">Average Leave</p>
+                        <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{reportData.summary.avgDuration} Days</h3>
                     </div>
-                    <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.avgDuration} Days</div>
-                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter italic">Per approved request</div>
                 </div>
 
-                <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-50">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Common Leave</span>
-                        <div className="p-2 bg-[#F0F7FF] text-[#0B3C5D] rounded-xl shadow-inner">
-                            <TrendingUp size={18} />
-                        </div>
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 border-l-4 border-[#0B3C5D] flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#0B3C5D] mb-1">Common Leave</p>
+                        <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{reportData.summary.mostCommonType}</h3>
                     </div>
-                    <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.mostCommonType}</div>
-                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter italic">Most frequent type</div>
                 </div>
 
-                <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-50">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Usage Rate</span>
-                        <div className="p-2 bg-[#F5F3FF] text-[#7C3AED] rounded-xl shadow-inner">
-                            <ArrowUpRight size={18} />
-                        </div>
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 border-l-4 border-[#7C3AED] flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] mb-1">Usage Rate</p>
+                        <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{reportData.summary.utilizationRate}%</h3>
                     </div>
-                    <div className="text-3xl font-black text-[#0B3C5D] tracking-tight mb-1">{reportData.summary.utilizationRate}%</div>
-                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-tighter italic">Total capacity used</div>
                 </div>
             </div>
 
