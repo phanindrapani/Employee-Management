@@ -1,5 +1,6 @@
 import Team from '../../models/team.model.js';
 import Project from '../../models/project.model.js';
+import User from '../../models/user.model.js';
 
 export const getManagerProjects = async (req, res) => {
     try {
@@ -39,5 +40,14 @@ export const getProjectStats = async (req, res) => {
         res.json(stats);
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch project stats" });
+    }
+};
+
+export const getTeamLeads = async (req, res) => {
+    try {
+        const teamLeads = await User.find({ role: 'team-lead' }).select('name email');
+        res.json(teamLeads);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch team leads" });
     }
 };

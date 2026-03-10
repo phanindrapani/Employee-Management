@@ -28,5 +28,7 @@ export const uploadDocuments = upload.fields([
     { name: 'resume', maxCount: 1 }
 ]);
 
+export const uploadAttachments = upload.array('attachments', 5); // Allow up to 5 attachments
+
 export { upload };
 export default upload;

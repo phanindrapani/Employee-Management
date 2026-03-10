@@ -1,9 +1,12 @@
 import express from 'express';
-import { getTeamDashboardStats } from '../../controllers/team-lead/dashboard.controller.js';
 import { protect, authorizeRole } from '../../middlewares/auth.middleware.js';
+import ticketRoutes from './ticket.routes.js';
 
 const router = express.Router();
 
-router.get('/stats', getTeamDashboardStats);
+router.use(protect);
+router.use(authorizeRole(['client']));
+
+router.use('/tickets', ticketRoutes);
 
 export default router;

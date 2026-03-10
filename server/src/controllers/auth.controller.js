@@ -48,7 +48,7 @@ const calculateCompleteness = (user) => {
 };
 
 export const registerUser = async (req, res) => {
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, password, role, phone, company } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -56,12 +56,21 @@ export const registerUser = async (req, res) => {
         return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Generate client code if role is client
+    let clientCode = '';
+    if (role === 'client') {
+        const clientCount = await User.countDocuments({ role: 'client' });
+        clientCode = `CLN-${1001 + clientCount}`;
+    }
+
     const user = await User.create({
         name,
         email,
         password,
         role,
-        phone
+        phone,
+        company,
+        clientCode
     });
 
     if (user) {
@@ -70,6 +79,8 @@ export const registerUser = async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            company: user.company,
+            clientCode: user.clientCode,
             token: generateToken(user._id, user.role),
         });
     } else {

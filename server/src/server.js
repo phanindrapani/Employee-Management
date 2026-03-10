@@ -21,13 +21,20 @@ import employeeRoutes from "./routes/employee/index.js";
 import teamLeadRoutes from "./routes/team-lead/index.js";
 import managerRoutes from "./routes/manager/index.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import clientRoutes from "./routes/client/index.js";
+import { checkSLABreaches } from "./jobs/slaChecker.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Assets (public, uploads) and .env are in the parent directory of src
 const rootDir = path.join(__dirname, "..");
 
-connectDB();
+connectDB().then(() => {
+  // Run SLA checker every hour after DB is ready
+  setInterval(checkSLABreaches, 60 * 60 * 1000);
+  // Run once on startup too
+  checkSLABreaches();
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -76,6 +83,7 @@ app.use("/api/employee", employeeRoutes);
 app.use("/api/team-lead", teamLeadRoutes);
 app.use("/api/manager", managerRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/client", clientRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

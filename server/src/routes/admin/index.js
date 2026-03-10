@@ -11,6 +11,7 @@ import settingsRoutes from './settings.routes.js';
 import notificationRoutes from './notification.routes.js';
 import documentRoutes from './document.routes.js';
 import attendanceRoutes from './attendance.routes.js';
+import ticketRoutes from './ticket.routes.js';
 
 const router = express.Router();
 
@@ -26,5 +27,6 @@ router.use('/settings', settingsRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/documents', documentRoutes);
 router.use('/attendance', attendanceRoutes);
+router.use('/tickets', ticketRoutes);
 
 export default router;

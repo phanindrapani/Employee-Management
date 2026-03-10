@@ -16,7 +16,9 @@ export const createProject = async (req, res) => {
         // Socket Emit
         try {
             const io = getIO();
-            const populatedProject = await Project.findById(project._id).populate({ path: 'assignedTeam', populate: { path: 'department' } });
+            const populatedProject = await Project.findById(project._id)
+                .populate({ path: 'assignedTeam', populate: { path: 'department' } })
+                .populate('clientId', 'name company');
             io.to('role:admin').emit('project:created', populatedProject);
             if (project.assignedTeam) {
                 io.to(`team:${project.assignedTeam}`).emit('project:created', populatedProject);
@@ -48,7 +50,10 @@ export const createProject = async (req, res) => {
 
 export const getAllProjects = async (req, res) => {
     try {
-        const projects = await Project.find().populate({ path: 'assignedTeam', populate: { path: 'department' } }).sort({ createdAt: -1 });
+        const projects = await Project.find()
+            .populate({ path: 'assignedTeam', populate: { path: 'department' } })
+            .populate('clientId', 'name company')
+            .sort({ createdAt: -1 });
         res.json(projects);
     } catch (e) { res.status(500).json({ msg: "Failed to fetch" }); }
 };
@@ -62,7 +67,9 @@ export const updateProject = async (req, res) => {
         // Socket Emit
         try {
             const io = getIO();
-            const populatedProject = await Project.findById(req.params.id).populate({ path: 'assignedTeam', populate: { path: 'department' } });
+            const populatedProject = await Project.findById(req.params.id)
+                .populate({ path: 'assignedTeam', populate: { path: 'department' } })
+                .populate('clientId', 'name company');
             io.to('role:admin').emit('project:updated', populatedProject);
             if (project.assignedTeam) {
                 io.to(`team:${project.assignedTeam}`).emit('project:updated', populatedProject);

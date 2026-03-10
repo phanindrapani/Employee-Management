@@ -4,8 +4,6 @@ import { protect, authorizeRole } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.use(protect, authorizeRole(['team-lead', 'admin']));
-
 router.get('/', getTeamMembers);
 router.get('/performance', getTeamMemberPerformance);
 router.post('/calculate-score', calculateTeamPerformanceScore);

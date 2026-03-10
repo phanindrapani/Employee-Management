@@ -24,7 +24,8 @@ const projectSchema = new mongoose.Schema({
     },
     lastCalculatedAt: { type: Date },
     lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
 const Project = mongoose.model('Project', projectSchema);

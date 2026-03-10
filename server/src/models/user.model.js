@@ -174,8 +174,21 @@ const Employee = User.discriminator('employee', new mongoose.Schema({
     }
 }));
 
+// CLIENT DISCRIMINATOR
+const Client = User.discriminator('client', new mongoose.Schema({
+    company: {
+        type: String,
+        default: ''
+    },
+    clientCode: {
+        type: String,
+        unique: true,
+        sparse: true
+    }
+}));
+
 // ==================================================
 // EXPORTS
 // ==================================================
-export { User, Admin, Manager, TeamLead, Employee };
+export { User, Admin, Manager, TeamLead, Employee, Client };
 export default User;
