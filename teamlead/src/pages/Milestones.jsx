@@ -13,26 +13,38 @@ import {
 import API from '../api';
 import { useNavigate } from 'react-router-dom';
 import StatCard from '../components/StatCard';
+import useSocketListener from '../hooks/useSocketListener';
+import { useAuth } from '../context/AuthContext';
 
 const Milestones = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
-    const [milestones, setMilestones] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [milestones, setMilestones] = useState(() => {
+        const cached = localStorage.getItem(`tl_milestones_${user?._id}`);
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(milestones.length === 0);
     const [searchQuery, setSearchQuery] = useState('');
 
+    const fetchMilestones = async () => {
+        try {
+            const { data } = await API.get('/team-lead/milestones');
+            setMilestones(data);
+            localStorage.setItem(`tl_milestones_${user?._id}`, JSON.stringify(data));
+        } catch (error) {
+            console.error("Failed to fetch team milestones:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchMilestones = async () => {
-            try {
-                const { data } = await API.get('/team-lead/milestones');
-                setMilestones(data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Failed to fetch team milestones:", error);
-                setLoading(false);
-            }
-        };
         fetchMilestones();
     }, []);
+
+    useSocketListener('milestone:updated', fetchMilestones);
+    useSocketListener(`team:${user?.team}:milestone:updated`, fetchMilestones);
+
 
     const filteredMilestones = milestones.filter(m =>
         m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -140,7 +152,7 @@ const Milestones = () => {
                                 <tr key={milestone._id} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="p-3 bg-blue-50 rounded-2xl text-[#0B3C5D] group-hover:bg-[#0B3C5D] group-hover:text-white transition-all transform group-hover:rotate-12">
+                                            <div className="p-3 bg-blue-50 rounded-2xl text-[#0B3C5D] group-hover:bg-[#0B3C5D] group-hover:text-white transition-all">
                                                 <Target size={20} />
                                             </div>
                                             <div>
@@ -190,10 +202,10 @@ const Milestones = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6 text-right text-right">
+                                    <td className="px-8 py-6 text-right">
                                         <button
                                             onClick={() => handleCreateTask(milestone)}
-                                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0B3C5D] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#1A4B6D] transition-all transform hover:scale-[1.05] shadow-lg shadow-[#0B3C5D]/20 active:scale-95"
+                                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0B3C5D] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#1A4B6D] transition-all shadow-lg shadow-[#0B3C5D]/20 active:scale-95"
                                         >
                                             <Plus size={14} />
                                             <span>Create Task</span>

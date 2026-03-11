@@ -11,6 +11,7 @@ import {
     Plus
 } from 'lucide-react';
 import useSocketListener from '../hooks/useSocketListener';
+import { useAuth } from '../context/AuthContext';
 
 const HolidayManagement = () => {
     const [holidays, setHolidays] = useState(() => {

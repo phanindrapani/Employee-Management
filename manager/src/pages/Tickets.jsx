@@ -21,6 +21,7 @@ import { useToast } from '../context/ToastContext';
 import StatCard from '../components/StatCard';
 import useSocketListener from '../hooks/useSocketListener';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { useAuth } from '../context/AuthContext';
 
 const BADGE_STLYES = {
     OPEN: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -41,8 +42,9 @@ const PRIORITY_STYLES = {
 };
 
 const Tickets = () => {
-    const [tickets, setTickets] = useLocalStorage('manager_tickets_list', []);
-    const [stats, setStats] = useLocalStorage('manager_tickets_stats', null);
+    const { user } = useAuth();
+    const [tickets, setTickets] = useLocalStorage(`manager_tickets_list_${user?._id}`, []);
+    const [stats, setStats] = useLocalStorage(`manager_tickets_stats_${user?._id}`, null);
     const [teamLeads, setTeamLeads] = useState([]);
     const [loading, setLoading] = useState(!tickets.length || !stats);
     const [filter, setFilter] = useState({ status: '', priority: '' });

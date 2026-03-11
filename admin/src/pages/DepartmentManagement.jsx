@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import useSocketListener from '../hooks/useSocketListener';
 import API from '../api';
+import { useAuth } from '../context/AuthContext';
 import { Building2, Plus, Trash2, X, Search, Pencil } from 'lucide-react';
 
 const DepartmentManagement = () => {
+    const { user } = useAuth();
     const [departments, setDepartments] = useState(() => {
-        const cached = localStorage.getItem('ls_admin_departments_list');
+        const cached = localStorage.getItem(`ls_admin_departments_list_${user?._id}`);
         return cached ? JSON.parse(cached) : [];
     });
     const [loading, setLoading] = useState(departments.length === 0);
@@ -18,7 +20,7 @@ const DepartmentManagement = () => {
         try {
             const { data } = await API.get('/admin/departments');
             setDepartments(data);
-            localStorage.setItem('ls_admin_departments_list', JSON.stringify(data));
+            localStorage.setItem(`ls_admin_departments_list_${user?._id}`, JSON.stringify(data));
         } catch (err) {
             console.error('Failed to fetch departments');
         } finally {

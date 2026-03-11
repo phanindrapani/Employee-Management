@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import API from '../../api';
 import useSocketListener from '../../hooks/useSocketListener';
+import { useAuth } from '../../context/AuthContext';
 
 const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
     if (!task) return null;
@@ -229,8 +230,9 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
 };
 
 const MyTasks = () => {
+    const { user } = useAuth();
     const [tasks, setTasks] = useState(() => {
-        const cached = localStorage.getItem('ls_emp_my_tasks');
+        const cached = localStorage.getItem(`ls_emp_my_tasks_${user?._id}`);
         return cached ? JSON.parse(cached) : [];
     });
     const [loading, setLoading] = useState(tasks.length === 0);
@@ -244,7 +246,7 @@ const MyTasks = () => {
             // Fetch tasks assigned to the current employee
             const { data } = await API.get('/employee/tasks');
             setTasks(data);
-            localStorage.setItem('ls_emp_my_tasks', JSON.stringify(data));
+            localStorage.setItem(`ls_emp_my_tasks_${user?._id}`, JSON.stringify(data));
             setLoading(false);
         } catch (error) {
             console.error("Error fetching tasks:", error);
@@ -336,7 +338,7 @@ const MyTasks = () => {
             {/* Task List */}
             <div className="space-y-4">
                 {filteredTasks.map((task) => (
-                    <div key={task._id} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all group flex flex-col md:flex-row items-center gap-6 cursor-pointer" onClick={() => setSelectedTask(task)}>
+                    <div key={task._id} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group flex flex-col md:flex-row items-center gap-6 cursor-pointer" onClick={() => setSelectedTask(task)}>
                         <div className={`w-1.5 h-12 rounded-full ${getStatusStyles(task.status).split(' ')[1].replace('text-', 'bg-')}`}></div>
 
                         <div className="flex-1 min-w-0">
@@ -363,8 +365,8 @@ const MyTasks = () => {
                             <div className={`px-5 py-2 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest ${getStatusStyles(task.status)}`}>
                                 {task.status}
                             </div>
-
-                            <button className="p-3 bg-slate-50 text-[#0B3C5D] rounded-xl group-hover:bg-[#63C132] group-hover:text-white transition-all transform hover:scale-110">
+    
+                            <button className="p-3 bg-slate-50 text-[#0B3C5D] rounded-xl group-hover:bg-[#63C132] group-hover:text-white transition-all">
                                 <ChevronRight size={20} />
                             </button>
                         </div>

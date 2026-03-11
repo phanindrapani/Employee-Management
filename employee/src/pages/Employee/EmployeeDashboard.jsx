@@ -18,7 +18,7 @@ const EmployeeDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [cachedData] = useState(() => {
-        const cached = localStorage.getItem('ls_emp_dashboard_agg');
+        const cached = localStorage.getItem(`ls_emp_dashboard_agg_${user?._id}`);
         return cached ? JSON.parse(cached) : null;
     });
 
@@ -52,7 +52,7 @@ const EmployeeDashboard = () => {
             setBalance(freshCache.balance);
             setTasks(freshCache.tasks);
             setProjects(freshCache.projects);
-            localStorage.setItem('ls_emp_dashboard_agg', JSON.stringify(freshCache));
+            localStorage.setItem(`ls_emp_dashboard_agg_${user?._id}`, JSON.stringify(freshCache));
 
         } catch (err) {
             console.error('Unexpected error in dashboard fetch:', err);

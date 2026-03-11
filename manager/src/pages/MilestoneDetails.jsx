@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../api';
 import { Plus, Pencil, Trash2, Calendar, Target, ChevronLeft, CheckCircle2, Clock } from 'lucide-react';
+import useLocalStorage from '../hooks/useLocalStorage';
+import { useAuth } from '../context/AuthContext';
+import useSocketListener from '../hooks/useSocketListener';
 
 const MilestoneDetails = () => {
     const { projectId } = useParams();
+    const { user } = useAuth();
     const [project, setProject] = useState(null);
-    const [milestones, setMilestones] = useState([]);
+    const [milestones, setMilestones] = useLocalStorage(`manager_milestone_details_${projectId}_${user?._id}`, []);
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -41,6 +45,9 @@ const MilestoneDetails = () => {
     useEffect(() => {
         fetchData();
     }, [projectId]);
+
+    useSocketListener('milestone:updated', fetchData);
+    useSocketListener('task:updated', fetchData);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

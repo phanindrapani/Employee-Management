@@ -12,7 +12,7 @@ export const getManagerPerformanceStats = async (req, res) => {
         const period = req.query.period || new Date().toISOString().slice(0, 7);
         const managerId = req.user._id;
 
-        // 1. Fetch all teams managed by this manager
+        // Fetch all teams managed by this manager
         const teams = await Team.find({ manager: managerId })
             .populate('teamLead', 'name email')
             .populate('members', 'name role')
@@ -33,19 +33,19 @@ export const getManagerPerformanceStats = async (req, res) => {
             if (t.teamLead) allMemberIds.add(t.teamLead._id.toString());
         });
 
-        // 2. Fetch Metrics for the current period
+        // Fetch Metrics for the current period
         const metrics = await PerformanceMetric.find({
             period,
             user: { $in: Array.from(allMemberIds).map(id => new mongoose.Types.ObjectId(id)) }
         }).populate('user', 'name role department');
 
-        // 3. Fetch Active Projects
+        // Fetch Active Projects
         const activeProjectsCount = await Project.countDocuments({
             assignedTeams: { $in: teamIds },
             status: { $in: ['ongoing', 'upcoming', 'on-hold'] }
         });
 
-        // 4. Calculate Team Stats
+        // Calculate Team Stats
         const teamStats = teams.map(team => {
             const memberIds = team.members.map(m => m._id.toString());
             if (team.teamLead && !memberIds.includes(team.teamLead._id.toString())) {

@@ -4,11 +4,14 @@ import { CalendarDays, CheckCircle2, Clock, XCircle, AlertCircle, Bookmark, Chev
 import StatCard from '../components/StatCard';
 import ApplyLeaveModal from '../components/ApplyLeaveModal';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { useAuth } from '../context/AuthContext';
+import useSocketListener from '../hooks/useSocketListener';
 
 const Leaves = () => {
-    const [leaves, setLeaves] = useLocalStorage('manager_leaves_list', []);
-    const [myLeaves, setMyLeaves] = useLocalStorage('manager_my_leaves_list', []);
-    const [stats, setStats] = useLocalStorage('manager_leaves_stats', []);
+    const { user } = useAuth();
+    const [leaves, setLeaves] = useLocalStorage(`manager_leaves_list_${user?._id}`, []);
+    const [myLeaves, setMyLeaves] = useLocalStorage(`manager_my_leaves_list_${user?._id}`, []);
+    const [stats, setStats] = useLocalStorage(`manager_leaves_stats_${user?._id}`, []);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('oversight');
     const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -33,6 +36,9 @@ const Leaves = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    useSocketListener('leave:created', fetchData);
+    useSocketListener('leave:updated', fetchData);
 
     const handleLeaveAction = async (id, status) => {
         let rejectionReason = '';

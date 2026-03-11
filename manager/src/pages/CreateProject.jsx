@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { PlusSquare, ArrowLeft, Send, PencilLine } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import API from '../api';
+import useLocalStorage from '../hooks/useLocalStorage';
+import { useAuth } from '../context/AuthContext';
+import useSocketListener from '../hooks/useSocketListener';
 
 const CreateProject = () => {
-    const [teams, setTeams] = useState(() => {
-        const cached = localStorage.getItem('ls_manager_teams_list');
-        return cached ? JSON.parse(cached) : [];
-    });
-    const [loading, setLoading] = useState(teams.length === 0);
-    const [clients, setClients] = useState([]);
+    const { user } = useAuth();
+    const [teams, setTeams] = useLocalStorage(`ls_manager_teams_list_${user?._id}`, []);
+    const [clients, setClients] = useLocalStorage(`ls_manager_clients_list_${user?._id}`, []);
+    const [loading, setLoading] = useState(!teams.length || !clients.length);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -26,44 +27,48 @@ const CreateProject = () => {
     const isEdit = Boolean(id);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const { data: teamsData } = await API.get('/manager/teams');
-                setTeams(teamsData);
-                localStorage.setItem('ls_manager_teams_list', JSON.stringify(teamsData));
+    const fetchData = async () => {
+        try {
+            const { data: teamsData } = await API.get('/manager/teams');
+            setTeams(teamsData);
 
-                const { data: clientsData } = await API.get('/manager/employees?role=client');
-                setClients(clientsData);
+            const { data: clientsData } = await API.get('/manager/employees?role=client');
+            setClients(clientsData);
 
-                if (isEdit) {
-                    const cachedProjects = localStorage.getItem('manager_projects_list');
-                    if (cachedProjects) {
-                        const project = JSON.parse(cachedProjects).find(p => p._id === id);
-                        if (project) {
-                            setFormData({
-                                name: project.name,
-                                description: project.description,
-                                priority: project.priority,
-                                startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
-                                endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
-                                assignedTeams: project.assignedTeams?.map(t => t._id || t) || [],
-                                clientId: project.clientId?._id || project.clientId || '',
-                                status: project.status,
-                                progress: project.progress
-                            });
-                        }
+            if (isEdit) {
+                const cachedProjects = localStorage.getItem(`manager_projects_list_${user?._id}`);
+                if (cachedProjects) {
+                    const project = JSON.parse(cachedProjects).find(p => p._id === id);
+                    if (project) {
+                        setFormData({
+                            name: project.name,
+                            description: project.description,
+                            priority: project.priority,
+                            startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
+                            endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+                            assignedTeams: project.assignedTeams?.map(t => t._id || t) || [],
+                            clientId: project.clientId?._id || project.clientId || '',
+                            status: project.status,
+                            progress: project.progress
+                        });
                     }
                 }
-            } catch (err) {
-                console.error('Failed to fetch data');
-            } finally {
-                setLoading(false);
             }
-        };
+        } catch (err) {
+            console.error('Failed to fetch data');
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchData();
     }, [id, isEdit]);
+
+    useSocketListener('team:created', fetchData);
+    useSocketListener('team:updated', fetchData);
+    useSocketListener('employee:created', fetchData);
+    useSocketListener('employee:updated', fetchData);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

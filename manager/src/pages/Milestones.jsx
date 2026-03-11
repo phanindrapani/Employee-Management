@@ -14,20 +14,24 @@ import {
     Search,
     AlertCircle
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import useLocalStorage from '../hooks/useLocalStorage';
+import useSocketListener from '../hooks/useSocketListener';
 
 const Milestones = () => {
+    const { user } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     
-    const [projects, setProjects] = useState([]);
-    const [selectedProject, setSelectedProject] = useState(null);
-    const [milestones, setMilestones] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [milestonesLoading, setMilestonesLoading] = useState(false);
+    const [projects, setProjects] = useLocalStorage(`manager_milestones_projects_${user?._id}`, []);
+    const [selectedProject, setSelectedProject] = useLocalStorage(`manager_milestones_selected_project_${user?._id}`, null);
+    const [milestones, setMilestones] = useLocalStorage(`manager_milestones_list_${user?._id}_${selectedProject?._id}`, []);
+    const [loading, setLoading] = useState(!projects.length);
+    const [milestonesLoading, setMilestonesLoading] = useState(!milestones.length && selectedProject);
     const [showModal, setShowModal] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [teams, setTeams] = useState([]);
+    const [searchTerm, setSearchTerm] = useLocalStorage(`manager_milestones_search_${user?._id}`, '');
+    const [teams, setTeams] = useLocalStorage(`manager_milestones_teams_${user?._id}`, []);
     
     const [formData, setFormData] = useState({
         name: '',
@@ -75,6 +79,7 @@ const Milestones = () => {
     }, [selectedProject]);
 
     const fetchMilestones = async (projectId) => {
+        if (!projectId) return;
         setMilestonesLoading(true);
         try {
             const { data } = await API.get(`/manager/milestones/project/${projectId}`);
@@ -85,6 +90,15 @@ const Milestones = () => {
             setMilestonesLoading(false);
         }
     };
+
+    useSocketListener('milestone:updated', () => {
+        if (selectedProject) fetchMilestones(selectedProject._id);
+    });
+    
+    useSocketListener('project:updated', () => {
+        // Refresh project list to get updated data
+    });
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();

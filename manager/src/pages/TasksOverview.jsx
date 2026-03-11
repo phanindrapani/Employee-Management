@@ -14,6 +14,8 @@ import {
     ChevronUp,
     LayoutDashboard
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import useSocketListener from '../hooks/useSocketListener';
 import {
     BarChart,
     Bar,
@@ -30,9 +32,10 @@ import useLocalStorage from '../hooks/useLocalStorage';
 import StatCard from '../components/StatCard';
 
 const TasksOverview = () => {
-    const [stats, setStats] = useLocalStorage('manager_tasks_overview_stats', null);
+    const { user } = useAuth();
+    const [stats, setStats] = useLocalStorage(`manager_tasks_overview_stats_${user?._id}`, null);
     const [loading, setLoading] = useState(!stats);
-    const [filter, setFilter] = useState({
+    const [filter, setFilter] = useLocalStorage(`manager_tasks_filter_${user?._id}`, {
         team: '',
         project: '',
         status: '',
@@ -57,6 +60,17 @@ const TasksOverview = () => {
         }, 300); // Debounce
         return () => clearTimeout(timer);
     }, [fetchDashboardData]);
+
+    useSocketListener('task:created', fetchDashboardData);
+    useSocketListener('task:updated', fetchDashboardData);
+    useSocketListener('task:deleted', fetchDashboardData);
+    useSocketListener('task:assigned', fetchDashboardData); // NEW
+    useSocketListener('project:created', fetchDashboardData); // NEW
+    useSocketListener('project:updated', fetchDashboardData); // NEW
+    useSocketListener('project:deleted', fetchDashboardData); // NEW
+    useSocketListener('milestone:created', fetchDashboardData); // NEW
+    useSocketListener('milestone:updated', fetchDashboardData); // NEW
+    useSocketListener('milestone:deleted', fetchDashboardData); // NEW
 
     if (loading && !stats) return (
         <div className="flex items-center justify-center min-h-[400px] text-[#0B3C5D] font-black italic tracking-widest text-xs uppercase animate-pulse">
@@ -251,6 +265,17 @@ const TasksOverview = () => {
                     </div>
                     <select
                         className="bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase px-4 py-2 outline-none focus:ring-2 ring-slate-100 shadow-sm"
+                        value={filter.team}
+                        onChange={(e) => setFilter({ ...filter, team: e.target.value })}
+                    >
+                        <option value="">TEAM: ALL</option>
+                        {stats?.teamBreakdown?.map((t, i) => (
+                            <option key={i} value={t.teamId}>{t.teamName}</option>
+                        ))}
+                    </select>
+
+                    <select
+                        className="bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase px-4 py-2 outline-none focus:ring-2 ring-slate-100 shadow-sm"
                         value={filter.status}
                         onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                     >
@@ -259,6 +284,17 @@ const TasksOverview = () => {
                         <option value="in-progress">In Progress</option>
                         <option value="review">Review</option>
                         <option value="done">Completed</option>
+                    </select>
+
+                    <select
+                        className="bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase px-4 py-2 outline-none focus:ring-2 ring-slate-100 shadow-sm"
+                        value={filter.project}
+                        onChange={(e) => setFilter({ ...filter, project: e.target.value })}
+                    >
+                        <option value="">PROJECT: ALL</option>
+                        {stats?.projectProgress?.map((p, i) => (
+                            <option key={i} value={p.projectId}>{p.projectName}</option>
+                        ))}
                     </select>
 
                     <select

@@ -45,10 +45,8 @@ export const getManagerTaskDashboard = async (req, res) => {
 
         // Team Task Breakdown
         const teamBreakdown = await Promise.all(teams.map(async (team) => {
-            const teamProjects = await Project.find({ assignedTeams: team._id });
-            const teamProjectIds = teamProjects.map(p => p._id);
             const teamStats = await Task.aggregate([
-                { $match: { project: { $in: teamProjectIds } } },
+                { $match: { teamId: team._id } },
                 {
                     $group: {
                         _id: "$status",
@@ -59,6 +57,7 @@ export const getManagerTaskDashboard = async (req, res) => {
             ]);
 
             return {
+                teamId: team._id,
                 teamName: team.name,
                 total: teamStats.reduce((acc, curr) => acc + curr.count, 0),
                 completed: teamStats.find(s => s._id === 'done')?.count || 0,
@@ -114,6 +113,7 @@ export const getManagerTaskDashboard = async (req, res) => {
             const total = pStats[0]?.total || 0;
             const completed = pStats[0]?.completed || 0;
             return {
+                projectId: p._id,
                 projectName: p.name,
                 totalTasks: total,
                 completed: completed,
@@ -129,8 +129,15 @@ export const getManagerTaskDashboard = async (req, res) => {
             .select('title status updatedAt assignedTo');
 
         // Filtered Task List (For Main Table)
-        const { status, priority, search } = req.query;
+        const { status, priority, search, team: teamFilter, project: projectFilter } = req.query;
         let query = { project: { $in: projectIds } };
+
+        if (teamFilter) {
+            const teamProjects = await Project.find({ assignedTeams: teamFilter });
+            const teamProjectIds = teamProjects.map(p => p._id);
+            query.project = { $in: teamProjectIds };
+        }
+        if (projectFilter) query.project = projectFilter;
 
         if (status) query.status = status;
         if (priority) query.priority = priority;

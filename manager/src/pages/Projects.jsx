@@ -4,15 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import { Briefcase, Clock, Users2, ChevronRight, BarChart3, Plus, Pencil, Trash2, Globe, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-
+import useSocketListener from '../hooks/useSocketListener';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 const Projects = () => {
-    const [projects, setProjects] = useLocalStorage('manager_projects_list', []);
-    const [stats, setStats] = useLocalStorage('manager_projects_stats', []);
-    const [loading, setLoading] = useState(!projects.length || !stats.length);
-    const [viewMode, setViewMode] = useState('owned'); // 'owned' or 'all'
     const { user } = useAuth();
+    const [projects, setProjects] = useLocalStorage(`manager_projects_list_${user?._id}`, []);
+    const [stats, setStats] = useLocalStorage(`manager_projects_stats_${user?._id}`, []);
+    const [loading, setLoading] = useState(!projects.length || !stats.length);
+    const [viewMode, setViewMode] = useLocalStorage(`manager_projects_view_mode_${user?._id}`, 'owned');
     const navigate = useNavigate();
 
     const fetchProjects = async (mode = viewMode) => {
@@ -35,6 +35,10 @@ const Projects = () => {
     useEffect(() => {
         fetchProjects(viewMode);
     }, [viewMode]);
+
+    useSocketListener('project:created', () => fetchProjects(viewMode));
+    useSocketListener('project:updated', () => fetchProjects(viewMode));
+    useSocketListener('project:deleted', () => fetchProjects(viewMode));
 
     const COLORS = ['#63C132', '#0B3C5D', '#F59E0B', '#EF4444', '#64748B'];
 

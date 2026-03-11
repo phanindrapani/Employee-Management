@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import API from '../api';
 import { Clock, Download, Search, Calendar, BarChart3, TrendingUp, User, FolderOpen } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
+import { useAuth } from '../context/AuthContext';
+import useSocketListener from '../hooks/useSocketListener';
 
 const CATEGORY_COLORS = {
     development: '#3B82F6', design: '#8B5CF6', testing: '#F59E0B',
@@ -26,9 +28,10 @@ const CustomTooltip = ({ active, payload, label, unit = 'h' }) => {
 import useLocalStorage from '../hooks/useLocalStorage';
 
 const WorkLogs = () => {
-    const [logs, setLogs] = useLocalStorage('manager_worklogs_list', []);
-    const [stats, setStats] = useLocalStorage('manager_worklogs_stats', []);
-    const [analysis, setAnalysis] = useLocalStorage('manager_worklogs_analysis', null);
+    const { user } = useAuth();
+    const [logs, setLogs] = useLocalStorage(`manager_worklogs_list_${user?._id}`, []);
+    const [stats, setStats] = useLocalStorage(`manager_worklogs_stats_${user?._id}`, []);
+    const [analysis, setAnalysis] = useLocalStorage(`manager_worklogs_analysis_${user?._id}`, null);
     const [loading, setLoading] = useState(!logs.length || !stats.length || !analysis);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTeam, setSelectedTeam] = useState(null);
@@ -52,6 +55,8 @@ const WorkLogs = () => {
         };
         fetchData();
     }, []);
+
+    useSocketListener('worklog:created', fetchData);
 
     const filteredLogs = logs.filter(log =>
         log.employee?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||

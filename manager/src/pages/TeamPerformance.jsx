@@ -22,6 +22,8 @@ import {
     Cell
 } from 'recharts';
 import StatCard from '../components/StatCard';
+import { useAuth } from '../context/AuthContext';
+import useSocketListener from '../hooks/useSocketListener';
 
 const ScorePill = ({ score }) => {
     const color = score >= 75 ? '#63C132' : score >= 50 ? '#f59e0b' : '#ef4444';
@@ -33,13 +35,17 @@ const ScorePill = ({ score }) => {
 import useLocalStorage from '../hooks/useLocalStorage';
 
 const TeamPerformance = () => {
-    const [stats, setStats] = useLocalStorage('manager_performance_stats', null);
+    const { user } = useAuth();
+    const [stats, setStats] = useLocalStorage(`manager_performance_stats_${user?._id}`, null);
     const [loading, setLoading] = useState(!stats);
     const [expanded, setExpanded] = useState({});
 
     useEffect(() => {
         fetchStats();
     }, []);
+
+    useSocketListener('task:updated', fetchStats);
+    useSocketListener('milestone:updated', fetchStats);
 
     const fetchStats = async () => {
         try {

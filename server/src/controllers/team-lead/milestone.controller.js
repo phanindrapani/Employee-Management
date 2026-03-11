@@ -1,5 +1,6 @@
 import Milestone from '../../models/milestone.model.js';
 import Project from '../../models/project.model.js';
+import { getIO } from '../../socket.js';
 
 export const getProjectMilestones = async (req, res) => {
     try {
@@ -54,7 +55,7 @@ export const updateMilestoneStatus = async (req, res) => {
 
         const milestone = await Milestone.findById(id).populate({
             path: 'projectId',
-            select: 'assignedTeams'
+            select: 'assignedTeams name'
         });
         
         if (!milestone) {
@@ -75,6 +76,20 @@ export const updateMilestoneStatus = async (req, res) => {
         }
 
         await milestone.save();
+
+        // Socket Emit
+        try {
+            const io = getIO();
+            io.emit('milestone:updated', milestone);
+            
+            // Specifically notify relevant teams if needed, but for now global emit for this project
+            milestone.projectId.assignedTeams.forEach(team => {
+                io.to(`team:${team}`).emit('milestone:updated', milestone);
+            });
+        } catch (socketErr) {
+            console.error('Socket emission failed in updateMilestoneStatus:', socketErr);
+        }
+
         res.json(milestone);
     } catch (error) {
         res.status(500).json({ message: error.message });

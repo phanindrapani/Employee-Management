@@ -2,11 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { PlusSquare, ArrowLeft, Send, PencilLine } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import API from '../api';
+import useSocketListener from '../hooks/useSocketListener';
 
 const CreateProject = () => {
-    const [managers, setManagers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [clients, setClients] = useState([]);
+    const [managers, setManagers] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_managers');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [clients, setClients] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_clients');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(!managers.length || !clients.length);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -29,9 +36,11 @@ const CreateProject = () => {
             try {
                 const { data: managersData } = await API.get('/admin/employees?role=manager');
                 setManagers(managersData);
+                localStorage.setItem('ls_admin_managers', JSON.stringify(managersData));
 
                 const { data: clientsData } = await API.get('/admin/employees?role=client');
                 setClients(clientsData);
+                localStorage.setItem('ls_admin_clients', JSON.stringify(clientsData));
 
                 if (isEdit) {
                     const { data: projectData } = await API.get('/admin/projects');
@@ -82,6 +91,25 @@ const CreateProject = () => {
 
         fetchData();
     }, [id, isEdit]);
+
+    // WebSocket listeners for real-time dropdown updates if a manager or client is added/deleted
+    const refreshDropdowns = async () => {
+        try {
+            const { data: managersData } = await API.get('/admin/employees?role=manager');
+            setManagers(managersData);
+            localStorage.setItem('ls_admin_managers', JSON.stringify(managersData));
+            
+            const { data: clientsData } = await API.get('/admin/employees?role=client');
+            setClients(clientsData);
+            localStorage.setItem('ls_admin_clients', JSON.stringify(clientsData));
+        } catch (e) {
+            console.error('Socket refresh failed', e);
+        }
+    };
+
+    useSocketListener('employee:created', refreshDropdowns);
+    useSocketListener('employee:deleted', refreshDropdowns);
+    useSocketListener('employee:updated', refreshDropdowns);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

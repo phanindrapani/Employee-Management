@@ -17,11 +17,14 @@ import {
     ChevronUp
 } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { useAuth } from '../context/AuthContext';
+import useSocketListener from '../hooks/useSocketListener';
 import { Link } from 'react-router-dom';
 import StatCard from '../components/StatCard';
 
 const ManagerDashboard = () => {
-    const [stats, setStats] = useLocalStorage('manager_dashboard_stats', null);
+    const { user } = useAuth();
+    const [stats, setStats] = useLocalStorage(`manager_dashboard_stats_${user?._id}`, null);
     const [loading, setLoading] = useState(!stats);
     const [showAllActivities, setShowAllActivities] = useState(false);
 
@@ -39,6 +42,12 @@ const ManagerDashboard = () => {
     useEffect(() => {
         fetchDashboardStats();
     }, [fetchDashboardStats]);
+
+    useSocketListener('project:created', fetchDashboardStats);
+    useSocketListener('project:updated', fetchDashboardStats);
+    useSocketListener('project:deleted', fetchDashboardStats);
+    useSocketListener('task:updated', fetchDashboardStats);
+    useSocketListener('leave:updated', fetchDashboardStats);
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-[400px]">
