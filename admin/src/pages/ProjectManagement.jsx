@@ -73,81 +73,108 @@ const ProjectManagement = () => {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {loading ? (
-                    <div className="col-span-full py-12 text-center text-slate-400">Loading projects...</div>
+                    <div className="col-span-full py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse italic">
+                        Syncing Project Portfolios...
+                    </div>
                 ) : projects.length === 0 ? (
-                    <div className="col-span-full py-12 text-center text-slate-400">No projects found</div>
+                    <div className="col-span-full py-24 text-center">
+                        <FolderKanban size={48} className="mx-auto text-slate-200 mb-4" />
+                        <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No active projects discovered</p>
+                    </div>
                 ) : (
                     projects.map((project) => (
-                        <div key={project._id} className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-100 hover:shadow-md transition-all group">
-                            <div className="flex justify-between items-start mb-4">
-                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getStatusColor(project.status)}`}>
+                        <div key={project._id} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-50 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 group relative overflow-hidden">
+                            {/* Accent line */}
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-50 group-hover:bg-[#63C132] transition-colors duration-500" />
+
+                            <div className="flex justify-between items-start mb-8">
+                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.15em] leading-none ${getStatusColor(project.status)}`}>
                                     {project.status}
                                 </span>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => navigate(`/projects/edit/${project._id}`)}
-                                        className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-lg transition-all"
+                                        className="p-2.5 text-slate-300 hover:text-[#0B3C5D] hover:bg-[#F0F7FF] rounded-2xl transition-all"
                                     >
                                         <Pencil size={18} />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(project._id)}
-                                        className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                        className="p-2.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
                                     >
                                         <Trash2 size={18} />
                                     </button>
                                 </div>
                             </div>
-                            <h3 className="text-xl font-bold mb-2">{project.name}</h3>
-                            <p className="text-slate-500 text-sm mb-6 line-clamp-2">{project.description}</p>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                                    <div className="w-[18px] h-[18px] flex items-center justify-center bg-[#0B3C5D] rounded text-white text-[10px] font-bold">M</div>
-                                    <div className="text-xs">
-                                        <p className="text-slate-400 font-medium">Manager</p>
-                                        <p className="font-bold truncate max-w-[120px]">{project.managerId?.name || 'Not assigned'}</p>
+                            <div className="mb-6">
+                                <h3 className="text-2xl font-black text-[#0B3C5D] mb-2 group-hover:text-[#63C132] transition-colors duration-300">{project.name}</h3>
+                                <p className="text-slate-400 text-sm font-medium leading-relaxed line-clamp-2 italic">{project.description || 'Strategic development initiative.'}</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                                <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-3xl border border-transparent hover:border-slate-100 transition-all">
+                                    <div className="w-10 h-10 flex items-center justify-center bg-[#0B3C5D] rounded-2xl text-white text-xs font-black shadow-lg shadow-[#0B3C5D]/10">
+                                        {project.managerId?.name?.charAt(0) || 'M'}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5">Project Manager</p>
+                                        <p className="text-xs font-black text-[#0B3C5D] truncate">{project.managerId?.name || 'Not Assigned'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                                    <Users2 size={18} className="text-[#0B3C5D]" />
-                                    <div className="text-xs">
-                                        <p className="text-slate-400 font-medium">Teams</p>
-                                        <p className="font-bold truncate max-w-[120px]">
-                                            {project.assignedTeams?.length || 0} teams
+
+                                <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-3xl border border-transparent hover:border-slate-100 transition-all">
+                                    <div className="w-10 h-10 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded-2xl shadow-sm">
+                                        <Users2 size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5">Assigned Teams</p>
+                                        <p className="text-xs font-black text-[#0B3C5D]">
+                                            {project.assignedTeams?.length || 0} {project.assignedTeams?.length === 1 ? 'Team' : 'Teams'}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                                    <Calendar size={18} className="text-[#0B3C5D]" />
-                                    <div className="text-xs">
-                                        <p className="text-slate-400 font-medium">Deadline</p>
-                                        <p className="font-bold">
-                                            {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}
+
+                                <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-3xl border border-transparent hover:border-slate-100 transition-all">
+                                    <div className="w-10 h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-2xl shadow-sm">
+                                        <Calendar size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5">Due Date</p>
+                                        <p className="text-xs font-black text-[#0B3C5D]">
+                                            {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'No Date'}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                                    <Activity size={18} className="text-[#0B3C5D]" />
-                                    <div className="text-xs">
-                                        <p className="text-slate-400 font-medium">Client</p>
-                                        <p className="font-bold truncate max-w-[120px]">{project.clientId?.name || 'Internal'}</p>
+
+                                <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-3xl border border-transparent hover:border-slate-100 transition-all">
+                                    <div className="w-10 h-10 flex items-center justify-center bg-amber-50 text-amber-600 rounded-2xl shadow-sm">
+                                        <Activity size={18} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5">Client</p>
+                                        <p className="text-xs font-black text-[#0B3C5D] truncate">{project.clientId?.name || 'Internal'}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center text-xs font-bold">
-                                    <span className="text-slate-400">Progress</span>
-                                    <span className="text-[#0B3C5D]">{project.progress}%</span>
+                            <div className="pt-6 border-t border-slate-50">
+                                <div className="flex justify-between items-end mb-3">
+                                    <div>
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5">Project Progress</p>
+                                        <span className="text-sm font-black text-[#0B3C5D]">{project.progress}%</span>
+                                    </div>
+                                    <span className="text-[10px] font-black text-[#63C132] uppercase tracking-tighter">On Track</span>
                                 </div>
-                                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden p-0.5 border border-slate-100 shadow-inner">
                                     <div
-                                        className="h-full bg-[#63C132] transition-all duration-1000"
+                                        className="h-full bg-[#63C132] rounded-full transition-all duration-1000 ease-out shadow-sm shadow-[#63C132]/40 relative overflow-hidden"
                                         style={{ width: `${project.progress}%` }}
-                                    ></div>
+                                    >
+                                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                    </div>
                                 </div>
                             </div>
                         </div>

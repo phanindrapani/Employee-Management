@@ -74,7 +74,7 @@ const TasksOverview = () => {
 
     if (loading && !stats) return (
         <div className="flex items-center justify-center min-h-[400px] text-[#0B3C5D] font-black italic tracking-widest text-xs uppercase animate-pulse">
-            Syncing Managerial Intelligence...
+            Loading data...
         </div>
     );
 
@@ -97,9 +97,9 @@ const TasksOverview = () => {
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h3 className="text-lg font-black text-[#0B3C5D] flex items-center gap-2">
-                                <TrendingUp size={20} /> Task Status Distribution
+                                <TrendingUp size={20} /> Task Distribution
                             </h3>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Holistic performance tracking</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">General performance tracking</p>
                         </div>
                         <LayoutDashboard className="text-slate-100" size={40} />
                     </div>
@@ -186,7 +186,7 @@ const TasksOverview = () => {
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden">
                     <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                         <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest flex items-center gap-2">
-                            <Layers size={18} className="text-[#63C132]" /> Team Performance Matrix
+                            <Layers size={18} className="text-[#63C132]" /> Team Productivity
                         </h3>
                     </div>
                     <div className="overflow-x-auto">
@@ -219,7 +219,7 @@ const TasksOverview = () => {
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden">
                     <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                         <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest flex items-center gap-2">
-                            <Users size={18} className="text-indigo-500" /> Specialist Workload
+                            <Users size={18} className="text-indigo-500" /> Employee Workload
                         </h3>
                     </div>
                     <div className="overflow-x-auto">
@@ -261,7 +261,7 @@ const TasksOverview = () => {
                 <div className="flex flex-wrap items-center gap-3 py-2">
                     <div className="flex items-center gap-2 px-3 text-slate-400">
                         <Filter size={14} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Advanced Filters</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Filters</span>
                     </div>
                     <select
                         className="bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase px-4 py-2 outline-none focus:ring-2 ring-slate-100 shadow-sm"

@@ -77,24 +77,24 @@ const TeamPerformance = () => {
                         <Target size={32} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight">Supervised Performance</h1>
-                        <p className="text-slate-500 font-medium">Real-time oversight of your reporting teams and leads.</p>
+                        <h1 className="text-3xl font-black tracking-tight">Team Performance</h1>
+                        <p className="text-slate-500 font-medium">Monitor team and lead performance in real-time.</p>
                     </div>
                 </div>
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Managed Teams" value={stats?.summary?.totalTeams || 0} colorClass="border-blue-500" titleColor="text-blue-600" />
-                <StatCard title="Teams Average Score" value={`${stats?.summary?.orgAvgScore || 0}%`} colorClass="border-emerald-500" titleColor="text-emerald-600" />
-                <StatCard title="Highest Team Average" value={`${stats?.summary?.highestTeamAvg || 0}%`} colorClass="border-amber-500" titleColor="text-amber-600" />
-                <StatCard title="Teams Needing Focus" value={stats?.summary?.teamsNeedingAttention || 0} colorClass="border-rose-500" titleColor="text-rose-600" />
+                <StatCard title="Total Teams" value={stats?.summary?.totalTeams || 0} colorClass="border-blue-500" titleColor="text-blue-600" />
+                <StatCard title="Average Score" value={`${stats?.summary?.orgAvgScore || 0}%`} colorClass="border-emerald-500" titleColor="text-emerald-600" />
+                <StatCard title="Best Team Score" value={`${stats?.summary?.highestTeamAvg || 0}%`} colorClass="border-amber-500" titleColor="text-amber-600" />
+                <StatCard title="Attention Needed" value={stats?.summary?.teamsNeedingAttention || 0} colorClass="border-rose-500" titleColor="text-rose-600" />
             </div>
 
             {/* Detailed View */}
             <div className="space-y-4">
                 <h3 className="text-xl font-bold flex items-center gap-2 mb-4 px-2">
-                    <LayoutDashboard size={20} className="text-[#0B3C5D]" /> Detailed Team Overview
+                    <LayoutDashboard size={20} className="text-[#0B3C5D]" /> Team Details
                 </h3>
                 {stats?.teams?.length === 0 && (
                     <div className="card text-center text-slate-400 py-16 font-medium italic">
@@ -112,7 +112,7 @@ const TeamPerformance = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="font-black text-[#0B3C5D] text-lg">{team.teamName}</div>
-                                <div className="text-xs text-slate-400 font-bold">Lead: {team.leadName} · {team.membersCount} Specialists</div>
+                                <div className="text-xs text-slate-400 font-bold">Lead: {team.leadName} · {team.membersCount} Members</div>
                             </div>
                             <div className="flex items-center gap-6 flex-wrap">
                                 <div className="text-center">

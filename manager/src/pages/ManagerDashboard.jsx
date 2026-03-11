@@ -52,7 +52,7 @@ const ManagerDashboard = () => {
     if (loading) return (
         <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-[#0B3C5D] font-black italic tracking-widest text-xs uppercase animate-pulse">
-                Assembling Strategic Intelligence...
+                Loading data...
             </div>
         </div>
     );
@@ -62,8 +62,8 @@ const ManagerDashboard = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-[#0B3C5D] mb-1">Strategic Dashboard</h1>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">High-Level Organizational Oversight</p>
+                    <h1 className="text-4xl font-black tracking-tight text-[#0B3C5D] mb-1">Manager Dashboard</h1>
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Team overview and project status</p>
                 </div>
                 <div className="flex gap-3">
                     <button onClick={fetchDashboardStats} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
@@ -197,7 +197,7 @@ const ManagerDashboard = () => {
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden flex flex-col">
                     <div className="px-8 py-6 border-b border-slate-50 bg-rose-50/20">
                         <h3 className="text-sm font-black text-rose-600 uppercase tracking-widest flex items-center gap-2">
-                            <AlertCircle size={18} /> Strategic Risks
+                            <AlertCircle size={18} /> Important Risks
                         </h3>
                     </div>
                     <div className="p-8 space-y-4 flex-1">
@@ -222,9 +222,9 @@ const ManagerDashboard = () => {
                 <div className="flex items-center justify-between mb-10">
                     <div>
                         <h3 className="text-lg font-black text-[#0B3C5D] flex items-center gap-2">
-                            <Activity size={20} className="text-indigo-500" /> Activity Stream
+                            <Activity size={20} className="text-indigo-500" /> Recent Activity
                         </h3>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Live Operational Monitoring</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Live updates</p>
                     </div>
                     <LayoutDashboard className="text-slate-50" size={48} />
                 </div>
