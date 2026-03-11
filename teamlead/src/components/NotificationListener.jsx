@@ -14,7 +14,7 @@ const NotificationListener = () => {
     });
 
     useSocketListener('leave:updated', (data) => {
-        showToast(`Leave Request ${data.status}`, data.status === 'approved' || data.status === 'tl-approved' ? 'success' : 'warning');
+        showToast(`Leave Request ${data.status}`, data.status === 'approved' ? 'success' : 'warning');
     });
 
     useSocketListener('task:assigned', (data) => {

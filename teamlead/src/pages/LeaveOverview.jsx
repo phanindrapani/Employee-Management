@@ -52,7 +52,6 @@ const LeaveOverview = () => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'approved': return 'bg-[#63C132]/10 text-[#63C132]';
-            case 'tl-approved': return 'bg-blue-50 text-blue-600';
             case 'pending': return 'bg-amber-50 text-amber-600';
             case 'rejected': return 'bg-rose-50 text-rose-600';
             default: return 'bg-slate-50 text-slate-500';

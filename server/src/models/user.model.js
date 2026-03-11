@@ -2,18 +2,12 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import Counter from './counter.model.js';
 
-// ==================================================
-// BASE OPTIONS
-// ==================================================
 const baseOptions = {
-    discriminatorKey: 'role', // Defines the field that distinguishes roles
-    collection: 'users',      // Stores all roles in a single 'users' collection
+    discriminatorKey: 'role',
+    collection: 'users',
     timestamps: true
 };
 
-// ==================================================
-// BASE USER SCHEMA (Common Fields)
-// ==================================================
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -106,10 +100,6 @@ const userSchema = new mongoose.Schema({
     }
 }, baseOptions);
 
-// ==================================================
-// MIDDLEWARE & METHODS
-// ==================================================
-
 // Pre-save hook to hash password and generate IDs
 userSchema.pre('save', async function (next) {
     if (this.isNew) {
@@ -131,6 +121,14 @@ userSchema.pre('save', async function (next) {
                         { new: true, upsert: true }
                     );
                     this.uid = `EMP-${counter.count.toString().padStart(4, '0')}`;
+                }
+
+                // Auto-assign Admin as reporting manager for Managers
+                if (this.role === 'manager' && !this.reportingManager) {
+                    const admin = await Admin.findOne({ role: 'admin' });
+                    if (admin) {
+                        this.reportingManager = admin._id;
+                    }
                 }
             }
         } catch (error) {

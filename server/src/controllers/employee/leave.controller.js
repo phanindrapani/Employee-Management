@@ -49,6 +49,7 @@ export const applyLeave = async (req, res) => {
         totalDays,
         reason,
         status: 'pending',
+        approver: user.reportingManager,
         attachment: attachmentUrl
     });
 
@@ -65,7 +66,7 @@ export const applyLeave = async (req, res) => {
         admins.forEach(admin => {
             notifications.push({
                 user: admin._id,
-                message: `📅 New Leave Request: ${req.user.name} applied for ${leaveType} (${totalDays} days)`,
+                message: `New Leave Request: ${req.user.name} applied for ${leaveType} (${totalDays} days)`,
                 isRead: false
             });
         });
@@ -74,7 +75,7 @@ export const applyLeave = async (req, res) => {
         if (user.reportingManager) {
             notifications.push({
                 user: user.reportingManager,
-                message: `📅 New Leave Request: ${req.user.name} applied for ${leaveType} (${totalDays} days)`,
+                message: `New Leave Request: ${req.user.name} applied for ${leaveType} (${totalDays} days)`,
                 isRead: false
             });
         }
@@ -85,13 +86,13 @@ export const applyLeave = async (req, res) => {
 
         io.to('role:admin').emit('leave:created', populatedLeave); // Notify Admin
         io.to('role:admin').emit('notification', {
-            message: `📅 New Leave Request: ${req.user.name}`
+            message: `New Leave Request: ${req.user.name}`
         });
 
         if (user.reportingManager) {
             io.to(`user:${user.reportingManager}`).emit('leave:created', populatedLeave); // Notify Manager/TL
             io.to(`user:${user.reportingManager}`).emit('notification', {
-                message: `📅 New Leave Request: ${req.user.name}`
+                message: `New Leave Request: ${req.user.name}`
             });
         }
     } catch (e) { console.error('Socket emit error:', e); }

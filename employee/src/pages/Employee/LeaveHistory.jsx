@@ -46,12 +46,10 @@ const LeaveHistory = () => {
         switch (status) {
             case 'approved':
                 return <span className="px-2 py-1 bg-[#F0FFF4] text-[#63C132] rounded-full text-[10px] font-black uppercase tracking-wider border border-[#63C132]/10 flex items-center gap-1.5 w-fit"><CheckCircle2 size={12} /> Approved</span>;
-            case 'tl-approved':
-                return <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-blue-100 flex items-center gap-1.5 w-fit"><FileCheck size={12} /> Pending Admin Approval</span>;
             case 'rejected':
                 return <span className="px-2 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-red-100 flex items-center gap-1.5 w-fit"><XCircle size={12} /> Rejected</span>;
             default:
-                return <span className="px-2 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-amber-100 flex items-center gap-1.5 w-fit"><Clock size={12} /> Pending TL Approval</span>;
+                return <span className="px-2 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-amber-100 flex items-center gap-1.5 w-fit"><Clock size={12} /> Pending Approval</span>;
         }
     };
 
@@ -77,8 +75,7 @@ const LeaveHistory = () => {
                             onChange={(e) => setFilterStatus(e.target.value)}
                         >
                             <option value="all">All Status</option>
-                            <option value="pending">Pending TL Approval</option>
-                            <option value="tl-approved">Pending Admin Approval</option>
+                            <option value="pending">Pending Approval</option>
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                         </select>
