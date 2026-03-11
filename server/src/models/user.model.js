@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import Counter from './counter.model.js';
 
 // ==================================================
 // BASE OPTIONS
@@ -18,6 +19,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
+    },
+    uid: {
+        type: String,
+        unique: true,
+        sparse: true
     },
     email: {
         type: String,
@@ -104,8 +110,34 @@ const userSchema = new mongoose.Schema({
 // MIDDLEWARE & METHODS
 // ==================================================
 
-// Pre-save hook to hash password
+// Pre-save hook to hash password and generate IDs
 userSchema.pre('save', async function (next) {
+    if (this.isNew) {
+        try {
+            if (this.role === 'client') {
+                if (!this.uid) {
+                    const counter = await Counter.findOneAndUpdate(
+                        { model: 'client' },
+                        { $inc: { count: 1 } },
+                        { new: true, upsert: true }
+                    );
+                    this.uid = `CLI-${counter.count.toString().padStart(4, '0')}`;
+                }
+            } else {
+                if (!this.uid) {
+                    const counter = await Counter.findOneAndUpdate(
+                        { model: 'employee' },
+                        { $inc: { count: 1 } },
+                        { new: true, upsert: true }
+                    );
+                    this.uid = `EMP-${counter.count.toString().padStart(4, '0')}`;
+                }
+            }
+        } catch (error) {
+            return next(error);
+        }
+    }
+
     if (!this.isModified('password')) return next();
 
     try {
@@ -179,11 +211,6 @@ const Client = User.discriminator('client', new mongoose.Schema({
     company: {
         type: String,
         default: ''
-    },
-    clientCode: {
-        type: String,
-        unique: true,
-        sparse: true
     }
 }));
 

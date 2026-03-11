@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
+import Counter from './counter.model.js';
 
 const projectSchema = new mongoose.Schema({
+    projectId: { type: String, unique: true, sparse: true },
     name: { type: String, required: true },
     description: { type: String },
     status: {
@@ -27,6 +29,22 @@ const projectSchema = new mongoose.Schema({
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
+
+projectSchema.pre('save', async function (next) {
+    if (this.isNew && !this.projectId) {
+        try {
+            const counter = await Counter.findOneAndUpdate(
+                { model: 'project' },
+                { $inc: { count: 1 } },
+                { new: true, upsert: true }
+            );
+            this.projectId = `PRJ-${counter.count.toString().padStart(3, '0')}`;
+        } catch (error) {
+            return next(error);
+        }
+    }
+    next();
+});
 
 const Project = mongoose.model('Project', projectSchema);
 export default Project;
