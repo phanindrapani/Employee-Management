@@ -40,13 +40,6 @@ const TeamPerformance = () => {
     const [loading, setLoading] = useState(!stats);
     const [expanded, setExpanded] = useState({});
 
-    useEffect(() => {
-        fetchStats();
-    }, []);
-
-    useSocketListener('task:updated', fetchStats);
-    useSocketListener('milestone:updated', fetchStats);
-
     const fetchStats = async () => {
         try {
             const date = new Date();
@@ -59,6 +52,13 @@ const TeamPerformance = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+    useSocketListener('task:updated', fetchStats);
+    useSocketListener('milestone:updated', fetchStats);
 
     const toggleTeam = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
