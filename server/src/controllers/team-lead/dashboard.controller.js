@@ -45,7 +45,7 @@ export const getTeamDashboardStats = async (req, res) => {
         const soon = new Date();
         soon.setDate(soon.getDate() + 7);
         const endingSoon = await Project.countDocuments({
-            assignedTeam: teamId,
+            assignedTeams: teamId,
             status: 'ongoing',
             endDate: { $lte: soon, $gte: new Date() }
         });

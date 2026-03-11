@@ -5,8 +5,8 @@ export const getMyTeamProjects = async (req, res) => {
         const teamId = req.user.team;
         if (!teamId) return res.json([]);
 
-        const projects = await Project.find({ assignedTeam: teamId })
-            .populate('assignedTeam', 'name')
+        const projects = await Project.find({ assignedTeams: teamId })
+            .populate('assignedTeams', 'name')
             .sort({ endDate: 1 });
 
         res.json(projects);

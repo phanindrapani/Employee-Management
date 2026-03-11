@@ -41,7 +41,7 @@ export const getManagerPerformanceStats = async (req, res) => {
 
         // 3. Fetch Active Projects
         const activeProjectsCount = await Project.countDocuments({
-            assignedTeam: { $in: teamIds },
+            assignedTeams: { $in: teamIds },
             status: { $in: ['ongoing', 'upcoming', 'on-hold'] }
         });
 

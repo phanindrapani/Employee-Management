@@ -4,11 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import API from '../api';
 
 const CreateProject = () => {
-    const [teams, setTeams] = useState(() => {
-        const cached = localStorage.getItem('ls_admin_teams_list');
-        return cached ? JSON.parse(cached) : [];
-    });
-    const [loading, setLoading] = useState(teams.length === 0);
+    const [managers, setManagers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [clients, setClients] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
@@ -16,7 +13,8 @@ const CreateProject = () => {
         priority: 'medium',
         startDate: '',
         endDate: '',
-        assignedTeam: '',
+        assignedTeams: [],
+        managerId: '',
         clientId: '',
         status: 'upcoming',
         progress: 0
@@ -29,9 +27,8 @@ const CreateProject = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const { data: teamsData } = await API.get('/admin/teams');
-                setTeams(teamsData);
-                localStorage.setItem('ls_admin_teams_list', JSON.stringify(teamsData));
+                const { data: managersData } = await API.get('/admin/employees?role=manager');
+                setManagers(managersData);
 
                 const { data: clientsData } = await API.get('/admin/employees?role=client');
                 setClients(clientsData);
@@ -47,7 +44,8 @@ const CreateProject = () => {
                             priority: project.priority,
                             startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
                             endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
-                            assignedTeam: project.assignedTeam?._id || project.assignedTeam,
+                            assignedTeams: project.assignedTeams?.map(t => t._id || t) || [],
+                            managerId: project.managerId?._id || project.managerId || '',
                             clientId: project.clientId?._id || project.clientId || '',
                             status: project.status,
                             progress: project.progress
@@ -73,7 +71,7 @@ const CreateProject = () => {
                         priority: project.priority,
                         startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
                         endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
-                        assignedTeam: project.assignedTeam?._id || project.assignedTeam,
+                        assignedTeams: project.assignedTeams?.map(t => t._id || t) || [],
                         clientId: project.clientId?._id || project.clientId || '',
                         status: project.status,
                         progress: project.progress
@@ -143,21 +141,21 @@ const CreateProject = () => {
                                 />
                             </div>
                             <div>
-                                <label className="label">Assigned Team</label>
+                                <label className="label">Project Manager</label>
                                 <select
                                     className="input-field"
-                                    value={formData.assignedTeam}
-                                    onChange={(e) => setFormData({ ...formData, assignedTeam: e.target.value })}
+                                    value={formData.managerId}
+                                    onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
                                     required
                                 >
-                                    <option value="">Select a team</option>
-                                    {teams.map(team => (
-                                        <option key={team._id} value={team._id}>{team.name} ({team.department?.name})</option>
+                                    <option value="">Select a manager</option>
+                                    {managers.map(manager => (
+                                        <option key={manager._id} value={manager._id}>{manager.name} ({manager.uid})</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="label">Client (Required for Ticket Raising)</label>
+                                <label className="label">Client</label>
                                 <select
                                     className="input-field"
                                     value={formData.clientId}

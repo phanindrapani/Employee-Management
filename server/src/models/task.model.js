@@ -8,17 +8,31 @@ const taskSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    milestoneId: { type: mongoose.Schema.Types.ObjectId, ref: 'Milestone' },
+    teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' },
     status: {
         type: String,
         enum: ['todo', 'in-progress', 'review', 'done'],
         default: 'todo'
     },
-    deadline: { type: Date },
+    progress: { type: Number, default: 0, min: 0, max: 100 },
     priority: {
         type: String,
         enum: ['low', 'medium', 'high', 'urgent'],
         default: 'medium'
     },
+    deadline: { type: Date },
+    comments: [{
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        text: String,
+        createdAt: { type: Date, default: Date.now }
+    }],
+    attachments: [{
+        name: String,
+        url: String,
+        uploadedAt: { type: Date, default: Date.now }
+    }],
     weight: { type: Number, default: 1, min: 1 },
     completedAt: { type: Date }
 }, { timestamps: true });

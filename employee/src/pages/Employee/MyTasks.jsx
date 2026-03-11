@@ -7,7 +7,11 @@ import {
     FolderKanban,
     X,
     MessageCircle,
-    RefreshCw
+    RefreshCw,
+    Target,
+    Activity,
+    Paperclip,
+    Send
 } from 'lucide-react';
 import API from '../../api';
 import useSocketListener from '../../hooks/useSocketListener';
@@ -36,6 +40,28 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
 
     const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState(null);
+    const [progress, setProgress] = useState(task.progress || 0);
+    const [comment, setComment] = useState('');
+    const [comments, setComments] = useState(task.comments || []);
+    const [attachments, setAttachments] = useState(task.attachments || []);
+
+    const handleUpdateContent = async () => {
+        setIsUpdating(true);
+        setError(null);
+        try {
+            const { data } = await API.patch(`/employee/tasks/${task._id}/content`, {
+                progress,
+                comment: comment ? { text: comment } : undefined
+            });
+            onUpdate(data);
+            setComment('');
+            setComments(data.comments);
+            setIsUpdating(false);
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to update content");
+            setIsUpdating(false);
+        }
+    };
 
     const handleUpdateStatus = async (newStatus) => {
         setIsUpdating(true);
@@ -54,7 +80,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}></div>
-            <div className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300 border border-slate-100">
+            <div className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300 border border-slate-100 flex flex-col max-h-[90vh]">
                 {/* Status Bar */}
                 <div className="h-2 w-full bg-slate-100">
                     <div
@@ -63,7 +89,7 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
                     ></div>
                 </div>
 
-                <div className="p-8 space-y-8">
+                <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar flex-1">
                     {/* Header */}
                     <div className="flex justify-between items-start">
                         <div className="space-y-1">
@@ -98,15 +124,68 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
                         </div>
                     </div>
 
-                    {/* Description */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            <MessageCircle size={12} /> Task Description
+                    {/* Milestone */}
+                    <div className="p-4 bg-amber-50 rounded-3xl border border-amber-100">
+                        <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                            <Target size={10} /> Milestone Phase
+                        </p>
+                        <p className="text-[#0B3C5D] font-black text-xs truncate">{task.milestoneId?.name || 'N/A'}</p>
+                    </div>
+
+                    {/* Progress Slider */}
+                    <div className="space-y-4 p-6 bg-slate-50 rounded-[32px] border border-slate-100">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <Activity size={12} /> Task Progress
+                            </div>
+                            <span className="text-sm font-black text-[#63C132]">{progress}%</span>
                         </div>
-                        <div className="p-6 bg-[#F8FAFC] rounded-[32px] border border-slate-100 min-h-[120px]">
-                            <p className="text-slate-600 text-sm font-medium leading-relaxed">
-                                {task.description || 'No detailed description provided for this task.'}
-                            </p>
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={progress}
+                            onChange={(e) => setProgress(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#63C132]"
+                        />
+                        <button
+                            onClick={handleUpdateContent}
+                            disabled={isUpdating || progress === task.progress}
+                            className="w-full py-2 bg-[#0B3C5D] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-[#1A4B6D] disabled:opacity-50"
+                        >
+                            {isUpdating ? <RefreshCw size={12} className="animate-spin mx-auto" /> : 'Update Progress'}
+                        </button>
+                    </div>
+
+                    {/* Comments Section */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <MessageCircle size={12} /> Discussion & Logs
+                        </div>
+                        <div className="max-h-[200px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                            {comments.map((c, i) => (
+                                <div key={i} className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-1">
+                                    <p className="text-xs font-medium text-slate-600 leading-relaxed">{c.text}</p>
+                                    <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{new Date(c.createdAt).toLocaleString()}</p>
+                                </div>
+                            ))}
+                            {comments.length === 0 && <p className="text-center py-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">No comments yet</p>}
+                        </div>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="Add a comment or update..."
+                                className="flex-1 px-4 py-3 bg-white border border-slate-100 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#63C132]"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                            />
+                            <button
+                                onClick={handleUpdateContent}
+                                disabled={isUpdating || !comment.trim()}
+                                className="p-3 bg-[#63C132] text-white rounded-xl hover:bg-[#52A428] transition-all disabled:opacity-50"
+                            >
+                                <Send size={18} />
+                            </button>
                         </div>
                     </div>
 

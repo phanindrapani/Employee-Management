@@ -16,6 +16,8 @@ import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
 import Tickets from './pages/Tickets';
 import CreateProject from './pages/CreateProject';
+import MilestoneDetails from './pages/MilestoneDetails';
+import Milestones from './pages/Milestones';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -42,6 +44,8 @@ function App() {
                 <Route path="projects" element={<Projects />} />
                 <Route path="projects/create" element={<CreateProject />} />
                 <Route path="projects/edit/:id" element={<CreateProject />} />
+                <Route path="projects/:projectId/milestones" element={<MilestoneDetails />} />
+                <Route path="milestones" element={<Milestones />} />
                 <Route path="tasks" element={<TasksOverview />} />
                 <Route path="team-performance" element={<TeamPerformance />} />
                 <Route path="work-logs" element={<WorkLogs />} />

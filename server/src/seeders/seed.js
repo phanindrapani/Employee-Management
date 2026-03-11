@@ -175,7 +175,7 @@ const seedData = async () => {
                 priority: 'high',
                 startDate: new Date('2026-01-01'),
                 endDate: new Date('2026-02-20'), // Next week from Feb 14
-                assignedTeam: feTeam._id,
+                assignedTeams: [feTeam._id],
                 progress: 45,
                 createdBy: admin._id
             },
@@ -186,7 +186,7 @@ const seedData = async () => {
                 priority: 'medium',
                 startDate: new Date('2026-02-10'),
                 endDate: new Date('2026-02-25'), // In 11 days
-                assignedTeam: beTeam._id,
+                assignedTeams: [beTeam._id],
                 progress: 0,
                 createdBy: admin._id
             }

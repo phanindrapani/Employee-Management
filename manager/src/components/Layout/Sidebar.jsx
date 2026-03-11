@@ -5,15 +5,14 @@ import {
     BarChart3,
     User,
     LogOut,
-    Settings,
     X,
-    ChevronRight,
     Lock,
     Briefcase,
     CheckSquare,
     Clock,
     CalendarDays,
-    Ticket
+    Ticket,
+    Target
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import manuenSquare from '../../assets/manuen_square.png';
@@ -33,6 +32,7 @@ const Sidebar = ({ isOpen, toggle }) => {
             title: 'STRATEGIC MANAGEMENT',
             items: [
                 { name: 'Projects', path: '/projects', icon: Briefcase },
+                { name: 'Milestones', path: '/milestones', icon: Target },
                 { name: 'Tasks Overview', path: '/tasks', icon: CheckSquare },
                 { name: 'Team Performance', path: '/team-performance', icon: BarChart3 },
             ]

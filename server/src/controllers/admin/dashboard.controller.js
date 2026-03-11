@@ -21,7 +21,7 @@ export const getDashboardStats = async (req, res) => {
             teams
         ] = await Promise.all([
             Leave.find({ status: 'pending' }).populate('user', 'name profilePicture').limit(5).sort({ createdAt: -1 }).lean(),
-            Project.find({ status: 'ongoing', endDate: { $gte: today } }).populate('assignedTeam', 'name').sort({ endDate: 1 }).limit(5).lean(),
+            Project.find({ status: 'ongoing', endDate: { $gte: today } }).populate('assignedTeams', 'name').sort({ endDate: 1 }).limit(5).lean(),
             Task.find().sort({ createdAt: -1 }).limit(5).populate('assignedTo', 'name').lean(),
             Team.find().populate('teamLead', 'name').lean()
         ]);
@@ -33,7 +33,7 @@ export const getDashboardStats = async (req, res) => {
         }));
 
         const teamPerformance = await Promise.all(teams.map(async team => {
-            const projects = await Project.find({ assignedTeam: team._id });
+            const projects = await Project.find({ assignedTeams: team._id });
             const avgProgress = projects.length > 0
                 ? Math.round(projects.reduce((acc, p) => acc + (p.progress || 0), 0) / projects.length)
                 : 0;
@@ -57,7 +57,7 @@ export const getDashboardStats = async (req, res) => {
                     _id: p._id,
                     name: p.name,
                     endDate: p.endDate,
-                    assignedTeam: p.assignedTeam
+                    assignedTeams: p.assignedTeams
                 }))
             },
             teamPerformance,

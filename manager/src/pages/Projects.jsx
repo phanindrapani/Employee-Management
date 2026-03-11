@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
 import { useAuth } from '../context/AuthContext';
-import { Briefcase, Clock, CheckCircle2, AlertCircle, ChevronRight, BarChart3, Plus, Pencil, Trash2, Globe, LayoutGrid } from 'lucide-react';
+import { Briefcase, Clock, Users2, ChevronRight, BarChart3, Plus, Pencil, Trash2, Globe, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -78,8 +78,8 @@ const Projects = () => {
                     <button
                         onClick={() => setViewMode('owned')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'owned'
-                                ? 'bg-[#0B3C5D] text-white shadow-lg'
-                                : 'text-slate-400 hover:text-slate-600'
+                            ? 'bg-[#0B3C5D] text-white shadow-lg'
+                            : 'text-slate-400 hover:text-slate-600'
                             }`}
                     >
                         <LayoutGrid size={14} />
@@ -88,8 +88,8 @@ const Projects = () => {
                     <button
                         onClick={() => setViewMode('all')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'all'
-                                ? 'bg-[#0B3C5D] text-white shadow-lg'
-                                : 'text-slate-400 hover:text-slate-600'
+                            ? 'bg-[#0B3C5D] text-white shadow-lg'
+                            : 'text-slate-400 hover:text-slate-600'
                             }`}
                     >
                         <Globe size={14} />
@@ -124,22 +124,18 @@ const Projects = () => {
                                                 {project.status}
                                             </span>
                                             <div className="flex gap-2">
-                                                {(project.assignedTeam?.manager === user?._id || project.assignedTeam?.manager?._id === user?._id) && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => navigate(`/projects/edit/${project._id}`)}
-                                                            className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-lg transition-all"
-                                                        >
-                                                            <Pencil size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(project._id)}
-                                                            className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </>
-                                                )}
+                                                <button
+                                                    onClick={() => navigate(`/projects/edit/${project._id}`)}
+                                                    className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-lg transition-all"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(project._id)}
+                                                    className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
                                             </div>
                                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
                                                 ID: {project.projectId || project._id.slice(-6)}
@@ -159,9 +155,18 @@ const Projects = () => {
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2 text-[#0B3C5D]">
-                                                <BarChart3 size={14} />
-                                                <span className="text-xs font-black uppercase tracking-widest">{project.assignedTeam?.name || 'Unassigned'}</span>
+                                                <Users2 size={14} />
+                                                <span className="text-xs font-black uppercase tracking-widest">
+                                                    {project.assignedTeams?.length || 0} Teams
+                                                </span>
                                             </div>
+                                            <button
+                                                onClick={() => navigate(`/milestones?projectId=${project._id}`)}
+                                                className="flex items-center gap-2 px-3 py-1 bg-[#0B3C5D] text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-[#0B3C5D]/90 transition-all ml-auto group-hover:translate-x-1"
+                                            >
+                                                Manage Milestones
+                                                <ChevronRight size={14} />
+                                            </button>
                                         </div>
                                     </div>
 

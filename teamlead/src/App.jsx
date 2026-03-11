@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import MyTeam from './pages/MyTeam';
 import TeamProjects from './pages/TeamProjects';
 import TaskManagement from './pages/TaskManagement';
+import Milestones from './pages/Milestones';
 import LeaveOverview from './pages/LeaveOverview';
 import Reports from './pages/Reports';
 import Notifications from './pages/Notifications';
@@ -38,6 +39,7 @@ function App() {
                 <Route path="team" element={<MyTeam />} />
                 <Route path="team-performance" element={<TeamPerformance />} />
                 <Route path="projects" element={<TeamProjects />} />
+                <Route path="milestones" element={<Milestones />} />
                 <Route path="tasks" element={<TaskManagement />} />
                 <Route path="leaves" element={<LeaveOverview />} />
                 <Route path="reports" element={<Reports />} />

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Team from '../../models/team.model.js';
 import Project from '../../models/project.model.js';
 import User from '../../models/user.model.js';
@@ -8,12 +9,19 @@ import { getIO } from '../../socket.js';
 export const getManagerProjects = async (req, res) => {
     try {
         const managerId = req.user.id;
-
+        
+        // Find all teams managed by this manager
         const teams = await Team.find({ manager: managerId });
         const teamIds = teams.map(t => t._id);
 
-        const projects = await Project.find({ assignedTeam: { $in: teamIds } })
-            .populate('assignedTeam', 'name')
+        const projects = await Project.find({
+            $or: [
+                { managerId: managerId },
+                { assignedTeams: { $in: teamIds } }
+            ]
+        })
+            .populate('assignedTeams', 'name')
+            .populate('clientId', 'name company')
             .sort({ updatedAt: -1 });
 
         res.json(projects);
@@ -25,11 +33,20 @@ export const getManagerProjects = async (req, res) => {
 export const getProjectStats = async (req, res) => {
     try {
         const managerId = req.user.id;
+        
+        // Find all teams managed by this manager
         const teams = await Team.find({ manager: managerId });
         const teamIds = teams.map(t => t._id);
 
         const stats = await Project.aggregate([
-            { $match: { assignedTeam: { $in: teamIds } } },
+            {
+                $match: {
+                    $or: [
+                        { managerId: new mongoose.Types.ObjectId(managerId) },
+                        { assignedTeams: { $in: teamIds } }
+                    ]
+                }
+            },
             {
                 $group: {
                     _id: "$status",
@@ -98,14 +115,17 @@ export const updateProject = async (req, res) => {
         try {
             const io = getIO();
             const populatedProject = await Project.findById(req.params.id)
-                .populate({ path: 'assignedTeam', populate: { path: 'department' } })
+                .populate('managerId', 'name email')
+                .populate({ path: 'assignedTeams', populate: { path: 'department' } })
                 .populate('clientId', 'name company');
 
             io.to('role:admin').emit('project:updated', populatedProject);
             io.to('role:manager').emit('project:updated', populatedProject);
 
-            if (project.assignedTeam) {
-                io.to(`team:${project.assignedTeam}`).emit('project:updated', populatedProject);
+            if (project.assignedTeams && project.assignedTeams.length > 0) {
+                project.assignedTeams.forEach(teamId => {
+                    io.to(`team:${teamId}`).emit('project:updated', populatedProject);
+                });
             }
         } catch (e) { console.error('Socket emit error:', e); }
 
@@ -135,7 +155,7 @@ export const deleteProject = async (req, res) => {
 export const getAllCompanyProjects = async (req, res) => {
     try {
         const projects = await Project.find()
-            .populate({ path: 'assignedTeam', populate: { path: 'manager', select: 'name' } })
+            .populate({ path: 'assignedTeams', populate: { path: 'manager', select: 'name' } })
             .populate('clientId', 'name company')
             .sort({ createdAt: -1 });
         res.json(projects);

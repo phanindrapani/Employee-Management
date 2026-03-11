@@ -5,6 +5,7 @@ import { recalculatePerformanceForUser } from '../admin/performance.controller.j
 import mongoose from 'mongoose';
 import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
+import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
 
 /**
  * Get tasks assigned to current user
@@ -13,10 +14,78 @@ export const getMyTasks = async (req, res) => {
     try {
         const tasks = await Task.find({ assignedTo: req.user._id })
             .populate('project', 'name')
+            .populate('milestoneId', 'name')
+            .populate('assignedBy', 'name')
             .sort({ deadline: 1 });
         res.json(tasks);
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch your tasks" });
+    }
+};
+
+/**
+ * Update task content (progress, comments, attachments)
+ */
+export const updateTaskContent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { progress, comment } = req.body;
+
+        const task = await Task.findById(id);
+        if (!task || task.assignedTo.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Not authorized to update this task" });
+        }
+
+        if (progress !== undefined) {
+            task.progress = progress;
+        }
+
+        if (comment) {
+            const commentText = typeof comment === 'object' ? comment.text : comment;
+            if (commentText) {
+                task.comments.push({
+                    user: req.user._id,
+                    text: commentText,
+                    createdAt: new Date()
+                });
+            }
+        }
+
+        if (req.file) {
+            // Assuming upload middleware is used
+            const attachmentUrl = await uploadBufferToCloudinary(req.file, 'task_attachments');
+            task.attachments.push({
+                name: req.file.originalname,
+                url: attachmentUrl,
+                uploadedAt: new Date()
+            });
+        }
+
+        await task.save();
+        
+        const populatedTask = await Task.findById(task._id)
+            .populate('project', 'name')
+            .populate('milestoneId', 'name')
+            .populate('assignedTo', 'name email profilePicture')
+            .populate('assignedBy', 'name')
+            .populate('comments.user', 'name profilePicture');
+
+        try {
+            const io = getIO();
+            const worker = await User.findById(req.user._id);
+            if (worker?.team) {
+                io.to(`team:${worker.team}`).emit('task:updated', populatedTask);
+            }
+            if (worker?.reportingManager) {
+                io.to(`user:${worker.reportingManager}`).emit('task:updated', populatedTask);
+            }
+        } catch (err) {
+            console.error('Socket emit error (task content update):', err.message);
+        }
+
+        res.json(populatedTask);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 

@@ -16,7 +16,7 @@ const CreateProject = () => {
         priority: 'medium',
         startDate: '',
         endDate: '',
-        assignedTeam: '',
+        assignedTeams: [],
         clientId: '',
         status: 'upcoming',
         progress: 0
@@ -47,7 +47,7 @@ const CreateProject = () => {
                                 priority: project.priority,
                                 startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
                                 endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
-                                assignedTeam: project.assignedTeam?._id || project.assignedTeam,
+                                assignedTeams: project.assignedTeams?.map(t => t._id || t) || [],
                                 clientId: project.clientId?._id || project.clientId || '',
                                 status: project.status,
                                 progress: project.progress
@@ -123,18 +123,30 @@ const CreateProject = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-2">Assigned Team</label>
-                                <select
-                                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 focus:border-[#0B3C5D] outline-none transition-all font-bold"
-                                    value={formData.assignedTeam}
-                                    onChange={(e) => setFormData({ ...formData, assignedTeam: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Select a team</option>
+                                <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-2">Assigned Teams</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 max-h-[200px] overflow-y-auto custom-scrollbar">
                                     {teams.map(team => (
-                                        <option key={team._id} value={team._id}>{team.name}</option>
+                                        <label key={team._id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-transparent hover:border-[#0B3C5D]/10 hover:shadow-sm transition-all cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded-lg border-2 border-slate-200 text-[#0B3C5D] focus:ring-[#0B3C5D] transition-all cursor-pointer"
+                                                checked={formData.assignedTeams.includes(team._id)}
+                                                onChange={(e) => {
+                                                    const updatedTeams = e.target.checked
+                                                        ? [...formData.assignedTeams, team._id]
+                                                        : formData.assignedTeams.filter(id => id !== team._id);
+                                                    setFormData({ ...formData, assignedTeams: updatedTeams });
+                                                }}
+                                            />
+                                            <span className="text-sm font-bold text-slate-600 group-hover:text-[#0B3C5D] transition-colors">
+                                                {team.name}
+                                            </span>
+                                        </label>
                                     ))}
-                                </select>
+                                    {teams.length === 0 && (
+                                        <p className="col-span-full py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">No teams found</p>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-2">Client</label>

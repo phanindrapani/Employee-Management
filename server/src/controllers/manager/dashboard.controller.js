@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Team from '../../models/team.model.js';
 import Project from '../../models/project.model.js';
 import Task from '../../models/task.model.js';
@@ -13,13 +14,18 @@ export const getManagerDashboardStats = async (req, res) => {
         const endOfToday = new Date(now.setHours(23, 59, 59, 999));
         const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-        // 1. Find all teams managed by this manager
+        // Find all teams managed by this manager
         const teams = await Team.find({ manager: managerId }).populate('members', 'name');
         const teamIds = teams.map(t => t._id);
         const memberIds = teams.flatMap(t => t.members.map(m => m._id));
 
-        // 2. Find all projects assigned to these teams
-        const projects = await Project.find({ assignedTeam: { $in: teamIds } }).populate('assignedTeam', 'name');
+        // Find all projects assigned to these teams OR directly managed by this manager
+        const projects = await Project.find({
+            $or: [
+                { managerId: managerId },
+                { assignedTeams: { $in: teamIds } }
+            ]
+        }).populate('assignedTeams', 'name');
         const projectIds = projects.map(p => p._id);
 
         // --- KPI Metrics ---
@@ -71,7 +77,7 @@ export const getManagerDashboardStats = async (req, res) => {
 
             return {
                 name: p.name,
-                team: p.assignedTeam?.name,
+                team: p.assignedTeams?.[0]?.name || 'Internal',
                 progress: p.progress,
                 status: health, // Traffic light logic
                 systemStatus: p.status

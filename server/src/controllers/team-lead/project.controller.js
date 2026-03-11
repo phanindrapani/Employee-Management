@@ -5,8 +5,8 @@ import { getIO } from '../../socket.js';
 export const getTeamProjects = async (req, res) => {
     try {
         const teamId = req.user.team;
-        const projects = await Project.find({ assignedTeam: teamId })
-            .populate('assignedTeam', 'name')
+        const projects = await Project.find({ assignedTeams: teamId })
+            .populate('assignedTeams', 'name')
             .sort({ endDate: 1 });
         res.json(projects);
     } catch (error) {
@@ -23,7 +23,7 @@ export const updateProjectProgress = async (req, res) => {
         if (!project) return res.status(404).json({ message: "Project not found" });
 
         // Authorization check
-        const isTLForTeam = req.user.role === 'team-lead' && project.assignedTeam?.toString() === req.user.team?.toString();
+        const isTLForTeam = req.user.role === 'team-lead' && project.assignedTeams?.includes(req.user.team);
 
         if (!isTLForTeam) {
             return res.status(403).json({ message: "Not authorized to override progress for this project" });
@@ -37,10 +37,13 @@ export const updateProjectProgress = async (req, res) => {
             return res.status(400).json({ message: "Invalid progress override parameters" });
         }
 
-        const updatedProject = await Project.findById(id).populate('assignedTeam', 'name');
+        const updatedProject = await Project.findById(id).populate('assignedTeams', 'name');
         try {
             const io = getIO();
-            io.to(`team:${updatedProject.assignedTeam?._id || updatedProject.assignedTeam}`).emit('project:updated', updatedProject);
+            const teamId = updatedProject.assignedTeams?.[0]?._id || updatedProject.assignedTeams?.[0];
+            if (teamId) {
+                io.to(`team:${teamId}`).emit('project:updated', updatedProject);
+            }
             io.to('role:admin').emit('project:updated', updatedProject);
         } catch (socketError) {
             console.error('Socket emit error (project progress update):', socketError.message);

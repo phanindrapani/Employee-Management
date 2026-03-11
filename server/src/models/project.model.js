@@ -17,7 +17,8 @@ const projectSchema = new mongoose.Schema({
     },
     startDate: { type: Date },
     endDate: { type: Date },
-    assignedTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' },
+    managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedTeams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }],
     progress: { type: Number, default: 0, min: 0, max: 100 },
     progressMode: {
         type: String,

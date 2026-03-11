@@ -8,12 +8,17 @@ export const getManagerTaskDashboard = async (req, res) => {
         const managerId = req.user.id;
         const teams = await Team.find({ manager: managerId }).populate('members', 'name role');
         const teamIds = teams.map(t => t._id);
-        const projects = await Project.find({ assignedTeam: { $in: teamIds } });
+        const projects = await Project.find({
+            $or: [
+                { managerId: managerId },
+                { assignedTeams: { $in: teamIds } }
+            ]
+        });
         const projectIds = projects.map(p => p._id);
 
         const now = new Date();
 
-        // 1. Summary Metrics
+        // Summary Metrics
         const stats = await Task.aggregate([
             { $match: { project: { $in: projectIds } } },
             {
@@ -38,9 +43,9 @@ export const getManagerTaskDashboard = async (req, res) => {
             blocked: stats.find(s => s._id === 'blocked')?.count || 0
         };
 
-        // 2. Team Task Breakdown
+        // Team Task Breakdown
         const teamBreakdown = await Promise.all(teams.map(async (team) => {
-            const teamProjects = await Project.find({ assignedTeam: team._id });
+            const teamProjects = await Project.find({ assignedTeams: team._id });
             const teamProjectIds = teamProjects.map(p => p._id);
             const teamStats = await Task.aggregate([
                 { $match: { project: { $in: teamProjectIds } } },
@@ -62,7 +67,7 @@ export const getManagerTaskDashboard = async (req, res) => {
             };
         }));
 
-        // 3. Employee Workload
+        // Employee Workload
         const allMemberIds = teams.flatMap(t => t.members.map(m => m._id));
         const employeeWorkload = await Task.aggregate([
             { $match: { assignedTo: { $in: allMemberIds } } },
@@ -93,7 +98,7 @@ export const getManagerTaskDashboard = async (req, res) => {
             }
         ]);
 
-        // 4. Project Progress (Actual Aggregation)
+        // Project Progress (Actual Aggregation)
         const projectProgress = await Promise.all(projects.map(async (p) => {
             const pStats = await Task.aggregate([
                 { $match: { project: p._id } },
@@ -116,14 +121,14 @@ export const getManagerTaskDashboard = async (req, res) => {
             };
         }));
 
-        // 5. Recent Activity (Last 5 updates)
+        // Recent Activity (Last 5 updates)
         const recentActivity = await Task.find({ project: { $in: projectIds } })
             .sort({ updatedAt: -1 })
             .limit(5)
             .populate('assignedTo', 'name')
             .select('title status updatedAt assignedTo');
 
-        // 6. Filtered Task List (For Main Table)
+        // Filtered Task List (For Main Table)
         const { status, priority, search } = req.query;
         let query = { project: { $in: projectIds } };
 
@@ -167,10 +172,15 @@ export const getManagerTaskDashboard = async (req, res) => {
 
 export const getManagerTaskStats = async (req, res) => {
     try {
-        const managerId = req.user.id;
+        const managerId = req.user._id || req.user.id;
         const teams = await Team.find({ manager: managerId });
         const teamIds = teams.map(t => t._id);
-        const projects = await Project.find({ assignedTeam: { $in: teamIds } });
+        const projects = await Project.find({
+            $or: [
+                { managerId: managerId },
+                { assignedTeams: { $in: teamIds } }
+            ]
+        });
         const projectIds = projects.map(p => p._id);
         const stats = await Task.aggregate([
             { $match: { project: { $in: projectIds } } },
@@ -184,10 +194,15 @@ export const getManagerTaskStats = async (req, res) => {
 
 export const getManagerOverdueTasks = async (req, res) => {
     try {
-        const managerId = req.user.id;
+        const managerId = req.user._id || req.user.id;
         const teams = await Team.find({ manager: managerId });
         const teamIds = teams.map(t => t._id);
-        const projects = await Project.find({ assignedTeam: { $in: teamIds } });
+        const projects = await Project.find({
+            $or: [
+                { managerId: managerId },
+                { assignedTeams: { $in: teamIds } }
+            ]
+        });
         const projectIds = projects.map(p => p._id);
         const now = new Date();
         const overdueTasks = await Task.find({

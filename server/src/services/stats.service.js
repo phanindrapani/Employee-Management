@@ -120,7 +120,7 @@ export const getTeamStats = async (teamId) => {
     ] = await Promise.all([
         User.countDocuments({ team: teamId }),
         Project.countDocuments({
-            assignedTeam: teamId,
+            assignedTeams: teamId,
             status: { $in: ['ongoing', 'upcoming'] }
         }),
         Task.countDocuments({

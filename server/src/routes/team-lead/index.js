@@ -9,6 +9,7 @@ import taskRoutes from './task.routes.js';
 import notificationRoutes from './notification.routes.js';
 import worklogRoutes from './worklog.routes.js';
 import ticketRoutes from './ticket.routes.js';
+import milestoneRoutes from './milestone.routes.js';
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.use('/tasks', taskRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/worklogs', worklogRoutes);
 router.use('/tickets', ticketRoutes);
+router.use('/milestones', milestoneRoutes);
 router.use('/', dashboardRoutes);
 
 export default router;

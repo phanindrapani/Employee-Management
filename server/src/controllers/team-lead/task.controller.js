@@ -10,7 +10,7 @@ export const createTask = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const { project: projectId, title, description, assignedTo, deadline, priority, weight } = req.body;
+        const { project: projectId, milestoneId, teamId, title, description, assignedTo, deadline, priority, weight } = req.body;
 
         const worker = await User.findById(assignedTo).session(session);
         if (!worker) {
@@ -25,9 +25,12 @@ export const createTask = async (req, res) => {
 
         const task = await Task.create([{
             project: projectId,
+            milestoneId,
+            teamId: teamId || req.user.team,
             title,
             description,
             assignedTo,
+            assignedBy: req.user._id,
             deadline,
             priority,
             weight
@@ -81,9 +84,13 @@ export const getTeamTasks = async (req, res) => {
         const memberIds = teamMembers.map(m => m._id);
 
         const tasks = await Task.find({ assignedTo: { $in: memberIds } })
-            .populate('project', 'name')
-            .populate('assignedTo', 'name email profilePicture')
-            .sort({ createdAt: -1 });
+             .populate('project', 'name')
+             .populate('milestoneId', 'name')
+             .populate('teamId', 'name')
+             .populate('assignedTo', 'name email profilePicture')
+             .populate('assignedBy', 'name')
+             .populate('comments.user', 'name profilePicture')
+             .sort({ createdAt: -1 });
 
         res.json(tasks);
     } catch (error) {
@@ -116,7 +123,9 @@ export const updateTask = async (req, res) => {
             deadline,
             priority,
             weight,
-            status
+            status,
+            milestoneId,
+            teamId
         } = req.body;
         const allowedStatuses = ['todo', 'in-progress', 'review', 'done'];
 
@@ -142,6 +151,8 @@ export const updateTask = async (req, res) => {
         if (deadline !== undefined) task.deadline = deadline;
         if (priority !== undefined) task.priority = priority;
         if (weight !== undefined) task.weight = weight;
+        if (milestoneId !== undefined) task.milestoneId = milestoneId;
+        if (teamId !== undefined) task.teamId = teamId;
 
         if (status !== undefined) {
             if (!allowedStatuses.includes(status)) {

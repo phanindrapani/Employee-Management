@@ -15,7 +15,8 @@ import {
     ExternalLink,
     TrendingUp,
     X,
-    Ticket
+    Ticket,
+    Target
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggle }) => {
@@ -34,6 +35,7 @@ const Sidebar = ({ isOpen, toggle }) => {
                 { name: 'My Team', path: '/team', icon: Users },
                 { name: 'Team Performance', path: '/team-performance', icon: TrendingUp },
                 { name: 'Projects', path: '/projects', icon: FolderKanban },
+                { name: 'Milestones', path: '/milestones', icon: Target },
                 { name: 'Tasks', path: '/tasks', icon: ClipboardList },
                 { name: 'Tickets', path: '/tickets', icon: Ticket },
             ]
