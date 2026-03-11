@@ -15,6 +15,7 @@ import Leaves from './pages/Leaves';
 import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
 import Tickets from './pages/Tickets';
+import CreateProject from './pages/CreateProject';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -39,6 +40,8 @@ function App() {
               }>
                 <Route index element={<ManagerDashboard />} />
                 <Route path="projects" element={<Projects />} />
+                <Route path="projects/create" element={<CreateProject />} />
+                <Route path="projects/edit/:id" element={<CreateProject />} />
                 <Route path="tasks" element={<TasksOverview />} />
                 <Route path="team-performance" element={<TeamPerformance />} />
                 <Route path="work-logs" element={<WorkLogs />} />

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
-import { Briefcase, Clock, CheckCircle2, AlertCircle, ChevronRight, BarChart3 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Briefcase, Clock, CheckCircle2, AlertCircle, ChevronRight, BarChart3, Plus, Pencil, Trash2, Globe, LayoutGrid } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -9,26 +11,42 @@ const Projects = () => {
     const [projects, setProjects] = useLocalStorage('manager_projects_list', []);
     const [stats, setStats] = useLocalStorage('manager_projects_stats', []);
     const [loading, setLoading] = useState(!projects.length || !stats.length);
+    const [viewMode, setViewMode] = useState('owned'); // 'owned' or 'all'
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    const fetchProjects = async (mode = viewMode) => {
+        setLoading(true);
+        try {
+            const endpoint = mode === 'all' ? '/manager/projects/all' : '/manager/projects';
+            const [projRes, statsRes] = await Promise.all([
+                API.get(endpoint),
+                API.get('/manager/projects/stats')
+            ]);
+            setProjects(projRes.data);
+            setStats(statsRes.data);
+        } catch (error) {
+            console.error('Failed to fetch projects', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [projRes, statsRes] = await Promise.all([
-                    API.get('/manager/projects'),
-                    API.get('/manager/projects/stats')
-                ]);
-                setProjects(projRes.data);
-                setStats(statsRes.data);
-            } catch (error) {
-                console.error('Failed to fetch projects', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
+        fetchProjects(viewMode);
+    }, [viewMode]);
 
     const COLORS = ['#63C132', '#0B3C5D', '#F59E0B', '#EF4444', '#64748B'];
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this project and all its tasks?')) return;
+        try {
+            await API.delete(`/manager/projects/${id}`);
+            fetchProjects();
+        } catch (err) {
+            alert('Delete failed');
+        }
+    };
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -55,6 +73,37 @@ const Projects = () => {
                         <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Strategic oversight of active initiatives</p>
                     </div>
                 </div>
+
+                <div className="flex bg-slate-100 p-1.5 rounded-2xl gap-1 shadow-inner border border-slate-200">
+                    <button
+                        onClick={() => setViewMode('owned')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'owned'
+                                ? 'bg-[#0B3C5D] text-white shadow-lg'
+                                : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        <LayoutGrid size={14} />
+                        My Projects
+                    </button>
+                    <button
+                        onClick={() => setViewMode('all')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewMode === 'all'
+                                ? 'bg-[#0B3C5D] text-white shadow-lg'
+                                : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        <Globe size={14} />
+                        Company View
+                    </button>
+                </div>
+
+                <button
+                    onClick={() => navigate('/projects/create')}
+                    className="px-6 py-3 bg-[#63C132] text-white rounded-xl font-bold hover:bg-[#52A428] transition-all flex items-center gap-2 shadow-lg shadow-[#63C132]/20"
+                >
+                    <Plus size={20} />
+                    New Project
+                </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -74,8 +123,26 @@ const Projects = () => {
                                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(project.status)}`}>
                                                 {project.status}
                                             </span>
+                                            <div className="flex gap-2">
+                                                {(project.assignedTeam?.manager === user?._id || project.assignedTeam?.manager?._id === user?._id) && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => navigate(`/projects/edit/${project._id}`)}
+                                                            className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-lg transition-all"
+                                                        >
+                                                            <Pencil size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(project._id)}
+                                                            className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
                                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                                ID: {project._id.slice(-6)}
+                                                ID: {project.projectId || project._id.slice(-6)}
                                             </span>
                                         </div>
 
