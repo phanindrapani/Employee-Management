@@ -18,6 +18,7 @@ import Tickets from './pages/Tickets';
 import CreateProject from './pages/CreateProject';
 import MilestoneDetails from './pages/MilestoneDetails';
 import Milestones from './pages/Milestones';
+import Holidays from './pages/Holidays';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -50,6 +51,7 @@ function App() {
                 <Route path="team-performance" element={<TeamPerformance />} />
                 <Route path="work-logs" element={<WorkLogs />} />
                 <Route path="leaves" element={<Leaves />} />
+                <Route path="holidays" element={<Holidays />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="change-password" element={<ChangePassword />} />
                 <Route path="tickets" element={<Tickets />} />

@@ -42,6 +42,7 @@ const Sidebar = ({ isOpen, toggle }) => {
             items: [
                 { name: 'Work Logs', path: '/work-logs', icon: Clock },
                 { name: 'Leave Oversight', path: '/leaves', icon: CalendarDays },
+                { name: 'Schedule & Holidays', path: '/holidays', icon: CalendarDays },
                 { name: 'Tickets', path: '/tickets', icon: Ticket },
             ]
         },
