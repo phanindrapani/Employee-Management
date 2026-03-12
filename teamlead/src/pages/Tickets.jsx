@@ -161,7 +161,7 @@ const Tickets = () => {
                         <TicketIcon className="text-[#63C132]" />
                         TEAM<span>TICKETS</span>
                     </h1>
-                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Team Leader Management Dashboard</p>
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Team Leader Dashboard</p>
                 </div>
             </div>
 
@@ -178,7 +178,7 @@ const Tickets = () => {
             {/* List */}
             <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <div className="px-8 py-5 flex items-center justify-between">
-                    <h3 className="text-sm font-black text-[#0B3C5D] tracking-widest uppercase italic">Active Support Requests</h3>
+                    <h3 className="text-sm font-black text-[#0B3C5D] tracking-widest uppercase">Active Tickets</h3>
                     <div className="flex gap-2">
                         <select
                             className="bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase px-3 py-1.5 outline-none tracking-widest shadow-sm focus:ring-2 ring-[#63C132]/10"
@@ -197,7 +197,7 @@ const Tickets = () => {
                         <tbody className="divide-y divide-slate-50 text-xs font-semibold">
                             {tickets.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-8 py-12 text-center text-slate-300 italic font-medium">No tickets found for your team</td>
+                                    <td colSpan="5" className="px-8 py-12 text-center text-slate-300 font-medium">No tickets found for your team</td>
                                 </tr>
                             ) : tickets.map((t) => (
                                 <tr key={t._id} className="group hover:bg-slate-50/50 transition-colors">
@@ -218,7 +218,7 @@ const Tickets = () => {
                                             {t.status.replace(/_/g, ' ')}
                                         </span>
                                         {t.status === 'DOUBT_RAISED' && t.doubtNote && (
-                                            <p className="text-[9px] text-rose-500 mt-1 italic font-bold max-w-[150px] truncate" title={t.doubtNote}>
+                                            <p className="text-[9px] text-rose-500 mt-1 font-bold max-w-[150px] truncate" title={t.doubtNote}>
                                                 "{t.doubtNote}"
                                             </p>
                                         )}
@@ -268,8 +268,8 @@ const Tickets = () => {
                             <div className="w-16 h-16 bg-[#63C132]/10 rounded-3xl flex items-center justify-center text-[#63C132] mx-auto mb-4">
                                 <UserPlus size={32} />
                             </div>
-                            <h2 className="text-2xl font-black text-[#0B3C5D] tracking-tight">TEAM ASSIGNMENT</h2>
-                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mt-1">Delegate to Developer</p>
+                            <h2 className="text-2xl font-black text-[#0B3C5D] tracking-tight">Assign Ticket</h2>
+                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mt-1">Assign to Developer</p>
                         </div>
 
                         <div className="space-y-5">
@@ -293,10 +293,10 @@ const Tickets = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Sprint Notes / Instructions</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Notes</label>
                                 <textarea
                                     className="w-full bg-slate-50 border border-slate-100 rounded-3xl text-sm px-5 py-4 outline-none focus:ring-4 ring-[#63C132]/10 min-h-[100px] font-bold text-slate-600"
-                                    placeholder="Brief technical notes for the developer..."
+                                    placeholder="Notes for the developer..."
                                     value={assignNote}
                                     onChange={(e) => setAssignNote(e.target.value)}
                                 />
@@ -309,7 +309,7 @@ const Tickets = () => {
                                 disabled={!assigningTo}
                                 className="w-full bg-[#0B3C5D] text-white px-6 py-4 rounded-2xl text-xs font-black shadow-xl shadow-[#0B3C5D]/20 hover:bg-[#63C132] transition-all active:scale-95 disabled:opacity-50 uppercase tracking-[0.2em]"
                             >
-                                CONFIRM DELEGATION
+                                Assign Ticket
                             </button>
                             <button
                                 onClick={() => setShowAssignModal(false)}
@@ -333,7 +333,7 @@ const Tickets = () => {
                                     <MessageSquare size={20} />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight leading-none italic">TICKET<span>DISCUSSION</span></h2>
+                                    <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight leading-none">TICKET<span>CHAT</span></h2>
                                     <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest leading-none">
                                         {selectedTicket?.ticketCode} - {selectedTicket?.title}
                                     </p>
@@ -383,7 +383,7 @@ const Tickets = () => {
                             {commentsLoading ? (
                                 <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
                                     <div className="w-8 h-8 border-4 border-[#63C132] border-t-transparent rounded-full animate-spin"></div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Updating Discussion...</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest">Loading messages...</p>
                                 </div>
                             ) : selectedTicket?.comments?.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-4">
@@ -446,7 +446,7 @@ const Tickets = () => {
                                     <textarea
                                         value={commentText}
                                         onChange={(e) => setCommentText(e.target.value)}
-                                        placeholder={isInternalComment ? "Add an internal note for managers & engineers..." : "Send a message to the client..."}
+                                        placeholder={isInternalComment ? "Write a note for the team..." : "Send a message to the client..."}
                                         className={`w-full p-6 pr-20 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm outline-none focus:ring-4 transition-all resize-none min-h-[100px] font-bold text-slate-700 text-left ${isInternalComment ? 'focus:ring-amber-500/10' : 'focus:ring-blue-500/10'
                                             }`}
                                     />

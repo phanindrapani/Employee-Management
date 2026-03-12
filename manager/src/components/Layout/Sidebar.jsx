@@ -29,7 +29,7 @@ const Sidebar = ({ isOpen, toggle }) => {
             ]
         },
         {
-            title: 'STRATEGIC MANAGEMENT',
+            title: 'MANAGEMENT',
             items: [
                 { name: 'Projects', path: '/projects', icon: Briefcase },
                 { name: 'Milestones', path: '/milestones', icon: Target },
@@ -41,8 +41,8 @@ const Sidebar = ({ isOpen, toggle }) => {
             title: 'OPERATIONS',
             items: [
                 { name: 'Work Logs', path: '/work-logs', icon: Clock },
-                { name: 'Leave Oversight', path: '/leaves', icon: CalendarDays },
-                { name: 'Schedule & Holidays', path: '/holidays', icon: CalendarDays },
+                { name: 'Leaves', path: '/leaves', icon: CalendarDays },
+                { name: 'Holidays', path: '/holidays', icon: CalendarDays },
                 { name: 'Tickets', path: '/tickets', icon: Ticket },
             ]
         },
@@ -70,7 +70,7 @@ const Sidebar = ({ isOpen, toggle }) => {
                 <button onClick={toggle} className="lg:hidden absolute top-4 right-4 text-gray-300 hover:text-white p-1">
                     <X size={20} />
                 </button>
-                <span className="text-xl font-black tracking-tighter text-[#63C132] text-center uppercase">CORPORATE ERP</span>
+                <span className="text-xl font-black tracking-tighter text-[#63C132] text-center uppercase">MANAGER PORTAL</span>
                 <span className="text-[10px] font-bold text-slate-400 tracking-[0.3em] uppercase">Manager Portal</span>
             </div>
 

@@ -76,7 +76,7 @@ const WorkLogs = () => {
         return styles[category] || styles.default;
     };
 
-    if (loading) return <div className="p-12 text-center text-slate-400 font-black tracking-widest uppercase text-[10px]">Retrieving Corporate Timesheets...</div>;
+    if (loading) return <div className="p-12 text-center text-slate-400 font-black tracking-widest uppercase text-[10px]">Loading work logs...</div>;
 
     return (
         <div className="space-y-8">
@@ -88,7 +88,7 @@ const WorkLogs = () => {
                     </div>
                     <div>
                         <h1 className="text-4xl font-black tracking-tighter text-[#0B3C5D]">Work Logs</h1>
-                        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Resource utilization & temporal audit</p>
+                        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Monitor team work hours and tasks</p>
                     </div>
                 </div>
 
@@ -232,7 +232,7 @@ const WorkLogs = () => {
                                 <div className="p-2 bg-pink-100 rounded-xl text-pink-600">
                                     <User size={20} />
                                 </div>
-                                <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest">Team-Wise Employee Performance</h3>
+                                <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest">Team Performance</h3>
                             </div>
                             {selectedTeam && (
                                 <button

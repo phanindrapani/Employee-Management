@@ -198,7 +198,7 @@ const Holidays = () => {
                             {selectedEvent.type === 'holiday' ? (
                                 <div className="space-y-3">
                                     <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
-                                        <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Occasion</p>
+                                        <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Holiday</p>
                                         <p className="font-bold text-[#0B3C5D]">{selectedEvent.data.name}</p>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
@@ -209,7 +209,7 @@ const Holidays = () => {
                             ) : (
                                 <div className="space-y-4">
                                     <div className="p-3 bg-[#15803D] rounded-xl border border-green-900/20 text-white shadow-lg shadow-green-900/10">
-                                        <p className="text-xs font-bold text-green-100 uppercase tracking-wider mb-1">Pass Type</p>
+                                        <p className="text-xs font-bold text-green-100 uppercase tracking-wider mb-1">Leave Type</p>
                                         <p className="font-black text-white">{selectedEvent.data.leaveType}</p>
                                     </div>
                                     <div className="space-y-2">
@@ -218,7 +218,7 @@ const Holidays = () => {
                                             <span className="font-bold text-[#0B3C5D]">{selectedEvent.data.totalDays} Days</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-slate-500 font-medium">Session</span>
+                                            <span className="text-slate-500 font-medium">Time</span>
                                             <span className="font-bold text-[#0B3C5D] capitalize">{selectedEvent.data.session}</span>
                                         </div>
                                         <div className="pt-2 border-t border-slate-50">

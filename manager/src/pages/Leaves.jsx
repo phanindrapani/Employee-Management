@@ -65,7 +65,7 @@ const Leaves = () => {
         }
     };
 
-    if (loading) return <div className="p-12 text-center text-slate-400 font-black tracking-widest uppercase text-[10px]">Syncing Leave Records...</div>;
+    if (loading) return <div className="p-12 text-center text-slate-400 font-black tracking-widest uppercase text-[10px]">Loading leaves...</div>;
 
     const totalRequests = stats.reduce((acc, curr) => acc + curr.count, 0);
 
@@ -78,8 +78,8 @@ const Leaves = () => {
                         <CalendarDays size={32} />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black tracking-tighter text-[#0B3C5D]">Leave Oversight</h1>
-                        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Resource availability & leave balance monitoring</p>
+                        <h1 className="text-4xl font-black tracking-tighter text-[#0B3C5D]">Leave Management</h1>
+                        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Track team leaves and your own</p>
                     </div>
                 </div>
 
@@ -91,7 +91,7 @@ const Leaves = () => {
                         Apply Leave
                     </button>
                     <div className="bg-white px-8 py-4 rounded-[32px] shadow-sm border border-slate-50 flex flex-col justify-center">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none text-center">Total Team Requests</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none text-center">Team Requests</p>
                         <p className="text-2xl font-black text-[#0B3C5D] leading-none text-center">{totalRequests}</p>
                     </div>
                 </div>
@@ -103,7 +103,7 @@ const Leaves = () => {
                     onClick={() => setActiveTab('oversight')}
                     className={`px-10 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'oversight' ? 'bg-[#0B3C5D] text-white shadow-xl shadow-[#0B3C5D]/20' : 'text-slate-400 hover:text-[#0B3C5D]'}`}
                 >
-                    Team Oversight
+                    Team Leaves
                 </button>
                 <button 
                     onClick={() => setActiveTab('my-leaves')}
@@ -196,7 +196,7 @@ const Leaves = () => {
                 </>
             ) : (
                 <div className="space-y-4">
-                    <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest ml-1">Personal History</h3>
+                    <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest ml-1">My Leave History</h3>
                     {myLeaves.length === 0 ? (
                         <div className="bg-white p-20 rounded-[48px] text-center border border-slate-50 shadow-sm">
                             <CalendarDays size={48} className="mx-auto text-slate-100 mb-4" />

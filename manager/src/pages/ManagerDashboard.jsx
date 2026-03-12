@@ -97,7 +97,7 @@ const ManagerDashboard = () => {
                         <Briefcase size={18} className="text-indigo-500" /> Project Health
                     </h3>
                     <Link to="/projects" className="text-[10px] font-black text-indigo-500 uppercase flex items-center gap-1 hover:underline">
-                        Full Portfolio <ChevronRight size={12} />
+                        View All Projects <ChevronRight size={12} />
                     </Link>
                 </div>
                 <div className="overflow-x-auto">
@@ -148,7 +148,7 @@ const ManagerDashboard = () => {
                     <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest flex items-center gap-2">
-                                <Ticket size={18} className="text-amber-500" /> Ticket Pulse
+                                <Ticket size={18} className="text-amber-500" /> Ticket Status
                             </h3>
                             <Link to="/tickets" className="p-2 hover:bg-slate-50 rounded-lg">
                                 <ArrowUpRight size={16} className="text-slate-300" />
@@ -197,7 +197,7 @@ const ManagerDashboard = () => {
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden flex flex-col">
                     <div className="px-8 py-6 border-b border-slate-50 bg-rose-50/20">
                         <h3 className="text-sm font-black text-rose-600 uppercase tracking-widest flex items-center gap-2">
-                            <AlertCircle size={18} /> Important Risks
+                            <AlertCircle size={18} /> Important Warnings
                         </h3>
                     </div>
                     <div className="p-8 space-y-4 flex-1">
@@ -210,7 +210,7 @@ const ManagerDashboard = () => {
                         )) : (
                             <div className="h-full flex flex-col items-center justify-center py-12 text-center">
                                 <CheckCircle2 size={32} className="text-green-200 mx-auto mb-3" />
-                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">All Systems Stable</p>
+                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No warnings found</p>
                             </div>
                         )}
                     </div>

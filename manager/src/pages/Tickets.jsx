@@ -149,16 +149,16 @@ const Tickets = () => {
                 <div>
                     <h1 className="text-2xl font-black text-[#0B3C5D] tracking-tight flex items-center gap-2">
                         <TicketIcon className="text-[#63C132]" />
-                        TICKET<span>OVERSIGHT</span>
+                        <span>Tickets</span>
                     </h1>
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Manage and delegate support requests</p>
+                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">View and manage support tickets</p>
                 </div>
             </div>
 
             {/* Manager Stats */}
             {stats && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard title="Assigned to Me" value={stats.total} colorClass="border-blue-500" titleColor="text-blue-600" />
+                    <StatCard title="Total Tickets" value={stats.total} colorClass="border-blue-500" titleColor="text-blue-600" />
                     <StatCard title="Pending" value={stats.pending} colorClass="border-yellow-500" titleColor="text-yellow-600" />
                     <StatCard title="Breached" value={stats.breached} colorClass="border-red-500" titleColor="text-red-600" />
                     <StatCard title="Closed" value={stats.closed} colorClass="border-green-500" titleColor="text-green-600" />
@@ -273,7 +273,7 @@ const Tickets = () => {
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0B3C5D]/60 backdrop-blur-sm">
                     <div className="bg-white rounded-[2.5rem] w-full max-w-md p-10 space-y-8 shadow-2xl">
                         <div>
-                            <h2 className="text-2xl font-black text-[#0B3C5D] tracking-tight">DELEGATE<span>TICKET</span></h2>
+                            <h2 className="text-2xl font-black text-[#0B3C5D] tracking-tight">Assign Ticket</h2>
                             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1 pl-1">Assign to Team Lead</p>
                         </div>
 
@@ -339,7 +339,7 @@ const Tickets = () => {
                                     <MessageSquare size={20} />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight leading-none text-left">TICKET<span>DISCUSSION</span></h2>
+                                    <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight leading-none text-left">Ticket Discussion</h2>
                                     <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest leading-none text-left">{selectedTicket?.ticketCode} - {selectedTicket?.title}</p>
                                 </div>
                             </div>
