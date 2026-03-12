@@ -13,7 +13,11 @@ const CreateProject = () => {
         const cached = localStorage.getItem('ls_admin_clients');
         return cached ? JSON.parse(cached) : [];
     });
-    const [loading, setLoading] = useState(!managers.length || !clients.length);
+    const [teams, setTeams] = useState(() => {
+        const cached = localStorage.getItem('ls_admin_teams');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(!managers.length || !clients.length || !teams.length);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -41,6 +45,10 @@ const CreateProject = () => {
                 const { data: clientsData } = await API.get('/admin/employees?role=client');
                 setClients(clientsData);
                 localStorage.setItem('ls_admin_clients', JSON.stringify(clientsData));
+
+                const { data: teamsData } = await API.get('/admin/teams');
+                setTeams(teamsData);
+                localStorage.setItem('ls_admin_teams', JSON.stringify(teamsData));
 
                 if (isEdit) {
                     const { data: projectData } = await API.get('/admin/projects');
@@ -81,6 +89,7 @@ const CreateProject = () => {
                         startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
                         endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
                         assignedTeams: project.assignedTeams?.map(t => t._id || t) || [],
+                        managerId: project.managerId?._id || project.managerId || '',
                         clientId: project.clientId?._id || project.clientId || '',
                         status: project.status,
                         progress: project.progress
@@ -102,6 +111,10 @@ const CreateProject = () => {
             const { data: clientsData } = await API.get('/admin/employees?role=client');
             setClients(clientsData);
             localStorage.setItem('ls_admin_clients', JSON.stringify(clientsData));
+
+            const { data: teamsData } = await API.get('/admin/teams');
+            setTeams(teamsData);
+            localStorage.setItem('ls_admin_teams', JSON.stringify(teamsData));
         } catch (e) {
             console.error('Socket refresh failed', e);
         }
@@ -195,6 +208,28 @@ const CreateProject = () => {
                                         <option key={client._id} value={client._id}>{client.name} {client.company ? `(${client.company})` : ''}</option>
                                     ))}
                                 </select>
+                            </div>
+                            <div>
+                                <label className="label">Assigned Teams</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-[150px] overflow-y-auto p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    {teams.map(team => (
+                                        <label key={team._id} className="flex items-center gap-3 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                className="w-4 h-4 rounded border-slate-300 text-[#0B3C5D] focus:ring-[#0B3C5D]"
+                                                checked={formData.assignedTeams.includes(team._id)}
+                                                onChange={(e) => {
+                                                    const updatedTeams = e.target.checked
+                                                        ? [...formData.assignedTeams, team._id]
+                                                        : formData.assignedTeams.filter(id => id !== team._id);
+                                                    setFormData({ ...formData, assignedTeams: updatedTeams });
+                                                }}
+                                            />
+                                            <span className="text-sm font-bold text-slate-600 group-hover:text-[#0B3C5D] transition-colors">{team.name}</span>
+                                        </label>
+                                    ))}
+                                    {teams.length === 0 && <p className="text-xs text-slate-400 italic">No teams available.</p>}
+                                </div>
                             </div>
                             <div>
                                 <label className="label">Priority</label>

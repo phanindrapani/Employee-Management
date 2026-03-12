@@ -4,6 +4,7 @@ import { calculateWorkingDays } from '../../utils/leaveCalculator.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
 import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
+import { sendEmail } from '../../utils/mailHelper.js';
 
 export const applyLeave = async (req, res) => {
     const { leaveType, fromDate, toDate, session, reason } = req.body;
@@ -39,7 +40,13 @@ export const applyLeave = async (req, res) => {
         attachmentUrl = await uploadBufferToCloudinary(req.file, 'leave_attachments');
     }
 
-    // 5. Create leave request
+    // 5. Create leave request (with Admin fallback if no reporting manager)
+    let approverId = user.reportingManager;
+    if (!approverId || approverId.toString() === userId.toString()) {
+        const admin = await User.findOne({ role: 'admin' });
+        approverId = admin ? admin._id : null;
+    }
+
     const leave = await Leave.create({
         user: userId,
         leaveType,
@@ -49,7 +56,7 @@ export const applyLeave = async (req, res) => {
         totalDays,
         reason,
         status: 'pending',
-        approver: user.reportingManager,
+        approver: approverId,
         attachment: attachmentUrl
     });
 
@@ -61,17 +68,7 @@ export const applyLeave = async (req, res) => {
         // --- NOTIFICATION: New Leave Request ---
         const notifications = [];
 
-        // 1. Notify all Admins
-        const admins = await User.find({ role: 'admin' });
-        admins.forEach(admin => {
-            notifications.push({
-                user: admin._id,
-                message: `New Leave Request: ${req.user.name} applied for ${leaveType} (${totalDays} days)`,
-                isRead: false
-            });
-        });
-
-        // 2. Notify Reporting Manager (if exists)
+        // 1. Notify Reporting Manager (if exists)
         if (user.reportingManager) {
             notifications.push({
                 user: user.reportingManager,
@@ -84,16 +81,43 @@ export const applyLeave = async (req, res) => {
             await Notification.insertMany(notifications);
         }
 
-        io.to('role:admin').emit('leave:created', populatedLeave); // Notify Admin
-        io.to('role:admin').emit('notification', {
-            message: `New Leave Request: ${req.user.name}`
-        });
-
-        if (user.reportingManager) {
-            io.to(`user:${user.reportingManager}`).emit('leave:created', populatedLeave); // Notify Manager/TL
-            io.to(`user:${user.reportingManager}`).emit('notification', {
+        if (approverId) {
+            io.to(`user:${approverId}`).emit('leave:created', populatedLeave); 
+            io.to(`user:${approverId}`).emit('notification', {
                 message: `New Leave Request: ${req.user.name}`
             });
+
+            // --- EMAIL NOTIFICATION ---
+            try {
+                const approver = await User.findById(approverId);
+                if (approver && approver.email) {
+                    const requesterRole = user.role === 'team-lead' ? 'Team Lead' : 'Employee';
+                    let approverRole = 'Approver';
+                    if (approver.role === 'admin') approverRole = 'Admin';
+                    else if (approver.role === 'manager') approverRole = 'Manager';
+                    else if (approver.role === 'team-lead') approverRole = 'Team Lead';
+
+                    await sendEmail({
+                        to: approver.email,
+                        subject: `New Leave Request (${requesterRole}): ${user.name}`,
+                        html: `
+                            <div style="font-family: sans-serif; padding: 20px; color: #0B3C5D;">
+                                <h2 style="color: #63C132;">New Leave Request</h2>
+                                <p><strong>From:</strong> ${user.name} (${requesterRole})</p>
+                                <p><strong>Sent To:</strong> ${approver.name} (${approverRole})</p>
+                                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;"/>
+                                <p><strong>Type:</strong> ${leaveType}</p>
+                                <p><strong>Duration:</strong> ${totalDays} days (${fromDate} to ${toDate})</p>
+                                <p><strong>Reason:</strong> ${reason}</p>
+                                <br/>
+                                <p>Please log in to your portal to approve or reject this request.</p>
+                            </div>
+                        `
+                    });
+                }
+            } catch (mailErr) {
+                console.error('Failed to send leave request email:', mailErr);
+            }
         }
     } catch (e) { console.error('Socket emit error:', e); }
 

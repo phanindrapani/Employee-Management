@@ -16,7 +16,7 @@ const Projects = () => {
     const navigate = useNavigate();
 
     const fetchProjects = async (mode = viewMode) => {
-        setLoading(true);
+        if (projects.length === 0) setLoading(true);
         try {
             const endpoint = mode === 'all' ? '/manager/projects/all' : '/manager/projects';
             const [projRes, statsRes] = await Promise.all([
@@ -120,73 +120,97 @@ const Projects = () => {
                         </div>
                     ) : (
                         projects.map((project) => (
-                            <div key={project._id} className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-50 hover:shadow-xl hover:shadow-[#0B3C5D]/5 transition-all group">
-                                <div className="flex flex-col md:flex-row justify-between gap-6">
-                                    <div className="flex-1 space-y-4">
+                                <div key={project._id} className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-50 hover:shadow-2xl hover:shadow-[#0B3C5D]/5 transition-[box-shadow,border-color,transform] group overflow-hidden relative">
+                                {/* Status Accent */}
+                                <div className={`absolute top-0 left-0 w-1 h-full ${project.status === 'completed' ? 'bg-[#63C132]' : project.status === 'ongoing' ? 'bg-[#0B3C5D]' : 'bg-amber-400'}`} />
+
+                                <div className="flex flex-col md:flex-row gap-8">
+                                    <div className="flex-1 space-y-6">
+                                        {/* Top Row: Status & Actions */}
                                         <div className="flex items-center justify-between">
-                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(project.status)}`}>
-                                                {project.status}
-                                            </span>
+                                            <div className="flex items-center gap-3">
+                                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest lg:tracking-[0.2em] shadow-sm ${getStatusColor(project.status)}`}>
+                                                    {project.status}
+                                                </span>
+                                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest opacity-60">
+                                                    #{project.projectId || project._id.slice(-6)}
+                                                </span>
+                                            </div>
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => navigate(`/projects/edit/${project._id}`)}
-                                                    className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-lg transition-all"
+                                                    className="p-2 text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50 rounded-xl transition-all"
                                                 >
-                                                    <Pencil size={18} />
+                                                    <Pencil size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(project._id)}
-                                                    className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                                                 >
-                                                    <Trash2 size={18} />
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
-                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                                ID: {project.projectId || project._id.slice(-6)}
-                                            </span>
                                         </div>
 
+                                        {/* Project Info */}
                                         <div>
-                                            <h3 className="text-xl font-black text-[#0B3C5D] mb-1 group-hover:text-[#63C132] transition-colors">{project.name}</h3>
-                                            <p className="text-sm text-slate-500 font-medium line-clamp-1">{project.description}</p>
+                                            <h3 className="text-2xl font-black text-[#0B3C5D] mb-2 group-hover:text-[#63C132] transition-colors leading-none tracking-tight">
+                                                {project.name}
+                                            </h3>
+                                            <p className="text-sm text-slate-400 font-medium leading-relaxed italic line-clamp-1 opacity-80">
+                                                {project.description || "A strategic business transformation initiative."}
+                                            </p>
                                         </div>
 
-                                        <div className="flex flex-wrap gap-4 items-center">
-                                            <div className="flex items-center gap-2 text-slate-400">
-                                                <Clock size={14} />
-                                                <span className="text-xs font-bold uppercase tracking-tighter">
-                                                    {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'TBD'} - {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'TBD'}
-                                                </span>
+                                        {/* Metadata Attributes */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
+                                                <div className="p-2 bg-white rounded-xl shadow-sm text-[#0B3C5D]">
+                                                    <Clock size={16} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.1em] mb-0.5">Timeline</p>
+                                                    <p className="text-[10px] font-black text-[#0B3C5D] whitespace-nowrap">
+                                                        {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'TBD'} - {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'TBD'}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2 text-[#0B3C5D]">
-                                                <Users2 size={14} />
-                                                <span className="text-xs font-black uppercase tracking-widest">
-                                                    {project.assignedTeams?.length || 0} Teams
-                                                </span>
+                                            <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
+                                                <div className="p-2 bg-white rounded-xl shadow-sm text-[#0B3C5D]">
+                                                    <Users2 size={16} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.1em] mb-0.5">Assigned</p>
+                                                    <p className="text-[10px] font-black text-[#0B3C5D] truncate">
+                                                        {project.assignedTeams?.length || 0} Professional Teams
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <button
-                                                onClick={() => navigate(`/milestones?projectId=${project._id}`)}
-                                                className="flex items-center gap-2 px-3 py-1 bg-[#0B3C5D] text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-[#0B3C5D]/90 transition-all ml-auto group-hover:translate-x-1"
-                                            >
-                                                Manage Milestones
-                                                <ChevronRight size={14} />
-                                            </button>
                                         </div>
                                     </div>
 
-                                    <div className="md:w-48 flex flex-col justify-center items-center md:items-end gap-2 border-t md:border-t-0 md:border-l border-slate-50 pt-6 md:pt-0 md:pl-6">
-                                        <div className="text-center md:text-right w-full">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Overall Progress</span>
-                                                <span className="text-sm font-black text-[#63C132]">{project.progress}%</span>
+                                    {/* Project Performance Column */}
+                                    <div className="md:w-52 flex flex-col justify-between gap-6 p-6 bg-slate-50 rounded-[28px] border border-slate-100">
+                                        <div className="w-full">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Progress</span>
+                                                <span className="text-sm font-black text-[#0B3C5D]">{project.progress}%</span>
                                             </div>
-                                            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                            <div className="h-2 w-full bg-white rounded-full overflow-hidden p-0.5 shadow-inner">
                                                 <div
-                                                    className="h-full bg-gradient-to-r from-[#63C132] to-[#52A428] rounded-full transition-all duration-1000 shadow-lg"
+                                                    className="h-full bg-gradient-to-r from-[#63C132] to-[#0B3C5D] rounded-full transition-all duration-1000 shadow-sm"
                                                     style={{ width: `${project.progress}%` }}
                                                 />
                                             </div>
                                         </div>
+
+                                        <button
+                                            onClick={() => navigate(`/milestones?projectId=${project._id}`)}
+                                            className="w-full flex items-center justify-center gap-2 py-3 bg-[#0B3C5D] text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-[#63C132] hover:shadow-xl hover:shadow-[#63C132]/20 shadow-lg shadow-[#0B3C5D]/10 transition-all active:scale-95 group/btn"
+                                        >
+                                            Milestones
+                                            <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -196,7 +220,7 @@ const Projects = () => {
 
                 {/* Status Breakdown Sidebar */}
                 <div className="space-y-6">
-                    <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-50 sticky top-8">
+                    <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-50">
                         <h3 className="text-lg font-black text-[#0B3C5D] mb-6 flex items-center gap-3">
                             <PieChart size={20} className="text-[#63C132]" />
                             Status Breakdown

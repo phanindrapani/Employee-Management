@@ -234,7 +234,7 @@ const AdminDashboard = () => {
                                                     <p className="text-xs text-red-600 font-medium">Due: {new Date(project.endDate).toLocaleDateString()}</p>
                                                 </div>
                                                 <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2 py-1 rounded text-slate-500 border border-slate-100">
-                                                    {project.assignedTeam?.name || 'Unassigned'}
+                                                    {project.assignedTeams?.[0]?.name || 'Unassigned'}
                                                 </span>
                                             </div>
                                         ))

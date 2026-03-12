@@ -6,6 +6,7 @@ import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
 import { calculateWorkingDays } from '../../utils/leaveCalculator.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
+import { sendEmail } from '../../utils/mailHelper.js';
 
 export const getManagerLeaves = async (req, res) => {
     try {
@@ -102,6 +103,45 @@ export const updateLeaveStatus = async (req, res) => {
 
         // Notification & Socket logic
         const notificationMessage = `Your leave request for ${leave.totalDays} day(s) has been ${status}.`;
+        
+        try {
+            // 1. In-App Notification
+            await Notification.create({
+                user: leave.user._id,
+                message: notificationMessage,
+                isRead: false
+            });
+
+            // 2. Socket update
+            const io = getIO();
+            const populatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role profilePicture');
+            
+            io.to(`user:${leave.user._id}`).emit('leave:updated', populatedLeave);
+            io.to(`user:${leave.user._id}`).emit('notification', { message: notificationMessage });
+
+            // 3. Email Notification
+            if (leave.user && leave.user.email) {
+                await sendEmail({
+                    to: leave.user.email,
+                    subject: `Leave Request ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+                    html: `
+                        <div style="font-family: sans-serif; padding: 20px; color: #0B3C5D;">
+                            <h2 style="color: ${status === 'approved' ? '#63C132' : '#F43F5E'}; text-transform: capitalize;">
+                                Leave Request ${status}
+                            </h2>
+                            <p>Hi ${leave.user.name},</p>
+                            <p>Your leave request for <strong>${leave.totalDays} day(s)</strong> has been <strong>${status}</strong>.</p>
+                            ${status === 'rejected' ? `<p><strong>Reason:</strong> ${rejectionReason}</p>` : ''}
+                            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;"/>
+                            <p>Please log in to your portal for more details.</p>
+                        </div>
+                    `
+                });
+            }
+        } catch (e) {
+            console.error('Notification cleanup error:', e);
+        }
+
         res.json(leave);
     } catch (error) {
         await session.abortTransaction();
@@ -159,15 +199,7 @@ export const applyManagerLeave = async (req, res) => {
         const populatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role profilePicture');
 
         const notifications = [];
-        const admins = await User.find({ role: 'admin' });
-        admins.forEach(admin => {
-            notifications.push({
-                user: admin._id,
-                message: `New Leave Request: ${req.user.name} (Manager) applied for ${leaveType}`,
-                isRead: false
-            });
-        });
-
+        // Notify Reporting Manager (usually Admin for Managers)
         if (user.reportingManager) {
             notifications.push({
                 user: user.reportingManager,
@@ -180,9 +212,35 @@ export const applyManagerLeave = async (req, res) => {
             await Notification.insertMany(notifications);
         }
 
-        io.to('role:admin').emit('leave:created', populatedLeave);
         if (user.reportingManager) {
             io.to(`user:${user.reportingManager}`).emit('leave:created', populatedLeave);
+            io.to(`user:${user.reportingManager}`).emit('notification', {
+                message: `New Leave Request: ${req.user.name}`
+            });
+
+            // --- EMAIL NOTIFICATION ---
+            try {
+                const managerApprover = await User.findById(user.reportingManager);
+                if (managerApprover && managerApprover.email) {
+                    await sendEmail({
+                        to: managerApprover.email,
+                        subject: `New Leave Request (Manager): ${user.name}`,
+                        html: `
+                            <div style="font-family: sans-serif; padding: 20px; color: #0B3C5D;">
+                                <h2 style="color: #63C132;">New Leave Request from Manager</h2>
+                                <p><strong>Manager:</strong> ${user.name}</p>
+                                <p><strong>Type:</strong> ${leaveType}</p>
+                                <p><strong>Duration:</strong> ${totalDays} days (${fromDate} to ${toDate})</p>
+                                <p><strong>Reason:</strong> ${reason}</p>
+                                <br/>
+                                <p>Please log in to the admin portal to approve or reject this request.</p>
+                            </div>
+                        `
+                    });
+                }
+            } catch (mailErr) {
+                console.error('Failed to send manager leave request email:', mailErr);
+            }
         }
     } catch (e) { console.error('Socket error:', e); }
 

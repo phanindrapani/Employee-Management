@@ -80,7 +80,7 @@ const Milestones = () => {
 
     const fetchMilestones = async (projectId) => {
         if (!projectId) return;
-        setMilestonesLoading(true);
+        if (milestones.length === 0) setMilestonesLoading(true);
         try {
             const { data } = await API.get(`/manager/milestones/project/${projectId}`);
             setMilestones(data);

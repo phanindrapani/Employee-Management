@@ -2,11 +2,29 @@ import Leave from '../../models/leave.model.js';
 import User from '../../models/user.model.js';
 import mongoose from 'mongoose';
 import { getIO } from '../../socket.js';
+import { sendEmail } from '../../utils/mailHelper.js';
 
 export const getAllLeaves = async (req, res) => {
     try {
-        const leaves = await Leave.find().populate('user', 'name email department role').sort({ createdAt: -1 });
-        res.json(leaves);
+        // Only return leaves from Managers (direct reports to Admin)
+        // OR leaves specifically assigned to this Admin as approver
+        const leaves = await Leave.find({
+            $or: [
+                { approver: req.user._id },
+                { 'user.role': 'manager' } // This requires population for filtering in some cases, 
+                                          // but let's filter by checking users who have Admin as reporting manager
+            ]
+        })
+        .populate({
+            path: 'user',
+            select: 'name email department role',
+            match: { $or: [{ role: 'manager' }, { reportingManager: req.user._id }] }
+        })
+        .sort({ createdAt: -1 });
+
+        // Filter out null users (those that didn't match the populate filter)
+        const filteredLeaves = leaves.filter(l => l.user !== null);
+        res.json(filteredLeaves);
     } catch (e) { res.status(500).json({ msg: "Failed" }); }
 };
 
@@ -74,10 +92,34 @@ export const updateLeaveStatus = async (req, res) => {
         // Socket Emit
         try {
             const io = getIO();
-            io.to('role:admin').emit('leave:updated', updatedLeave);
+            
+            // Only broadcast to admin role if the requester is a Manager
+            if (updatedLeave.user && updatedLeave.user.role === 'manager') {
+                io.to('role:admin').emit('leave:updated', updatedLeave);
+            }
+            
             io.to(`user:${updatedLeave.user._id}`).emit('leave:updated', updatedLeave);
-            // Notify team lead?
-        } catch (e) { console.error('Socket emit error:', e); }
+            
+            // --- EMAIL NOTIFICATION ---
+            if (updatedLeave.user && updatedLeave.user.email) {
+                await sendEmail({
+                    to: updatedLeave.user.email,
+                    subject: `Leave Request ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+                    html: `
+                        <div style="font-family: sans-serif; padding: 20px; color: #0B3C5D;">
+                            <h2 style="color: ${status === 'approved' ? '#63C132' : '#F43F5E'}; text-transform: capitalize;">
+                                Leave Request ${status}
+                            </h2>
+                            <p>Hi ${updatedLeave.user.name},</p>
+                            <p>Your leave request for <strong>${updatedLeave.totalDays} day(s)</strong> has been <strong>${status}</strong> by the Administrator.</p>
+                            ${status === 'rejected' ? `<p><strong>Reason:</strong> ${rejectionReason}</p>` : ''}
+                            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;"/>
+                            <p>Please log in to your portal for more details.</p>
+                        </div>
+                    `
+                });
+            }
+        } catch (e) { console.error('Notification/Socket error:', e); }
 
         res.json(updatedLeave);
     } catch (e) {

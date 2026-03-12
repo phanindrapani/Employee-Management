@@ -8,7 +8,12 @@ import os from "os";
 import { initSocket } from "./socket.js";
 
 // Load env vars immediately
-dotenv.config();
+const result = dotenv.config();
+if (result.error) {
+  console.error("ERROR: Failed to load .env file:", result.error);
+} else {
+  console.log(".env file loaded successfully");
+}
 
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middlewares/error.middleware.js";

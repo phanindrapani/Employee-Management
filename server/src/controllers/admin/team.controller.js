@@ -23,7 +23,7 @@ export const createTeam = async (req, res) => {
             // Use native driver for consistency
             await User.collection.updateOne(
                 { _id: new mongoose.Types.ObjectId(teamLead) },
-                { $set: { team: team._id, reportingManager: manager ? new mongoose.Types.ObjectId(manager) : new mongoose.Types.ObjectId(teamLead) } },
+                { $set: { team: team._id, reportingManager: manager ? new mongoose.Types.ObjectId(manager) : null } },
                 { session }
             );
         }
@@ -159,14 +159,12 @@ export const updateTeam = async (req, res) => {
 
         // Step 2b: Always sync reporting manager for current team members
         if (newLeadId) {
-            // Team lead reports to manager if exists, else self
             await User.updateOne(
                 { _id: newLeadId },
-                { $set: { reportingManager: newManagerId ? new mongoose.Types.ObjectId(newManagerId) : new mongoose.Types.ObjectId(newLeadId), team: id } },
+                { $set: { reportingManager: newManagerId ? new mongoose.Types.ObjectId(newManagerId) : null, team: id } },
                 { session }
             );
 
-            // Non-leads report to the team lead
             await User.updateMany(
                 { team: id, _id: { $ne: newLeadId }, role: { $ne: 'manager' } },
                 { $set: { reportingManager: newLeadId } },
@@ -174,7 +172,6 @@ export const updateTeam = async (req, res) => {
             );
 
         } else if (newManagerId) {
-            // No lead, everyone reports to manager
             await User.updateMany(
                 { team: id, role: { $ne: 'manager' } },
                 { $set: { reportingManager: newManagerId } },

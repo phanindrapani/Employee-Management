@@ -11,7 +11,7 @@ import { getGlobalSummary } from '../../services/stats.service.js';
 export const getDashboardStats = async (req, res) => {
     try {
         const today = new Date();
-        const summary = await getGlobalSummary();
+        const summary = await getGlobalSummary(req.user._id);
 
         // Specific items still needed for Admin Dashboard
         const [
@@ -20,7 +20,7 @@ export const getDashboardStats = async (req, res) => {
             recentTasks,
             teams
         ] = await Promise.all([
-            Leave.find({ status: 'pending' }).populate('user', 'name profilePicture').limit(5).sort({ createdAt: -1 }).lean(),
+            Leave.find({ status: 'pending', approver: req.user._id }).populate('user', 'name profilePicture').limit(5).sort({ createdAt: -1 }).lean(),
             Project.find({ status: 'ongoing', endDate: { $gte: today } }).populate('assignedTeams', 'name').sort({ endDate: 1 }).limit(5).lean(),
             Task.find().sort({ createdAt: -1 }).limit(5).populate('assignedTo', 'name').lean(),
             Team.find().populate('teamLead', 'name').lean()

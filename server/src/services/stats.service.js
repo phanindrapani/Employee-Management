@@ -9,7 +9,7 @@ import Holiday from '../models/holiday.model.js';
 /**
  * Get core summary counts for Admin/Leadership
  */
-export const getGlobalSummary = async () => {
+export const getGlobalSummary = async (adminId = null) => {
     const today = new Date();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
@@ -40,6 +40,9 @@ export const getGlobalSummary = async () => {
         ]),
         Leave.aggregate([
             {
+                $match: adminId ? { approver: adminId } : {}
+            },
+            {
                 $facet: {
                     pending: [{ $match: { status: 'pending' } }, { $count: "count" }],
                     approvedThisMonth: [
@@ -54,7 +57,12 @@ export const getGlobalSummary = async () => {
             }
         ]),
         Leave.aggregate([
-            { $match: { fromDate: { $gte: new Date(today.getFullYear(), 0, 1) }, status: 'approved' } },
+            { 
+                $match: { 
+                    fromDate: { $gte: new Date(today.getFullYear(), 0, 1) }, 
+                    status: 'approved'
+                } 
+            },
             { $group: { _id: { $month: "$fromDate" }, count: { $sum: 1 } } },
             { $sort: { "_id": 1 } }
         ]),
