@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import API from '../api';
 import { Clock, Download, Search, Calendar, BarChart3, TrendingUp, User, FolderOpen } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
@@ -36,25 +36,26 @@ const WorkLogs = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTeam, setSelectedTeam] = useState(null);
 
+    const fetchData = useCallback(async () => {
+        try {
+            const [logsRes, statsRes, analysisRes] = await Promise.all([
+                API.get('/manager/worklogs'),
+                API.get('/manager/worklogs/stats'),
+                API.get('/manager/worklogs/analysis')
+            ]);
+            setLogs(logsRes.data);
+            setStats(statsRes.data);
+            setAnalysis(analysisRes.data);
+        } catch (error) {
+            console.error('Failed to fetch work logs', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [setLogs, setStats, setAnalysis]);
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [logsRes, statsRes, analysisRes] = await Promise.all([
-                    API.get('/manager/worklogs'),
-                    API.get('/manager/worklogs/stats'),
-                    API.get('/manager/worklogs/analysis')
-                ]);
-                setLogs(logsRes.data);
-                setStats(statsRes.data);
-                setAnalysis(analysisRes.data);
-            } catch (error) {
-                console.error('Failed to fetch work logs', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     useSocketListener('worklog:created', fetchData);
 
