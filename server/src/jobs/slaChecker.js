@@ -1,9 +1,7 @@
 import Ticket from '../models/ticket.model.js';
 
-/**
- * SLA Checker — Run this on a schedule (every hour).
- * Marks tickets that are past their dueDate and not yet closed as slaBreached.
- */
+// SLA Checker — Run this on a schedule (every hour).
+// Marks tickets that are past their dueDate and not yet closed as slaBreached.
 export const checkSLABreaches = async () => {
     try {
         const now = new Date();

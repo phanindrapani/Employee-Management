@@ -7,9 +7,6 @@ import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
 
-/**
- * Get tasks assigned to current user
- */
 export const getMyTasks = async (req, res) => {
     try {
         const tasks = await Task.find({ assignedTo: req.user._id })
@@ -23,9 +20,6 @@ export const getMyTasks = async (req, res) => {
     }
 };
 
-/**
- * Update task content (progress, comments, attachments)
- */
 export const updateTaskContent = async (req, res) => {
     try {
         const { id } = req.params;
@@ -52,7 +46,6 @@ export const updateTaskContent = async (req, res) => {
         }
 
         if (req.file) {
-            // Assuming upload middleware is used
             const attachmentUrl = await uploadBufferToCloudinary(req.file, 'task_attachments');
             task.attachments.push({
                 name: req.file.originalname,
@@ -62,7 +55,7 @@ export const updateTaskContent = async (req, res) => {
         }
 
         await task.save();
-        
+
         const populatedTask = await Task.findById(task._id)
             .populate('project', 'name')
             .populate('milestoneId', 'name')
@@ -89,9 +82,6 @@ export const updateTaskContent = async (req, res) => {
     }
 };
 
-/**
- * Update task status
- */
 export const updateTaskStatus = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -120,13 +110,11 @@ export const updateTaskStatus = async (req, res) => {
             return res.status(403).json({ message: "Not authorized to update this task" });
         }
 
-        // Employees can submit work for review, but cannot self-complete tasks.
         if (status === 'done' && req.user.role === 'employee') {
             await session.abortTransaction();
             return res.status(403).json({ message: "Team lead review is required before marking a task done" });
         }
 
-        // Team leads can mark done only after review.
         if (status === 'done' && req.user.role === 'team-lead' && task.status !== 'review') {
             await session.abortTransaction();
             return res.status(400).json({ message: "Task must be in review before it can be marked done" });
@@ -141,7 +129,6 @@ export const updateTaskStatus = async (req, res) => {
         task.status = status;
         await task.save({ session });
 
-        // Trigger auto-sync for project
         await syncProjectProgress(task.project, req.user._id, session);
         const shouldRecalculateEmployeeScore = Boolean(
             worker &&
@@ -153,7 +140,6 @@ export const updateTaskStatus = async (req, res) => {
 
         await session.commitTransaction();
 
-        // Run after commit so scoring sees the latest persisted task status.
         if (shouldRecalculateEmployeeScore) {
             const now = new Date();
             const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -181,8 +167,6 @@ export const updateTaskStatus = async (req, res) => {
             }
             io.to('role:admin').emit('task:updated', payload);
 
-            // --- NOTIFICATION: Task Moved to Review ---
-            // Sent to Team Lead/Manager when Employee moves task to 'review'
             if (status === 'review' && req.user.role === 'employee' && worker?.reportingManager) {
                 await Notification.create({
                     user: worker.reportingManager,

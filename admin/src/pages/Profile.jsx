@@ -49,7 +49,7 @@ const Profile = () => {
         if (file) {
             setSelectedImage(file);
             setPreviewUrl(URL.createObjectURL(file));
-            setIsEditing(true); // Auto-enable editing mode
+            setIsEditing(true);
         }
     };
 
@@ -76,9 +76,6 @@ const Profile = () => {
             alert(err.response?.data?.message || 'Failed to update profile');
         }
     };
-
-    // if (loading) return <div className="text-center py-10 text-slate-400">Loading profile...</div>;
-    // if (!profile) return <div className="text-center py-10 text-slate-400">Profile not found</div>;
 
     return (
         <div className="space-y-8 text-[#0B3C5D]">

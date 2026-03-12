@@ -8,10 +8,10 @@ export const getTeamReports = async (req, res) => {
         const members = await User.find({ team: teamId }).select('_id name');
         const memberIds = members.map(m => m._id);
 
-        // 1. Productivity Trend (Last 7 Days) - synchronized with Dashboard logic
+        // Productivity Trend (Last 7 Days) - synchronized with Dashboard logic
         const productivityTrend = await getProductivityTrend(memberIds);
 
-        // 2. Member Contribution (Total Completed Tasks)
+        // Member Contribution (Total Completed Tasks)
         const contributionData = await Promise.all(members.map(async (member) => {
             const completedCount = await Task.countDocuments({
                 assignedTo: member._id,
@@ -23,10 +23,9 @@ export const getTeamReports = async (req, res) => {
             };
         }));
 
-        // Filter out members with 0 contribution to keep chart clean
         const activeContribution = contributionData.filter(d => d.value > 0);
 
-        // 3. Summary Stats (Achievement & Consistency)
+        // Summary Stats (Achievement & Consistency)
         const totalCompleted = activeContribution.reduce((acc, curr) => acc + curr.value, 0);
         const totalPending = await Task.countDocuments({
             assignedTo: { $in: memberIds },

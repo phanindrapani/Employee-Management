@@ -24,10 +24,9 @@ const NotificationListener = () => {
 
 
     useSocketListener('task:updated', (data) => {
-        // Optional: too noisy?
     });
 
-    return null; // This component doesn't render anything itself
+    return null;
 };
 
 export default NotificationListener;

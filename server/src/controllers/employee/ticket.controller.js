@@ -1,8 +1,6 @@
 import Ticket from '../../models/ticket.model.js';
 import { getIO } from '../../socket.js';
 import Notification from '../../models/notification.model.js';
-
-// GET /employee/tickets — Tickets assigned to me
 export const getMyTickets = async (req, res) => {
     try {
         const { status, priority } = req.query;
@@ -23,7 +21,6 @@ export const getMyTickets = async (req, res) => {
     }
 };
 
-// GET /employee/tickets/:id
 export const getTicketById = async (req, res) => {
     try {
         const ticket = await Ticket.findOne({ _id: req.params.id, assignedEmployee: req.user.id })
@@ -40,7 +37,6 @@ export const getTicketById = async (req, res) => {
     }
 };
 
-// PATCH /employee/tickets/:id/status — Update ticket status
 export const updateStatus = async (req, res) => {
     try {
         const { status, resolutionNote, doubtNote } = req.body;
@@ -58,7 +54,6 @@ export const updateStatus = async (req, res) => {
             ticket.resolvedAt = new Date();
             ticket.resolutionNote = resolutionNote || null;
 
-            // Add resolution as internal comment too
             ticket.comments.push({
                 userId: req.user.id,
                 role: 'employee',
@@ -70,7 +65,6 @@ export const updateStatus = async (req, res) => {
         if (status === 'DOUBT_RAISED') {
             ticket.doubtNote = doubtNote || null;
 
-            // Add doubt as internal comment for history
             ticket.comments.push({
                 userId: req.user.id,
                 role: 'employee',
@@ -81,7 +75,6 @@ export const updateStatus = async (req, res) => {
 
         await ticket.save();
 
-        // Notification logic for DOUBT_RAISED
         if (status === 'DOUBT_RAISED') {
             try {
                 const io = getIO();
@@ -107,7 +100,6 @@ export const updateStatus = async (req, res) => {
     }
 };
 
-// POST /employee/tickets/:id/comment
 export const addComment = async (req, res) => {
     try {
         const { message, isInternal } = req.body;
@@ -123,11 +115,9 @@ export const addComment = async (req, res) => {
 
         await ticket.save();
 
-        // Notification Logic
         try {
             const io = getIO();
             if (isInternal) {
-                // Notify Team Lead & Manager for internal notes
                 const notifyUserIds = [ticket.assignedTeamLead, ticket.assignedManager].filter(id => id);
                 for (const userId of notifyUserIds) {
                     await Notification.create({
@@ -140,7 +130,6 @@ export const addComment = async (req, res) => {
                     });
                 }
             } else {
-                // Notify Client for external messages
                 await Notification.create({
                     user: ticket.clientId,
                     message: `New Message from Support on ticket "${ticket.title}"`,
@@ -160,7 +149,6 @@ export const addComment = async (req, res) => {
     }
 };
 
-// GET /employee/tickets/stats
 export const getStats = async (req, res) => {
     try {
         const empId = req.user.id;

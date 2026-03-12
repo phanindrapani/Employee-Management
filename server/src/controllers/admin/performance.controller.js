@@ -1,4 +1,3 @@
-import Performance from '../../models/performance.model.js';
 import PerformanceMetric from '../../models/performanceMetric.model.js';
 import Task from '../../models/task.model.js';
 import Attendance from '../../models/attendance.model.js';
@@ -9,77 +8,18 @@ import Project from '../../models/project.model.js';
 import mongoose from 'mongoose';
 import { getIO } from '../../socket.js';
 
-// ==================================================
-// PERFORMANCE REVIEWS (Manual)
-// ==================================================
-
-export const createPerformanceReview = async (req, res) => {
-    try {
-        const { employee, rating, feedback, kpis, reviewPeriod } = req.body;
-
-        const review = await Performance.create({
-            employee,
-            reviewer: req.user._id,
-            rating,
-            feedback,
-            kpis,
-            reviewPeriod
-        });
-
-        // Update metric manually if exists
-        // await updatePerformanceMetric(employee, reviewPeriod, { teamContributionScore: rating * 20 }); // removed legacy hook
-
-        // Socket Emit
-        try {
-            const io = getIO();
-            io.to(`user:${employee}`).emit('review:created', review);
-            // Trigger score update notification separately in updatePerformanceMetric?
-        } catch (e) { console.error('Socket emit error:', e); }
-
-        res.status(201).json(review);
-    } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to create review" });
-    }
-};
-
-export const getPerformanceReviews = async (req, res) => {
-    try {
-        const { employeeId } = req.query;
-        const query = employeeId ? { employee: employeeId } : {};
-
-        if (req.user.role === 'employee') {
-            query.employee = req.user._id;
-        }
-
-        const reviews = await Performance.find(query)
-            .populate('employee', 'name department role')
-            .populate('reviewer', 'name')
-            .sort({ createdAt: -1 });
-        res.json(reviews);
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch reviews" });
-    }
-};
-
-// ==================================================
-// AUTOMATED SCORING ENGINE
-// ==================================================
-
 const calculateScore = async (userId, period) => {
     const [year, month] = period.split('-').map(Number);
     const startDate = new Date(year, month - 1, 1);
     const now = new Date();
     const isCurrentMonth = now.getFullYear() === year && (now.getMonth() + 1) === month;
 
-    // End date for fetching tasks/attendance (tasks can be anytime in month, but usually up to now)
     const monthEndDate = new Date(year, month, 0, 23, 59, 59);
 
-    // For calculation loop, use effective end date
     const calcEndDate = isCurrentMonth ? now : monthEndDate;
-    // Ensure we don't go before start date (e.g. if checking future month? shouldn't happen)
     const effectiveEndDate = calcEndDate < startDate ? startDate : calcEndDate;
 
-    const endDate = monthEndDate; // Keep original for DB queries range
+    const endDate = monthEndDate;
 
     const tasks = await Task.find({
         assignedTo: userId,
@@ -119,7 +59,7 @@ const calculateScore = async (userId, period) => {
     const taskCompletionScore = tasksAssigned > 0 ? (tasksCompleted / tasksAssigned) * 100 : 0;
     const onTimeScore = tasksCompleted > 0 ? (onTimeTasks / tasksCompleted) * 100 : 0;
 
-    // 2. Attendance Metrics
+    // Attendance Metrics
     const holidays = await Holiday.find({
         date: { $gte: startDate, $lte: endDate }
     });
@@ -144,15 +84,13 @@ const calculateScore = async (userId, period) => {
     const attendanceDays = attendanceRecords.filter(a => a.status === 'Present').length;
     const attendanceScore = workingDays > 0 ? Math.min((attendanceDays / workingDays) * 100, 100) : 0;
 
-    // 3. Team Contribution Metric (Weight-Based)
+    // Team Contribution Metric (Weight-Based)
     let teamContributionScore = 0;
     const projectIds = [...new Set(relevantTasks.map(t => t.project?.toString()).filter(Boolean))];
 
     if (projectIds.length > 0) {
-        // user's total weight in these projects
         const userProjectWeights = relevantTasks.reduce((sum, t) => sum + (t.weight || 1), 0);
 
-        // total weight of ALL tasks in these projects (for anyone in the team)
         const allProjectTasks = await Task.find({
             project: { $in: projectIds },
             createdAt: { $lte: endDate }
@@ -203,11 +141,11 @@ export const recalculatePerformanceForUser = async (userId, period) => {
         { upsert: true, new: true }
     );
 
-    // 1. Sync individual score to all profiles
+    // Sync individual score to all profiles
     const individualScore = Math.round(metrics.totalScore);
     await User.findByIdAndUpdate(userId, { individualPerformanceScore: individualScore });
 
-    // 2. If Team Lead, calculate and sync the averaged TEAM score
+    // If Team Lead, calculate and sync the averaged TEAM score
     if (user.role === 'team-lead') {
         const team = await Team.findOne({ teamLead: userId });
 
@@ -236,7 +174,7 @@ export const recalculatePerformanceForUser = async (userId, period) => {
         io.to('role:admin').emit('performance:updated', savedMetric);
     } catch (e) { console.error('Socket emit error:', e); }
 
-    // 3. Chain update to Manager if applicable (so Lead's team average reflects this change immediately)
+    // Chain update to Manager if applicable (so Lead's team average reflects this change immediately)
     if (user.reportingManager && user.reportingManager.toString() !== userId.toString()) {
         try {
             await recalculatePerformanceForUser(user.reportingManager, period);
@@ -265,7 +203,6 @@ export const triggerCalculation = async (req, res) => {
     }
 };
 
-// Single User Update (Helper)
 const updatePerformanceMetric = async (userId, period, updates) => {
     await PerformanceMetric.findOneAndUpdate(
         { user: userId, period },
@@ -273,10 +210,6 @@ const updatePerformanceMetric = async (userId, period, updates) => {
         { upsert: true }
     );
 };
-
-// ==================================================
-// DASHBOARD ANALYTICS
-// ==================================================
 
 export const getAdminPerformanceStats = async (req, res) => {
     try {
@@ -290,12 +223,9 @@ export const getAdminPerformanceStats = async (req, res) => {
             topPerformers: []
         });
 
-        // Fetch all teams with lead info
         const teams = await Team.find({}).populate('teamLead', 'name email').populate('members', 'name role');
 
-        // Calculate per-team stats
         const teamStats = await Promise.all(teams.map(async (team) => {
-            // Include team lead in the member lookup
             const memberIds = team.members.map(m => m._id.toString());
             if (team.teamLead && !memberIds.includes(team.teamLead._id.toString())) {
                 memberIds.push(team.teamLead._id.toString());
@@ -342,8 +272,6 @@ export const getAdminPerformanceStats = async (req, res) => {
             : 0;
         const highestTeamAvg = teamStats.length > 0 ? Math.max(...teamStats.map(t => t.avgScore)) : 0;
         const teamsNeedingAttention = teamStats.filter(t => t.needsAttention > 0).length;
-
-        // Top performers across all teams
         const topPerformers = [...metrics]
             .sort((a, b) => b.totalScore - a.totalScore)
             .slice(0, 5);
@@ -364,10 +292,6 @@ export const getAdminPerformanceStats = async (req, res) => {
     }
 };
 
-/**
- * GET /admin/performance/employee/:id
- * Fetches current-period metric and last 6 months of history for a single employee.
- */
 export const getEmployeePerformanceProfile = async (req, res) => {
     try {
         const { id } = req.params;

@@ -14,12 +14,10 @@ export const getManagerDashboardStats = async (req, res) => {
         const endOfToday = new Date(now.setHours(23, 59, 59, 999));
         const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-        // Find all teams managed by this manager
         const teams = await Team.find({ manager: managerId }).populate('members', 'name');
         const teamIds = teams.map(t => t._id);
         const memberIds = teams.flatMap(t => t.members.map(m => m._id));
 
-        // Find all projects assigned to these teams OR directly managed by this manager
         const projects = await Project.find({
             $or: [
                 { managerId: managerId },
@@ -28,7 +26,6 @@ export const getManagerDashboardStats = async (req, res) => {
         }).populate('assignedTeams', 'name');
         const projectIds = projects.map(p => p._id);
 
-        // --- KPI Metrics ---
         const [taskStats, ticketStats, employeeCount] = await Promise.all([
             Task.aggregate([
                 { $match: { project: { $in: projectIds } } },
@@ -45,7 +42,7 @@ export const getManagerDashboardStats = async (req, res) => {
                 }
             ]),
             Ticket.aggregate([
-                { $match: { projectId: { $in: projectIds } } }, // Proper scope by project ids 
+                { $match: { projectId: { $in: projectIds } } },
                 {
                     $group: {
                         _id: "$status",
@@ -69,7 +66,6 @@ export const getManagerDashboardStats = async (req, res) => {
             overdue: taskStats[0]?.overdue || 0
         };
 
-        // --- Project Health ---
         const projectHealth = projects.map(p => {
             let health = 'Good';
             if (p.progress < 30 && p.status === 'ongoing') health = 'Delayed';
@@ -79,12 +75,10 @@ export const getManagerDashboardStats = async (req, res) => {
                 name: p.name,
                 team: p.assignedTeams?.[0]?.name || 'Internal',
                 progress: p.progress,
-                status: health, // Traffic light logic
+                status: health,
                 systemStatus: p.status
             };
         });
-
-        // --- Ticket Overview ---
         const ticketPulse = {
             open: openTicketsCount,
             waiting: ticketStats.find(s => s._id === 'WAITING_FOR_CLIENT' || s._id === 'DOUBT_RAISED')?.count || 0,
@@ -96,7 +90,6 @@ export const getManagerDashboardStats = async (req, res) => {
             })
         };
 
-        // --- Employee Availability ---
         const leaveStats = {
             onLeaveToday: await Leave.countDocuments({
                 user: { $in: memberIds },
@@ -111,7 +104,6 @@ export const getManagerDashboardStats = async (req, res) => {
             })
         };
 
-        // --- Alerts & Risks ---
         const alerts = [];
         if (summaryKPIs.overdue > 0) alerts.push({ type: 'danger', message: `${summaryKPIs.overdue} Tasks are currently overdue across all teams.` });
         if (ticketPulse.open > 10) alerts.push({ type: 'warning', message: `High volume of open tickets (${ticketPulse.open}) requiring attention.` });
@@ -119,7 +111,6 @@ export const getManagerDashboardStats = async (req, res) => {
             alerts.push({ type: 'danger', message: `Project "${p.name}" is significantly delayed.` });
         });
 
-        // --- Recent Activity ---
         const recentActivity = await Task.find({ project: { $in: projectIds } })
             .sort({ updatedAt: -1 })
             .limit(10)

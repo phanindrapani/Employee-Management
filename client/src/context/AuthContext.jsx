@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const { data } = await API.post('/auth/login', { email, password });
-        // The backend returns user properties directly in 'data'
         if (data.role !== 'client') throw new Error('Access denied. Client accounts only.');
 
         localStorage.setItem('client_token', data.token);

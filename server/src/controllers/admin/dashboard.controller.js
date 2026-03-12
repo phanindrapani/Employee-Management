@@ -5,15 +5,11 @@ import Task from '../../models/task.model.js';
 import Team from '../../models/team.model.js';
 import { getGlobalSummary } from '../../services/stats.service.js';
 
-// ==================================================
-// DASHBOARD STATS (Aggregations)
-// ==================================================
 export const getDashboardStats = async (req, res) => {
     try {
         const today = new Date();
         const summary = await getGlobalSummary(req.user._id);
 
-        // Specific items still needed for Admin Dashboard
         const [
             pendingLeaves,
             upcomingDeadlines,
@@ -114,7 +110,6 @@ export const getReportStats = async (req, res) => {
         const totalLeavesCount = approvedLeaves.length;
         const totalDays = approvedLeaves.reduce((acc, l) => acc + l.totalDays, 0);
         const avgDuration = totalLeavesCount > 0 ? (totalDays / totalLeavesCount).toFixed(1) : 0;
-        // Interpret "Common Leave" by total leave days consumed.
         const mostCommonLeave = distributionAgg.length > 0
             ? distributionAgg.reduce((prev, curr) => (curr.days > prev.days ? curr : prev))
             : null;

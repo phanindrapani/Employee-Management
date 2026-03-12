@@ -1,7 +1,6 @@
 import { Client, User } from "../../models/user.model.js";
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
 
-// Helper to extract specifically the profile picture
 async function uploadProfilePicture(files) {
     const file = files?.profilePicture?.[0];
     if (!file) return undefined;
@@ -13,7 +12,6 @@ const buildDefaultPassword = (name) => {
     return `${firstName}123`;
 };
 
-// GET /admin/clients
 export const getClients = async (req, res) => {
     try {
         const clients = await Client.find({ role: 'client' }).sort({ createdAt: -1 });
@@ -23,7 +21,6 @@ export const getClients = async (req, res) => {
     }
 };
 
-// GET /admin/clients/:id
 export const getClientById = async (req, res) => {
     try {
         const client = await Client.findById(req.params.id);
@@ -34,7 +31,6 @@ export const getClientById = async (req, res) => {
     }
 };
 
-// POST /admin/clients
 export const addClient = async (req, res) => {
     try {
         const { name, email, phone, company } = req.body;
@@ -47,7 +43,6 @@ export const addClient = async (req, res) => {
         const profilePictureUrl = await uploadProfilePicture(req.files);
         const defaultPassword = buildDefaultPassword(name);
 
-        // Generate a random client code if not provided
         const clientCode = `CLT-${Date.now().toString().slice(-6)}`;
 
         const newClient = await Client.create({
@@ -61,7 +56,6 @@ export const addClient = async (req, res) => {
             role: 'client'
         });
 
-        // Strip password before returning
         const clientObj = newClient.toObject();
         delete clientObj.password;
 
@@ -71,7 +65,6 @@ export const addClient = async (req, res) => {
     }
 };
 
-// PUT /admin/clients/:id
 export const updateClient = async (req, res) => {
     try {
         const { name, email, phone, company, isActive } = req.body;
@@ -101,7 +94,6 @@ export const updateClient = async (req, res) => {
     }
 };
 
-// DELETE /admin/clients/:id
 export const deleteClient = async (req, res) => {
     try {
         const client = await Client.findByIdAndDelete(req.params.id);

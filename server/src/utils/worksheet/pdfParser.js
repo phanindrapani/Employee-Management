@@ -1,11 +1,5 @@
 import { PDFParse } from 'pdf-parse';
 
-/**
- * Parse PDF buffer using pdf-parse v2 (class-based API).
- * Uses cellSeparator='|' to get structured pipe-delimited text from table rows.
- * @param {Buffer} buffer
- * @returns {{ rows: object[], errors: string[], warning: string|null }}
- */
 export const parsePDF = async (buffer) => {
     const toRow = (parts) => ({
         date: parts[0] || '',

@@ -9,8 +9,6 @@ import {
 
 const router = express.Router();
 
-// Note: team-lead index.js already applies protect + authorizeRole(['team-lead'])
-
 router.get('/stats', getStats);
 router.get('/', getMyTickets);
 router.get('/:id', getTicketById);

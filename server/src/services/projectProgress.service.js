@@ -3,17 +3,11 @@ import Task from '../models/task.model.js';
 import ProjectProgressHistory from '../models/projectProgressHistory.model.js';
 import mongoose from 'mongoose';
 
-/**
- * Recalculate project progress based on task completion and weights.
- * @param {string} projectId 
- * @param {string} userId (Required for history logging)
- * @param {mongoose.ClientSession} session 
- */
+
 export const syncProjectProgress = async (projectId, userId, session = null) => {
     const project = await Project.findById(projectId).session(session);
     if (!project) return;
 
-    // If manual mode, do not auto-calculate unless explicitly requested (e.g. on mode switch)
     if (project.progressMode === 'manual') return;
 
     const tasks = await Task.find({ project: projectId }).session(session);
@@ -34,9 +28,6 @@ export const syncProjectProgress = async (projectId, userId, session = null) => 
     }
 };
 
-/**
- * Shared helper to update project progress and create history log.
- */
 const updateProgress = async (project, newProgress, mode, userId, session) => {
     const oldProgress = project.progress;
 
@@ -47,7 +38,6 @@ const updateProgress = async (project, newProgress, mode, userId, session) => {
 
     await project.save({ session });
 
-    // Create Audit Log
     await ProjectProgressHistory.create([{
         project: project._id,
         oldProgress,
@@ -58,9 +48,6 @@ const updateProgress = async (project, newProgress, mode, userId, session) => {
     }], { session });
 };
 
-/**
- * Manually override project progress.
- */
 export const overrideProjectProgress = async (projectId, progress, userId, session = null) => {
     const project = await Project.findById(projectId).session(session);
     if (!project) throw new Error('Project not found');
@@ -68,16 +55,12 @@ export const overrideProjectProgress = async (projectId, progress, userId, sessi
     await updateProgress(project, progress, 'manual', userId, session);
 };
 
-/**
- * Switch progress mode.
- */
 export const setProgressMode = async (projectId, mode, userId, session = null) => {
     const project = await Project.findById(projectId).session(session);
     if (!project) throw new Error('Project not found');
 
     if (mode === 'auto') {
-        // Switching back to auto triggers immediate sync
-        project.progressMode = 'auto'; // Temporarily set to allow sync
+        project.progressMode = 'auto';
         await syncProjectProgress(projectId, userId, session);
     } else {
         await updateProgress(project, project.progress, 'manual', userId, session);

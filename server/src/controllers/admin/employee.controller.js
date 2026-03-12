@@ -36,7 +36,6 @@ const buildDefaultPassword = (name) => {
   return `${firstName}123`;
 };
 
-// Helper to extract specifically the profile picture
 async function uploadProfilePicture(files) {
   const file = files?.profilePicture?.[0];
   if (!file) return undefined;
@@ -129,13 +128,6 @@ export const addEmployee = async (req, res) => {
       }
     });
 
-    // Team leads should always report to themselves.
-    if (employee.role === 'team-lead') {
-      employee.reportingManager = employee._id;
-      await employee.save();
-    }
-
-    // Socket Emit
     try {
       const io = getIO();
       io.to('role:admin').emit('employee:created', employee);
@@ -163,12 +155,10 @@ export const updateEmployee = async (req, res) => {
       throw new Error("Employee not found");
     }
 
-    // Role Promotion logic
     if (role && role !== user.role) {
       await promoteUser(id, role, session);
     }
 
-    // Handle File Uploads
     if (req.files && Object.keys(req.files).length > 0) {
       updateData.documents = await buildCloudinaryDocumentMap(req.files, user.documents || {});
       if (req.files.profilePicture) {
@@ -176,13 +166,11 @@ export const updateEmployee = async (req, res) => {
       }
     }
 
-    // Handle skills
     if (skills) {
       try { updateData.skills = JSON.parse(skills); }
       catch (e) { updateData.skills = skills.split(',').map(s => s.trim()); }
     }
 
-    // Handle leave balance
     if (updateData.cl !== undefined || updateData.sl !== undefined || updateData.el !== undefined) {
       updateData.leaveBalance = {
         cl: updateData.cl !== undefined ? parseInt(updateData.cl) : user.leaveBalance?.cl,
@@ -199,12 +187,10 @@ export const updateEmployee = async (req, res) => {
 
     await session.commitTransaction();
 
-    // Socket Emit
     try {
       const io = getIO();
       io.to('role:admin').emit('employee:updated', updatedEmployee);
       io.to(`user:${id}`).emit('profile:updated', updatedEmployee);
-      // If team changed, notify old and new teams? (Simplified for now)
     } catch (e) { console.error('Socket emit error:', e); }
 
     res.json({
@@ -228,11 +214,10 @@ export const deleteEmployee = async (req, res) => {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    // Socket Emit
     try {
       const io = getIO();
       io.to('role:admin').emit('employee:deleted', id);
-      io.to(`user:${id}`).emit('account:deleted'); // Force logout?
+      io.to(`user:${id}`).emit('account:deleted');
     } catch (e) { console.error('Socket emit error:', e); }
 
     res.json({ message: "Employee removed successfully" });
@@ -245,7 +230,6 @@ export const promoteUserAccount = async (req, res) => {
   try {
     const updatedUser = await promoteUser(req.params.id, req.body.role);
 
-    // Socket Emit
     try {
       const io = getIO();
       io.to('role:admin').emit('employee:updated', updatedUser);

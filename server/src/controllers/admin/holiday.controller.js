@@ -9,7 +9,6 @@ export const createHoliday = async (req, res) => {
             return res.status(400).json({ message: "Invalid holiday date" });
         }
 
-        // Normalize to date-only in UTC to avoid timezone-based duplicate/mismatch issues.
         parsedDate.setUTCHours(0, 0, 0, 0);
         const nextDay = new Date(parsedDate);
         nextDay.setUTCDate(nextDay.getUTCDate() + 1);
@@ -28,10 +27,9 @@ export const createHoliday = async (req, res) => {
             date: parsedDate
         });
 
-        // Socket Emit
         try {
             const io = getIO();
-            io.emit('holiday:created', holiday); // Broadcast to everyone
+            io.emit('holiday:created', holiday);
         } catch (e) { console.error('Socket emit error:', e); }
 
         res.status(201).json(holiday);
@@ -54,7 +52,6 @@ export const deleteHoliday = async (req, res) => {
     try {
         await Holiday.findByIdAndDelete(req.params.id);
 
-        // Socket Emit
         try {
             const io = getIO();
             io.emit('holiday:deleted', req.params.id);

@@ -4,23 +4,18 @@ import Team from '../../models/team.model.js';
 import { promoteUser } from '../../services/promotion.service.js';
 import { getIO } from '../../socket.js';
 
-// ==================================================
-// TEAM MANAGEMENT (TRANSACTIONS)
-// ==================================================
-
 export const createTeam = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
         const { name, department, teamLead, manager, members = [] } = req.body;
 
-        // 1. Create Team
+        // Create Team
         const [team] = await Team.create([{ name, department, teamLead, manager, members }], { session });
 
-        // 2. Promote Lead (if assigned)
+        // Promote Lead (if assigned)
         if (teamLead) {
             await promoteUser(teamLead, 'team-lead', session);
-            // Use native driver for consistency
             await User.collection.updateOne(
                 { _id: new mongoose.Types.ObjectId(teamLead) },
                 { $set: { team: team._id, reportingManager: manager ? new mongoose.Types.ObjectId(manager) : null } },
@@ -28,11 +23,9 @@ export const createTeam = async (req, res) => {
             );
         }
 
-        // 3. Promote Manager (if assigned)
+        // Promote Manager (if assigned)
         if (manager) {
             await promoteUser(manager, 'manager', session);
-            // Managers don't necessarily belong to a team in the same way, 
-            // but we can track their role. Reporting manager for a manager is null/admin.
             await User.collection.updateOne(
                 { _id: new mongoose.Types.ObjectId(manager) },
                 { $set: { reportingManager: null } },
@@ -40,7 +33,7 @@ export const createTeam = async (req, res) => {
             );
         }
 
-        // 4. Update Members
+        // Update Members
         if (members.length > 0) {
             await User.updateMany(
                 { _id: { $in: members } },
@@ -56,7 +49,6 @@ export const createTeam = async (req, res) => {
 
         await session.commitTransaction();
 
-        // Socket Emit
         try {
             const io = getIO();
             const populatedTeam = await Team.findById(team._id).populate('department').populate('teamLead', 'name email').populate('manager', 'name email');
@@ -92,7 +84,7 @@ export const updateTeam = async (req, res) => {
         const oldManagerId = team.manager ? team.manager.toString() : null;
         const newManagerId = manager || null;
 
-        // 1. Handle Lead Swap
+        // Handle Lead Swap
         if (newLeadId !== oldLeadId) {
             if (oldLeadId) {
                 await promoteUser(oldLeadId, 'employee', session);
@@ -112,7 +104,7 @@ export const updateTeam = async (req, res) => {
             }
         }
 
-        // 1b. Handle Manager Swap
+        // Handle Manager Swap
         if (newManagerId !== oldManagerId) {
             if (oldManagerId) {
 
@@ -127,7 +119,7 @@ export const updateTeam = async (req, res) => {
             }
         }
 
-        // 2. Update Members
+        // Update Members
         try {
             const oldMembers = team.members.map(m => m.toString());
             const newMembers = members.map(m => m.toString());
@@ -157,7 +149,7 @@ export const updateTeam = async (req, res) => {
             throw e;
         }
 
-        // Step 2b: Always sync reporting manager for current team members
+        // Always sync reporting manager for current team members
         if (newLeadId) {
             await User.updateOne(
                 { _id: newLeadId },
@@ -185,9 +177,8 @@ export const updateTeam = async (req, res) => {
             );
         }
 
-        // 3. Update Team Doc
+        // Update Team Doc
         try {
-            // Use findByIdAndUpdate to avoid validation conflicts with native driver updates
             await Team.findByIdAndUpdate(
                 id,
                 {
@@ -207,10 +198,8 @@ export const updateTeam = async (req, res) => {
 
         await session.commitTransaction();
 
-        // Return updated team
         const updatedTeam = await Team.findById(id).populate('department').populate('teamLead', 'name email').populate('manager', 'name email');
 
-        // Socket Emit
         try {
             const io = getIO();
             io.to('role:admin').emit('team:updated', updatedTeam);
@@ -248,7 +237,6 @@ export const deleteTeam = async (req, res) => {
 
         await session.commitTransaction();
 
-        // Socket Emit
         try {
             const io = getIO();
             io.to('role:admin').emit('team:deleted', id);

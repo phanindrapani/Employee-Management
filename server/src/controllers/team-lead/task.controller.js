@@ -36,7 +36,6 @@ export const createTask = async (req, res) => {
             weight
         }], { session });
 
-        // Trigger auto-sync for project
         await syncProjectProgress(projectId, req.user._id, session);
 
         await session.commitTransaction();
@@ -47,7 +46,6 @@ export const createTask = async (req, res) => {
         try {
             const io = getIO();
 
-            // --- NOTIFICATION: Task Assigned ---
             await Notification.create({
                 user: assignedTo,
                 message: `📝 New Task Assigned: "${createdTask.title}" by ${req.user.name}`,
@@ -84,13 +82,13 @@ export const getTeamTasks = async (req, res) => {
         const memberIds = teamMembers.map(m => m._id);
 
         const tasks = await Task.find({ assignedTo: { $in: memberIds } })
-             .populate('project', 'name')
-             .populate('milestoneId', 'name')
-             .populate('teamId', 'name')
-             .populate('assignedTo', 'name email profilePicture')
-             .populate('assignedBy', 'name')
-             .populate('comments.user', 'name profilePicture')
-             .sort({ createdAt: -1 });
+            .populate('project', 'name')
+            .populate('milestoneId', 'name')
+            .populate('teamId', 'name')
+            .populate('assignedTo', 'name email profilePicture')
+            .populate('assignedBy', 'name')
+            .populate('comments.user', 'name profilePicture')
+            .sort({ createdAt: -1 });
 
         res.json(tasks);
     } catch (error) {
@@ -186,7 +184,6 @@ export const updateTask = async (req, res) => {
             .populate('project', 'name')
             .populate('assignedTo', 'name email profilePicture');
 
-        // Recalculate performance score for the assigned employee when any status change occurs
         if (status !== undefined && newWorker && ['employee', 'team-lead'].includes(newWorker.role)) {
             const now = new Date();
             const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -208,17 +205,15 @@ export const updateTask = async (req, res) => {
             io.to(`team:${req.user.team}`).emit('task:updated', updatedTask);
             io.to('role:admin').emit('task:updated', updatedTask);
 
-            // --- NOTIFICATION: Task Completed by Lead ---
-            // Triggers if status changed to 'done' AND updater is Team Lead
             if (status === 'done' && req.user.role === 'team-lead' && updatedTask.assignedTo) {
                 const assigneeId = updatedTask.assignedTo._id;
                 await Notification.create({
                     user: assigneeId,
-                    message: `✅ Task Completed: "${updatedTask.title}" marked as Done by Team Lead`,
+                    message: `Task Completed: "${updatedTask.title}" marked as Done by Team Lead`,
                     isRead: false
                 });
                 io.to(`user:${assigneeId}`).emit('notification', {
-                    message: `✅ Task Completed: "${updatedTask.title}" marked as Done`
+                    message: `Task Completed: "${updatedTask.title}" marked as Done`
                 });
             }
         } catch (socketError) {

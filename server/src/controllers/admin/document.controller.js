@@ -2,7 +2,6 @@ import EmployeeDocument from '../../models/employeeDocument.model.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
 import { getIO } from '../../socket.js';
 
-// Upload a document
 export const uploadDocument = async (req, res) => {
     try {
         const { category, documentName } = req.body;
@@ -12,7 +11,6 @@ export const uploadDocument = async (req, res) => {
         }
 
         const userId = req.user._id;
-        // Use username or id for folder organization in cloudinary if needed
         const folder = `documents/${userId}`;
 
         const fileUrl = await uploadBufferToCloudinary(req.file, folder);
@@ -26,10 +24,8 @@ export const uploadDocument = async (req, res) => {
             verificationStatus: 'pending'
         });
 
-        // Socket Emit
         try {
             const io = getIO();
-            // Notify Admin
             io.to('role:admin').emit('document:uploaded', newDoc);
         } catch (e) { console.error('Socket emit error:', e); }
 
@@ -40,12 +36,9 @@ export const uploadDocument = async (req, res) => {
     }
 };
 
-// Get documents for the logged-in user or a specific user (admin)
 export const getDocuments = async (req, res) => {
     try {
         let targetUserId = req.user._id;
-
-        // If admin provides a userId query param, fetch for that user
         if (req.user.role === 'admin' && req.query.userId) {
             targetUserId = req.query.userId;
         }
@@ -60,7 +53,6 @@ export const getDocuments = async (req, res) => {
     }
 };
 
-// Verify a document (Admin only)
 export const verifyDocument = async (req, res) => {
     try {
         const { id } = req.params;
@@ -71,7 +63,7 @@ export const verifyDocument = async (req, res) => {
                 verificationStatus: 'verified',
                 verifiedBy: req.user._id,
                 verifiedAt: new Date(),
-                rejectionReason: null // Clear any previous rejection reason
+                rejectionReason: null
             },
             { new: true }
         );
@@ -84,7 +76,6 @@ export const verifyDocument = async (req, res) => {
     }
 };
 
-// Reject a document (Admin only)
 export const rejectDocument = async (req, res) => {
     try {
         const { id } = req.params;
@@ -111,7 +102,6 @@ export const rejectDocument = async (req, res) => {
     }
 };
 
-// Delete a document (Employee can delete own pending/rejected, Admin can delete any)
 export const deleteDocument = async (req, res) => {
     try {
         const { id } = req.params;
@@ -119,12 +109,9 @@ export const deleteDocument = async (req, res) => {
 
         if (!doc) return res.status(404).json({ message: "Document not found" });
 
-        // Authorization check
         if (req.user.role !== 'admin' && doc.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: "Not authorized to delete this document" });
         }
-
-        // Optional: Prevent deleting verified documents? For now, allow it.
 
         await EmployeeDocument.findByIdAndDelete(id);
         res.json({ message: "Document deleted successfully" });

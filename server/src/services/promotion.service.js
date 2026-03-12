@@ -2,16 +2,9 @@ import mongoose from 'mongoose';
 import User from '../models/user.model.js';
 import { getLeaveQuotas } from './settings.service.js';
 
-/**
- * Promotes or Demotes a user with Transaction support.
- * @param {string} id - User ID
- * @param {string} targetRole - 'employee' | 'team-lead'
- * @param {mongoose.ClientSession} session - Optional mongoose session
- * @returns {Promise<Object>} Updated User
- */
+
 export const promoteUser = async (id, targetRole, session = null) => {
 
-    // If no external session is provided, start a new one for atomicity of this operation
     const localSession = session || await mongoose.startSession();
     if (!session) localSession.startTransaction();
 
@@ -21,13 +14,10 @@ export const promoteUser = async (id, targetRole, session = null) => {
 
         const currentRole = user.role;
 
-
-        // Security: Prevent Admin manipulation via this service (Admins have separate flows)
         if (currentRole === 'admin' || targetRole === 'admin') {
             throw new Error('Admin role management must be handled separately');
         }
 
-        // Idempotency: If already in role, just return user (or throw if strictness required, but better to be idempotent)
         if (currentRole === targetRole) {
 
             if (!session) {
@@ -40,7 +30,6 @@ export const promoteUser = async (id, targetRole, session = null) => {
         let update = { role: targetRole };
         let unset = {};
 
-        // CASE 1: Promoting to Manager
         if (targetRole === 'manager') {
             update = {
                 ...update,
@@ -53,7 +42,6 @@ export const promoteUser = async (id, targetRole, session = null) => {
             };
         }
 
-        // CASE 2: Promoting to Team Lead
         else if (targetRole === 'team-lead') {
             update = {
                 ...update,
@@ -74,7 +62,6 @@ export const promoteUser = async (id, targetRole, session = null) => {
             }
         }
 
-        // CASE 3: Demoting to Employee
         else if (targetRole === 'employee') {
             const quotas = await getLeaveQuotas();
             update = {
@@ -102,9 +89,6 @@ export const promoteUser = async (id, targetRole, session = null) => {
         );
         const updatedUser = result.value || result;
 
-
-
-        // Commit if we started the session
         if (!session) {
             await localSession.commitTransaction();
             localSession.endSession();
@@ -114,7 +98,6 @@ export const promoteUser = async (id, targetRole, session = null) => {
 
     } catch (error) {
 
-        // Abort if we started the session
         if (!session) {
             await localSession.abortTransaction();
             localSession.endSession();

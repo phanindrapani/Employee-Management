@@ -4,7 +4,6 @@ export const getLeaveSettings = async (req, res) => {
     try {
         let settings = await GlobalSetting.findOne({ key: 'leave_quotas' });
 
-        // Seed default if not found
         if (!settings) {
             settings = await GlobalSetting.create({
                 key: 'leave_quotas',
@@ -34,8 +33,6 @@ export const updateLeaveSettings = async (req, res) => {
             { value },
             { new: true, upsert: true }
         );
-
-        // Socket Emit
         try {
             const io = getIO();
             io.to('role:admin').emit('settings:updated', settings);

@@ -19,7 +19,7 @@ const useSocketListener = (eventName, callback) => {
         return () => {
             socket.off(eventName, listener);
         };
-    }, [socket, eventName]); // Dependency on callback removed
+    }, [socket, eventName]);
 };
 
 export default useSocketListener;

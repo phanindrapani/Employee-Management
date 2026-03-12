@@ -16,7 +16,6 @@ import CreateProject from './pages/CreateProject';
 import Reports from './pages/Reports';
 import ChangePassword from './pages/ChangePassword';
 import ProjectReports from './pages/ProjectReports';
-import EmployeePerformance from './pages/EmployeePerformance';
 import PerformanceDashboard from './pages/PerformanceDashboard';
 import LeaveSettings from './pages/LeaveSettings';
 import Profile from './pages/Profile';
@@ -29,7 +28,6 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
-  // if (user.role !== 'admin') return <Navigate to="/login" />; // Allow all authenticated users
 
   return children;
 };
@@ -76,7 +74,6 @@ function App() {
                 <Route path="tickets" element={<Tickets />} />
                 <Route path="tickets/:id" element={<TicketDetail />} />
                 <Route path="clients" element={<Clients />} />
-
                 <Route path="change-password" element={<ChangePassword />} />
               </Route>
             </Routes>

@@ -1,10 +1,5 @@
 import * as XLSX from 'xlsx';
 
-/**
- * Parse XLSX/XLS buffer into array of raw row objects.
- * @param {Buffer} buffer
- * @returns {{ rows: object[], errors: string[] }}
- */
 export const parseXLSX = (buffer) => {
     try {
         const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: true });

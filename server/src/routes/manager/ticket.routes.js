@@ -10,8 +10,6 @@ import {
 
 const router = express.Router();
 
-// Note: manager index.js already applies protect + authorizeRole(['manager', 'admin'])
-
 router.get('/analytics', getAnalytics);
 router.get('/stats', getStats);
 router.get('/', getMyTickets);

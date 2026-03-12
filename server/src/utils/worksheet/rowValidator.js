@@ -2,10 +2,6 @@ const VALID_CATEGORIES = ['development', 'design', 'testing', 'meeting', 'docume
 const VALID_STATUSES = ['completed', 'in-progress', 'blocked', 'pending'];
 const VALID_PRIORITIES = ['low', 'medium', 'high', 'critical'];
 
-/**
- * Map a raw parsed row to canonical schema fields.
- * Handles various header naming conventions.
- */
 export const mapRow = (raw) => ({
     date: raw.date || raw.Date || '',
     startTime: raw.start_time || raw.starttime || raw.startTime || raw['Start Time'] || '',
@@ -42,10 +38,6 @@ const timeToMinutes = (timeStr) => {
     return h * 60 + m;
 };
 
-/**
- * Validate a single canonical row.
- * @returns {{ valid: boolean, errors: {field: string, message: string}[] }}
- */
 export const validateRow = (row, rowIndex) => {
     const errors = [];
 
@@ -93,11 +85,6 @@ export const validateRow = (row, rowIndex) => {
     return { valid: errors.length === 0, errors };
 };
 
-/**
- * Detect overlapping time entries within the same day.
- * @param {object[]} rows - validated canonical rows
- * @returns {Set<number>} - set of row indexes that overlap
- */
 export const detectOverlaps = (rows) => {
     const overlapping = new Set();
     const byDate = {};

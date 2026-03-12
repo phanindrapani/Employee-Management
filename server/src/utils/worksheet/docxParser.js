@@ -1,10 +1,4 @@
-/**
- * Parse DOCX buffer using mammoth.
- * NOTE: Reliability depends on strict template formatting.
- * Best results come from template-generated DOCX files.
- * @param {Buffer} buffer
- * @returns {{ rows: object[], errors: string[], warning: string }}
- */
+
 export const parseDOCX = async (buffer) => {
     const toRow = (parts) => ({
         date: parts[0] || '',

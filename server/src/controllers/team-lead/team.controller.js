@@ -7,11 +7,9 @@ export const getTeamMembers = async (req, res) => {
     try {
         const teamId = req.user.team;
 
-        // Fetch members with workload
         const members = await User.find({ team: teamId })
             .select('name email phone role experienceLevel skills profilePicture isActive individualPerformanceScore');
 
-        // Fetch team metadata for dynamic header
         const teamInfo = await User.findById(req.user._id)
             .populate({
                 path: 'team',
@@ -57,23 +55,19 @@ export const getTeamMembers = async (req, res) => {
     }
 };
 
-// Calculate and update team performance score
 export const calculateTeamPerformanceScore = async (req, res) => {
     try {
         const teamLeadId = req.user._id;
         const teamId = req.user.team;
 
-        // Fetch all team members with their performance scores
         const members = await User.find({ team: teamId })
             .select('individualPerformanceScore');
 
         if (!members || members.length === 0) {
-            // No team members, set score to 0
             await User.findByIdAndUpdate(teamLeadId, { teamPerformanceScore: 0 });
             return res.json({ teamAverage: 0, membersCount: 0, message: 'No team members found' });
         }
 
-        // Calculate average of team members' performance scores
         const validScores = members
             .map(m => m.individualPerformanceScore || 0)
             .filter(score => score > 0);
@@ -82,7 +76,6 @@ export const calculateTeamPerformanceScore = async (req, res) => {
             ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
             : 0;
 
-        // Update team lead's teamPerformanceScore
         await User.findByIdAndUpdate(teamLeadId, { teamPerformanceScore: teamAverage });
 
         res.json({
@@ -97,7 +90,6 @@ export const calculateTeamPerformanceScore = async (req, res) => {
     }
 };
 
-// Get individual performance metrics for each team member (for Team Lead portal)
 export const getTeamMemberPerformance = async (req, res) => {
     try {
         const teamId = req.user.team;
@@ -113,7 +105,6 @@ export const getTeamMemberPerformance = async (req, res) => {
             period
         }).populate('user', 'name email role profilePicture individualPerformanceScore');
 
-        // Map metrics by userId for quick lookup
         const metricMap = {};
         for (const m of metrics) {
             metricMap[m.user._id.toString()] = m;

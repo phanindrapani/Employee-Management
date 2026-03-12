@@ -11,9 +11,6 @@ const toRow = (e) => [
     Array.isArray(e.tags) ? e.tags.join(', ') : (e.tags || '')
 ];
 
-/**
- * Export entries to CSV buffer.
- */
 export const exportToCSV = (entries) => {
     const lines = [HEADERS.join(',')];
     entries.forEach(e => {
@@ -23,9 +20,6 @@ export const exportToCSV = (entries) => {
     return Buffer.from(lines.join('\n'), 'utf-8');
 };
 
-/**
- * Export entries to XLSX buffer.
- */
 export const exportToXLSX = (entries) => {
     const data = [HEADERS, ...entries.map(toRow)];
     const ws = XLSX.utils.aoa_to_sheet(data);
@@ -38,12 +32,7 @@ export const exportToXLSX = (entries) => {
     return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 };
 
-/**
- * Export entries to PDF buffer using a simple text-based approach.
- * Returns a Buffer with PDF content.
- */
 export const exportToPDF = async (entries, employeeName = 'Employee') => {
-    // Dynamic import to avoid issues if not installed
     const { jsPDF } = await import('jspdf');
     const { default: autoTable } = await import('jspdf-autotable');
 
@@ -72,9 +61,6 @@ export const exportToPDF = async (entries, employeeName = 'Employee') => {
     return Buffer.from(doc.output('arraybuffer'));
 };
 
-/**
- * Export entries to DOCX buffer.
- */
 export const exportToDOCX = async (entries, employeeName = 'Employee') => {
     const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType } = await import('docx');
 

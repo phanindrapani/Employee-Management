@@ -29,7 +29,7 @@ const ProjectManagement = () => {
     }, []);
 
     useSocketListener('project:created', fetchProjects);
-    useSocketListener('project:updated', fetchProjects); // Covers status/progress changes
+    useSocketListener('project:updated', fetchProjects);
     useSocketListener('project:deleted', fetchProjects);
 
     const handleDelete = async (id) => {

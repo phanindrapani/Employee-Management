@@ -4,38 +4,32 @@ import Notification from '../../models/notification.model.js';
 import User from '../../models/user.model.js';
 import { getIO } from '../../socket.js';
 
-// ==================================================
-// PROJECT MANAGEMENT
-// ==================================================
 export const createProject = async (req, res) => {
     try {
-        // Enforce progress: 0 on creation
         const { progress, ...projectData } = req.body;
         const project = await Project.create({ ...projectData, progress: 0, createdBy: req.user._id });
- 
-         // Socket Emit
-         try {
-             const io = getIO();
-             const populatedProject = await Project.findById(project._id)
-                 .populate('managerId', 'name email')
-                 .populate({ path: 'assignedTeams', populate: { path: 'department' } })
-                 .populate('clientId', 'name company');
-             io.to('role:admin').emit('project:created', populatedProject);
-             
-             if (project.managerId) {
-                 io.to(`user:${project.managerId}`).emit('project:created', populatedProject);
-                 
-                 // Notify Manager
-                 await Notification.create({
-                     user: project.managerId,
-                     message: `🚀 You have been assigned as Manager for Project: "${project.name}"`,
-                     isRead: false
-                 });
- 
-                 io.to(`user:${project.managerId}`).emit('notification', {
-                     message: `🚀 New Project Assigned: "${project.name}"`
-                 });
-             }
+
+        try {
+            const io = getIO();
+            const populatedProject = await Project.findById(project._id)
+                .populate('managerId', 'name email')
+                .populate({ path: 'assignedTeams', populate: { path: 'department' } })
+                .populate('clientId', 'name company');
+            io.to('role:admin').emit('project:created', populatedProject);
+
+            if (project.managerId) {
+                io.to(`user:${project.managerId}`).emit('project:created', populatedProject);
+
+                await Notification.create({
+                    user: project.managerId,
+                    message: `You have been assigned as Manager for Project: "${project.name}"`,
+                    isRead: false
+                });
+
+                io.to(`user:${project.managerId}`).emit('notification', {
+                    message: `New Project Assigned: "${project.name}"`
+                });
+            }
         } catch (e) { console.error('Socket emit error:', e); }
 
         res.status(201).json(project);
@@ -55,11 +49,9 @@ export const getAllProjects = async (req, res) => {
 
 export const updateProject = async (req, res) => {
     try {
-        // Prevent manual progress update by Admin. Progress is driven by tasks.
         const { progress, ...updateData } = req.body;
         const project = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
-        // Socket Emit
         try {
             const io = getIO();
             const populatedProject = await Project.findById(req.params.id)
@@ -85,7 +77,6 @@ export const updateProjectStatus = async (req, res) => {
     try {
         const project = await Project.findByIdAndUpdate(req.params.id, { status: req.body.status, progress: req.body.progress }, { new: true });
 
-        // Socket Emit
         try {
             const io = getIO();
             const populatedProject = await Project.findById(req.params.id).populate({ path: 'assignedTeams', populate: { path: 'department' } });
@@ -103,11 +94,10 @@ export const updateProjectStatus = async (req, res) => {
 
 export const deleteProject = async (req, res) => {
     try {
-        const project = await Project.findById(req.params.id); // Get project before delete to know team
+        const project = await Project.findById(req.params.id);
         await Project.findByIdAndDelete(req.params.id);
         await Task.deleteMany({ project: req.params.id });
 
-        // Socket Emit
         try {
             const io = getIO();
             io.to('role:admin').emit('project:deleted', req.params.id);

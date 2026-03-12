@@ -1,14 +1,10 @@
 import Department from '../../models/department.model.js';
 import { getIO } from '../../socket.js';
 
-// ==================================================
-// DEPARTMENT MANAGEMENT
-// ==================================================
 export const createDepartment = async (req, res) => {
     try {
         const dept = await Department.create(req.body);
 
-        // Socket Emit
         try {
             const io = getIO();
             io.to('role:admin').emit('department:created', dept);
@@ -29,7 +25,6 @@ export const updateDepartment = async (req, res) => {
     try {
         const dept = await Department.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
-        // Socket Emit
         try {
             const io = getIO();
             io.to('role:admin').emit('department:updated', dept);
@@ -43,7 +38,6 @@ export const deleteDepartment = async (req, res) => {
     try {
         await Department.findByIdAndDelete(req.params.id);
 
-        // Socket Emit
         try {
             const io = getIO();
             io.to('role:admin').emit('department:deleted', req.params.id);

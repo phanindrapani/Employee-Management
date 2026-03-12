@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret', {
-        expiresIn: '30d', // Expire in 30 day as per requirement
+        expiresIn: '30d',
     });
 };
 
@@ -14,14 +14,12 @@ const calculateCompleteness = (user) => {
         security: { score: 0, items: ['lastLogin', 'passwordSet'] }
     };
 
-    // 1. Essentials (40%)
     let essentialCount = 0;
     scoring.essential.items.forEach(item => {
         if (user[item]) essentialCount++;
     });
     scoring.essential.score = (essentialCount / scoring.essential.items.length) * 40;
 
-    // 2. Professional (40%)
     let profCount = 0;
     if (user.bio && user.bio.length >= 20) profCount++;
     if (user.skills && user.skills.length > 0) profCount++;
@@ -29,10 +27,9 @@ const calculateCompleteness = (user) => {
     if (user.profilePicture) profCount++;
     scoring.professional.score = (profCount / scoring.professional.items.length) * 40;
 
-    // 3. Security (20%)
     let secCount = 0;
     if (user.lastLogin) secCount++;
-    secCount++; // Password is set (checked by login/protect)
+    secCount++;
     scoring.security.score = (secCount / scoring.security.items.length) * 20;
 
     const totalScore = Math.min(100, Math.round(scoring.essential.score + scoring.professional.score + scoring.security.score));
@@ -56,7 +53,6 @@ export const registerUser = async (req, res) => {
         return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Generate client code if role is client
     let clientCode = '';
     if (role === 'client') {
         const clientCount = await User.countDocuments({ role: 'client' });
@@ -91,11 +87,10 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
-    // We must explicitly select password because it's 'select: false' in schema
     const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.comparePassword(password))) {
-        // Update last login
+
         user.lastLogin = new Date();
         await user.save();
 

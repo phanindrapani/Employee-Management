@@ -3,7 +3,6 @@ import User from '../../models/user.model.js';
 import { getIO } from '../../socket.js';
 import Notification from '../../models/notification.model.js';
 
-// GET /admin/tickets — All tickets with filters
 export const getAllTickets = async (req, res) => {
     try {
         const { status, priority, category, assignedManager, search, page = 1, limit = 20 } = req.query;
@@ -39,7 +38,6 @@ export const getAllTickets = async (req, res) => {
     }
 };
 
-// GET /admin/tickets/analytics — System-wide stats
 export const getAnalytics = async (req, res) => {
     try {
         const [
@@ -60,7 +58,6 @@ export const getAnalytics = async (req, res) => {
             Ticket.aggregate([{ $group: { _id: '$category', count: { $sum: 1 } } }])
         ]);
 
-        // Average resolution time (closed tickets)
         const closedTickets = await Ticket.find({ status: 'CLOSED', resolvedAt: { $ne: null } })
             .select('createdAt resolvedAt');
         const avgResolutionHours = closedTickets.length > 0
@@ -79,7 +76,6 @@ export const getAnalytics = async (req, res) => {
     }
 };
 
-// GET /admin/tickets/:id — Single ticket detail
 export const getTicketById = async (req, res) => {
     try {
         const ticket = await Ticket.findById(req.params.id)
@@ -99,7 +95,6 @@ export const getTicketById = async (req, res) => {
     }
 };
 
-// PATCH /admin/tickets/:id/assign-manager — Assign to a manager
 export const assignManager = async (req, res) => {
     try {
         const { managerId, note } = req.body;
@@ -120,7 +115,6 @@ export const assignManager = async (req, res) => {
 
         await ticket.save();
 
-        // Notify Manager
         const io = getIO();
         await Notification.create({
             user: managerId,
@@ -140,7 +134,6 @@ export const assignManager = async (req, res) => {
     }
 };
 
-// PATCH /admin/tickets/:id/close — Close a ticket
 export const closeTicket = async (req, res) => {
     try {
         const ticket = await Ticket.findById(req.params.id);
@@ -163,7 +156,6 @@ export const closeTicket = async (req, res) => {
     }
 };
 
-// POST /admin/tickets/:id/comment
 export const addComment = async (req, res) => {
     try {
         const { message, isInternal } = req.body;
@@ -179,13 +171,11 @@ export const addComment = async (req, res) => {
 
         await ticket.save();
 
-        // Notification Logic
         try {
             const io = getIO();
             io.emit('ticket:updated', ticket);
 
             if (isInternal) {
-                // Notify assigned staff
                 const notifyUserIds = [ticket.assignedEmployee, ticket.assignedTeamLead, ticket.assignedManager].filter(id => id);
                 for (const userId of notifyUserIds) {
                     await Notification.create({
@@ -198,7 +188,6 @@ export const addComment = async (req, res) => {
                     });
                 }
             } else {
-                // Notify Client
                 await Notification.create({
                     user: ticket.clientId,
                     message: `New Message from Support Admin on ticket "${ticket.title}"`,
@@ -218,7 +207,6 @@ export const addComment = async (req, res) => {
     }
 };
 
-// GET /admin/tickets/unassigned
 export const getUnassignedTickets = async (req, res) => {
     try {
         const tickets = await Ticket.find({ status: 'OPEN', assignedManager: null })
@@ -230,7 +218,6 @@ export const getUnassignedTickets = async (req, res) => {
     }
 };
 
-// GET /admin/tickets/sla-breached
 export const getSLABreachedTickets = async (req, res) => {
     try {
         const tickets = await Ticket.find({ slaBreached: true, status: { $nin: ['CLOSED'] } })

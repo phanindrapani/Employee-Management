@@ -4,7 +4,6 @@ import User from '../../models/user.model.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
 import { getIO } from '../../socket.js';
 
-// Upload a document
 export const uploadDocument = async (req, res) => {
     try {
         const { category, documentName } = req.body;
@@ -14,7 +13,6 @@ export const uploadDocument = async (req, res) => {
         }
 
         const userId = req.user._id;
-        // Use username or id for folder organization in cloudinary if needed
         const folder = `documents/${userId}`;
 
         const fileUrl = await uploadBufferToCloudinary(req.file, folder);
@@ -30,25 +28,21 @@ export const uploadDocument = async (req, res) => {
 
         res.status(201).json(newDoc);
 
-        // --- NOTIFICATION LOGIC ---
         try {
-            // 1. Find all Admins
             const admins = await User.find({ role: 'admin' });
 
-            // 2. Create Notification for each Admin
             const notifications = admins.map(admin => ({
                 user: admin._id,
-                message: `📄 New Document Uploaded: ${req.user.name} uploaded "${documentName}" (${category})`,
+                message: `New Document Uploaded: ${req.user.name} uploaded "${documentName}" (${category})`,
                 isRead: false
             }));
 
             if (notifications.length > 0) {
                 await Notification.insertMany(notifications);
 
-                // 3. Send Real-time Socket Alert to Admin Room
                 const io = getIO();
                 io.to('role:admin').emit('notification', {
-                    message: `📄 New Document: ${req.user.name} uploaded "${documentName}"`,
+                    message: `New Document: ${req.user.name} uploaded "${documentName}"`,
                     type: 'document_upload',
                     documentId: newDoc._id,
                     user: req.user.name
@@ -56,7 +50,7 @@ export const uploadDocument = async (req, res) => {
             }
         } catch (notifError) {
             console.error("Notification Error:", notifError);
-            // Don't fail the upload if notification fails
+
         }
     } catch (error) {
         console.error("Upload Document Error:", error);
@@ -64,7 +58,6 @@ export const uploadDocument = async (req, res) => {
     }
 };
 
-// Get documents for the logged-in user
 export const getDocuments = async (req, res) => {
     try {
         let targetUserId = req.user._id;
@@ -79,7 +72,6 @@ export const getDocuments = async (req, res) => {
     }
 };
 
-// Delete a document (Employee can delete own pending/rejected)
 export const deleteDocument = async (req, res) => {
     try {
         const { id } = req.params;
@@ -87,12 +79,9 @@ export const deleteDocument = async (req, res) => {
 
         if (!doc) return res.status(404).json({ message: "Document not found" });
 
-        // Authorization check
         if (doc.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: "Not authorized to delete this document" });
         }
-
-        // Only allow deleting if not verified
         if (doc.verificationStatus === 'verified') {
             return res.status(400).json({ message: "Cannot delete verified documents" });
         }

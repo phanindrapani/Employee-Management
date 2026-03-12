@@ -8,7 +8,7 @@ const LeaveSettings = () => {
         const cached = localStorage.getItem('ls_admin_leave_settings');
         return cached ? JSON.parse(cached) : { cl: 12, sl: 10, el: 15 };
     });
-    const [loading, setLoading] = useState(false); // Settings aren't huge, can show old immediately
+    const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 
@@ -53,8 +53,6 @@ const LeaveSettings = () => {
     const handleChange = (type, val) => {
         setSettings(prev => ({ ...prev, [type]: parseInt(val) || 0 }));
     };
-
-    // if (loading) return <div className="p-10 text-center text-slate-400">Loading settings...</div>;
 
     return (
         <div className="space-y-8 text-[#0B3C5D]">

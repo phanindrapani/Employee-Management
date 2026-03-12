@@ -1,8 +1,5 @@
 import WorksheetEntry from '../../models/worksheetEntry.model.js';
 
-/**
- * Compute analysis metrics for an employee over a date range.
- */
 export const computeAnalysis = async (employeeId, fromDate, toDate) => {
     const query = {
         employee: employeeId,
@@ -92,9 +89,6 @@ export const computeAnalysis = async (employeeId, fromDate, toDate) => {
     };
 };
 
-/**
- * Compute analysis metrics for an array of employee IDs over a date range.
- */
 export const computeTeamAnalysis = async (employeeIds, fromDate, toDate) => {
     const query = {
         employee: { $in: employeeIds },

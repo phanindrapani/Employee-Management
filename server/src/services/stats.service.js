@@ -6,9 +6,6 @@ import Leave from '../models/leave.model.js';
 import Department from '../models/department.model.js';
 import Holiday from '../models/holiday.model.js';
 
-/**
- * Get core summary counts for Admin/Leadership
- */
 export const getGlobalSummary = async (adminId = null) => {
     const today = new Date();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -57,11 +54,11 @@ export const getGlobalSummary = async (adminId = null) => {
             }
         ]),
         Leave.aggregate([
-            { 
-                $match: { 
-                    fromDate: { $gte: new Date(today.getFullYear(), 0, 1) }, 
+            {
+                $match: {
+                    fromDate: { $gte: new Date(today.getFullYear(), 0, 1) },
                     status: 'approved'
-                } 
+                }
             },
             { $group: { _id: { $month: "$fromDate" }, count: { $sum: 1 } } },
             { $sort: { "_id": 1 } }
@@ -111,9 +108,6 @@ export const getGlobalSummary = async (adminId = null) => {
     };
 };
 
-/**
- * Get Team-specific stats for a Team Lead
- */
 export const getTeamStats = async (teamId) => {
     if (!teamId) return null;
 
@@ -151,9 +145,6 @@ export const getTeamStats = async (teamId) => {
     };
 };
 
-/**
- * Get Productivity Chart Data (Last 7 Days)
- */
 export const getProductivityTrend = async (memberIds, days = 7) => {
     const productivityTrend = [];
     for (let i = days - 1; i >= 0; i--) {
@@ -171,13 +162,11 @@ export const getProductivityTrend = async (memberIds, days = 7) => {
             updatedAt: { $gte: date, $lt: nextDay }
         });
 
-        // Use total tasks assigned to the team as the denominator for a more accurate backlog progress metric
         const totalTeamTasks = await Task.countDocuments({
             ...query,
-            createdAt: { $lt: nextDay } // All tasks assigned up to this day
+            createdAt: { $lt: nextDay }
         });
 
-        // Create YYYY-MM-DD string in local time to match the day name and avoid timezone shifts
         const offset = date.getTimezoneOffset();
         const localDate = new Date(date.getTime() - (offset * 60 * 1000));
         const dateString = localDate.toISOString().split('T')[0];

@@ -1,8 +1,5 @@
 import GlobalSetting from '../models/globalSetting.model.js';
 
-/**
- * Get leave quotas from database with hardcoded fallback
- */
 export const getLeaveQuotas = async () => {
     try {
         const settings = await GlobalSetting.findOne({ key: 'leave_quotas' });
@@ -17,6 +14,5 @@ export const getLeaveQuotas = async () => {
         console.error("Error fetching leave quotas:", error);
     }
 
-    // Fallback constants
     return { cl: 12, sl: 10, el: 15 };
 };

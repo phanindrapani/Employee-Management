@@ -53,7 +53,7 @@ export const updateLeaveStatus = async (req, res) => {
         if (status === 'approved') {
             const user = await User.findById(leave.user._id).session(session);
             const balanceKey = leave.leaveType?.toLowerCase();
-            
+
             if (balanceKey && balanceKey !== 'lop') {
                 const currentBalance = Number(user.leaveBalance?.[balanceKey] ?? 0);
                 if (currentBalance < leave.totalDays) {
@@ -68,14 +68,13 @@ export const updateLeaveStatus = async (req, res) => {
             }
             leave.status = 'approved';
         } else {
-            leave.status = status; // rejected
+            leave.status = status;
             if (status === 'rejected') leave.rejectionReason = rejectionReason;
         }
 
         await leave.save({ session });
         await session.commitTransaction();
 
-        // Notification & Socket logic remains outside transaction for better response time if they fail
         const notificationMessage = `Your leave request for ${leave.totalDays} day(s) has been ${status}.`;
         await Notification.create({
             user: leave.user._id,
@@ -87,7 +86,6 @@ export const updateLeaveStatus = async (req, res) => {
             io.to(`user:${leave.user._id}`).emit('leave:updated', leave);
             io.to(`user:${leave.user._id}`).emit('notification:new', { message: notificationMessage });
 
-            // --- EMAIL NOTIFICATION ---
             if (leave.user && leave.user.email) {
                 await sendEmail({
                     to: leave.user.email,

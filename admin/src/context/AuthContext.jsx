@@ -5,14 +5,14 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
-        // Clear old generic keys to ensure migration to prefixed keys
+
         if (localStorage.getItem('token')) localStorage.removeItem('token');
         if (localStorage.getItem('user')) localStorage.removeItem('user');
         if (localStorage.getItem('profile')) localStorage.removeItem('profile');
 
         const token = localStorage.getItem('ls_admin_token');
         const cached = localStorage.getItem('ls_admin_profile');
-        // Prevent stale-login state: profile without token should not be treated as authenticated.
+
         return token && cached ? JSON.parse(cached) : null;
     });
     const [loading, setLoading] = useState(!user);

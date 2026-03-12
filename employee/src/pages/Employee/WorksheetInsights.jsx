@@ -24,7 +24,6 @@ import {
     Cell
 } from 'recharts';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
 const fmt = (n, decimals = 1) => (typeof n === 'number' ? n.toFixed(decimals) : '0');
 const today = () => new Date().toISOString().slice(0, 10);
 const daysAgo = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
@@ -40,7 +39,6 @@ const CATEGORY_COLORS = {
     other: '#6B7280'
 };
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
 const StatCard = ({ icon: Icon, label, value, sub, color = '#3B82F6' }) => (
     <div className="ws-stat-card">
         <div className="ws-stat-icon" style={{ background: `${color}18`, color }}>
@@ -68,45 +66,37 @@ const CustomTooltip = ({ active, payload, label, unit = 'h' }) => {
     return null;
 };
 
-// ─── Main Component ──────────────────────────────────────────────────────────
 const WorksheetInsights = () => {
     const { user } = useAuth();
     const { showToast } = useToast();
 
-    // Upload state
     const [dragging, setDragging] = useState(false);
     const [importing, setImporting] = useState(false);
     const [importResult, setImportResult] = useState(null);
     const fileInputRef = useRef(null);
 
-    // Entries state
     const [entries, setEntries] = useState([]);
     const [entriesLoading, setEntriesLoading] = useState(false);
     const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
 
-    // Analysis state
     const [analysis, setAnalysis] = useState(null);
     const [analysisLoading, setAnalysisLoading] = useState(false);
 
-    // Filters
     const [fromDate, setFromDate] = useState(daysAgo(30));
     const [toDate, setToDate] = useState(today());
     const [filterProject, setFilterProject] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
     const [page, setPage] = useState(1);
 
-    // Export state
     const [exporting, setExporting] = useState('');
 
-    // --- Direct Entry State ---
-    const [activeTab, setActiveTab] = useState('insights'); // 'insights' | 'entry'
+    const [activeTab, setActiveTab] = useState('insights');
     const [manualEntries, setManualEntries] = useState([
         { date: today(), startTime: '09:00', endTime: '10:30', taskTitle: '', project: '', category: 'development', status: 'completed', priority: 'medium', tags: '', notes: '' }
     ]);
     const [projects, setProjects] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
 
-    // ── Data fetching ────────────────────────────────────────────────────────
     const fetchEntries = useCallback(async () => {
         setEntriesLoading(true);
         try {
@@ -150,7 +140,6 @@ const WorksheetInsights = () => {
         fetchProjects();
     }, [fetchEntries, fetchAnalysis, fetchProjects]);
 
-    // ── WebSocket real-time refresh ──────────────────────────────────────────
     const handleWorksheetUpdate = useCallback((payload) => {
         if (String(payload?.employeeId) === String(user?._id)) {
             fetchEntries();
@@ -160,7 +149,6 @@ const WorksheetInsights = () => {
 
     useSocketListener('worksheet:updated', handleWorksheetUpdate);
 
-    // ── File upload / import ─────────────────────────────────────────────────
     const handleFile = async (file) => {
         if (!file) return;
         const allowed = ['csv', 'json', 'xlsx', 'xls', 'docx', 'pdf'];
@@ -199,7 +187,6 @@ const WorksheetInsights = () => {
         handleFile(file);
     };
 
-    // ── Export ───────────────────────────────────────────────────────────────
     const handleExport = async (format) => {
         setExporting(format);
         try {
@@ -303,8 +290,6 @@ const WorksheetInsights = () => {
             setIsSaving(false);
         }
     };
-
-    // ── Render ───────────────────────────────────────────────────────────────
 
     return (
 
@@ -724,7 +709,6 @@ const WorksheetInsights = () => {
     );
 };
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 const worksheetStyles = `
 .ws-page { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 .ws-tabs { display: flex; gap: 8px; margin-bottom: -10px; }

@@ -10,7 +10,6 @@ export const applyLeave = async (req, res) => {
     const { leaveType, fromDate, toDate, session, reason } = req.body;
     const userId = req.user._id;
 
-    // 1. Basic validation
     if (new Date(toDate) < new Date(fromDate)) {
         return res.status(400).json({ message: 'To date cannot be before From date' });
     }
@@ -19,14 +18,12 @@ export const applyLeave = async (req, res) => {
         return res.status(400).json({ message: 'Cannot apply leave for past dates' });
     }
 
-    // 2. Calculate working days
     const totalDays = await calculateWorkingDays(fromDate, toDate, session);
 
     if (totalDays === 0) {
         return res.status(400).json({ message: 'Selected duration has no working days (Sundays/Holidays)' });
     }
 
-    // 3. Balance check
     const user = await User.findById(userId);
     const balanceKey = leaveType.toLowerCase();
 
@@ -34,13 +31,10 @@ export const applyLeave = async (req, res) => {
         return res.status(400).json({ message: `Insufficient ${leaveType} balance` });
     }
 
-    // 4. Handle attachment
     let attachmentUrl = undefined;
     if (req.file) {
         attachmentUrl = await uploadBufferToCloudinary(req.file, 'leave_attachments');
     }
-
-    // 5. Create leave request (with Admin fallback if no reporting manager)
     let approverId = user.reportingManager;
     if (!approverId || approverId.toString() === userId.toString()) {
         const admin = await User.findOne({ role: 'admin' });
@@ -60,15 +54,11 @@ export const applyLeave = async (req, res) => {
         attachment: attachmentUrl
     });
 
-    // Socket Emit
     try {
         const io = getIO();
         const populatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role profilePicture');
-
-        // --- NOTIFICATION: New Leave Request ---
         const notifications = [];
 
-        // 1. Notify Reporting Manager (if exists)
         if (user.reportingManager) {
             notifications.push({
                 user: user.reportingManager,
@@ -82,12 +72,11 @@ export const applyLeave = async (req, res) => {
         }
 
         if (approverId) {
-            io.to(`user:${approverId}`).emit('leave:created', populatedLeave); 
+            io.to(`user:${approverId}`).emit('leave:created', populatedLeave);
             io.to(`user:${approverId}`).emit('notification', {
                 message: `New Leave Request: ${req.user.name}`
             });
 
-            // --- EMAIL NOTIFICATION ---
             try {
                 const approver = await User.findById(approverId);
                 if (approver && approver.email) {

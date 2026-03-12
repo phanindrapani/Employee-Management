@@ -9,7 +9,7 @@ import { getIO } from '../../socket.js';
 export const getManagerProjects = async (req, res) => {
     try {
         const managerId = req.user.id;
-        
+
         // Find all teams managed by this manager
         const teams = await Team.find({ manager: managerId });
         const teamIds = teams.map(t => t._id);
@@ -33,7 +33,7 @@ export const getManagerProjects = async (req, res) => {
 export const getProjectStats = async (req, res) => {
     try {
         const managerId = req.user.id;
-        
+
         // Find all teams managed by this manager
         const teams = await Team.find({ manager: managerId });
         const teamIds = teams.map(t => t._id);
@@ -91,13 +91,13 @@ export const createProject = async (req, res) => {
                 if (teamMembers.length > 0) {
                     const notifications = teamMembers.map(member => ({
                         user: member._id,
-                        message: `🚀 New Project Assigned: "${project.name}" has been assigned to your team`,
+                        message: `New Project Assigned: "${project.name}" has been assigned to your team`,
                         isRead: false
                     }));
                     await Notification.insertMany(notifications);
 
                     io.to(`team:${project.assignedTeam}`).emit('notification', {
-                        message: `🚀 New Project Assigned: "${project.name}"`
+                        message: `New Project Assigned: "${project.name}"`
                     });
                 }
             }

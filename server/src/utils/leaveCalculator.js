@@ -1,15 +1,6 @@
 import { isSunday } from 'date-fns';
 import Holiday from '../models/holiday.model.js';
 
-/**
- * Calculates total working days between two dates, 
- * excluding Sundays and holidays from the database.
- * 
- * @param {Date} fromDate 
- * @param {Date} toDate 
- * @param {string} session - 'full-day', 'half-morning', 'half-afternoon'
- * @returns {Promise<number>} totalDays
- */
 const parseDateOnly = (value) => {
     if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
         const [y, m, d] = value.split('-').map(Number);
@@ -61,10 +52,6 @@ export const calculateWorkingDays = async (fromDate, toDate, session = 'full-day
     if (workingDays === 1 && session !== 'full-day') {
         return 0.5;
     }
-
-    // If it's a range and the first/last day is half, we'd need more complex logic,
-    // but for now we follow the requirement: if totalDays = 0 -> error.
-    // The system expects employee to select session.
 
     return workingDays;
 };

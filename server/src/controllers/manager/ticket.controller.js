@@ -3,7 +3,6 @@ import User from '../../models/user.model.js';
 import { getIO } from '../../socket.js';
 import Notification from '../../models/notification.model.js';
 
-// GET /manager/tickets — Tickets assigned to me
 export const getMyTickets = async (req, res) => {
     try {
         const { status, priority, category } = req.query;
@@ -25,7 +24,6 @@ export const getMyTickets = async (req, res) => {
     }
 };
 
-// GET /manager/tickets/:id
 export const getTicketById = async (req, res) => {
     try {
         const ticket = await Ticket.findOne({ _id: req.params.id, assignedManager: req.user.id })
@@ -42,7 +40,6 @@ export const getTicketById = async (req, res) => {
     }
 };
 
-// PATCH /manager/tickets/:id/assign-teamlead
 export const assignTeamLead = async (req, res) => {
     try {
         const { teamLeadId, note } = req.body;
@@ -82,7 +79,6 @@ export const assignTeamLead = async (req, res) => {
     }
 };
 
-// POST /manager/tickets/:id/comment
 export const addComment = async (req, res) => {
     try {
         const { message, isInternal } = req.body;
@@ -135,7 +131,6 @@ export const addComment = async (req, res) => {
     }
 };
 
-// GET /manager/tickets/analytics — Team-wise ticket analytics
 export const getAnalytics = async (req, res) => {
     try {
         const managerId = req.user.id;
@@ -162,7 +157,6 @@ export const getAnalytics = async (req, res) => {
     }
 };
 
-// GET /manager/tickets/stats
 export const getStats = async (req, res) => {
     try {
         const managerId = req.user.id;

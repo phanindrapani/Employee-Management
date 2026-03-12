@@ -3,7 +3,6 @@ import User from '../../models/user.model.js';
 import { getIO } from '../../socket.js';
 import Notification from '../../models/notification.model.js';
 
-// GET /team-lead/tickets — Tickets assigned to my team (me as TL)
 export const getMyTickets = async (req, res) => {
     try {
         const { status, priority } = req.query;
@@ -24,7 +23,6 @@ export const getMyTickets = async (req, res) => {
     }
 };
 
-// GET /team-lead/tickets/:id
 export const getTicketById = async (req, res) => {
     try {
         const ticket = await Ticket.findOne({ _id: req.params.id, assignedTeamLead: req.user.id })
@@ -41,7 +39,6 @@ export const getTicketById = async (req, res) => {
     }
 };
 
-// PATCH /team-lead/tickets/:id/assign-employee
 export const assignEmployee = async (req, res) => {
     try {
         const { employeeId, note } = req.body;
@@ -62,7 +59,6 @@ export const assignEmployee = async (req, res) => {
 
         await ticket.save();
 
-        // Notify Employee
         const io = getIO();
         await Notification.create({
             user: employeeId,
@@ -81,7 +77,6 @@ export const assignEmployee = async (req, res) => {
     }
 };
 
-// POST /team-lead/tickets/:id/comment
 export const addComment = async (req, res) => {
     try {
         const { message, isInternal } = req.body;
@@ -97,11 +92,9 @@ export const addComment = async (req, res) => {
 
         await ticket.save();
 
-        // Notification Logic
         try {
             const io = getIO();
             if (isInternal) {
-                // Notify Employee & Manager
                 const notifyUserIds = [ticket.assignedEmployee, ticket.assignedManager].filter(id => id);
                 for (const userId of notifyUserIds) {
                     await Notification.create({
@@ -114,7 +107,6 @@ export const addComment = async (req, res) => {
                     });
                 }
             } else {
-                // Notify Client
                 await Notification.create({
                     user: ticket.clientId,
                     message: `New Message from Team Lead on ticket "${ticket.title}"`,
@@ -134,7 +126,6 @@ export const addComment = async (req, res) => {
     }
 };
 
-// GET /team-lead/tickets/stats
 export const getStats = async (req, res) => {
     try {
         const tlId = req.user.id;

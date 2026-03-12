@@ -27,9 +27,6 @@ const parseJSON = (buffer) => {
     }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// IMPORT
-// ─────────────────────────────────────────────────────────────────────────────
 export const importWorksheet = async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
@@ -37,10 +34,8 @@ export const importWorksheet = async (req, res) => {
         const { buffer, originalname, mimetype } = req.file;
         const ext = originalname.split('.').pop().toLowerCase();
 
-        // Compute checksum for lineage
         const checksum = crypto.createHash('sha256').update(buffer).digest('hex');
 
-        // Check for duplicate import (same file already imported)
         const existing = await WorksheetEntry.findOne({
             employee: req.user._id,
             sourceChecksum: checksum
@@ -52,7 +47,6 @@ export const importWorksheet = async (req, res) => {
             });
         }
 
-        // Parse by file type
         let parseResult;
         let parserWarning = null;
 
@@ -89,7 +83,6 @@ export const importWorksheet = async (req, res) => {
             });
         }
 
-        // Map + validate rows
         const validRows = [];
         const invalidRows = [];
         const allErrors = [];
@@ -114,7 +107,6 @@ export const importWorksheet = async (req, res) => {
             }
         });
 
-        // Save valid rows — only insert NEW entries, never overwrite existing ones
         let savedCount = 0;
         let skippedCount = 0;
         const now = new Date();
@@ -142,7 +134,6 @@ export const importWorksheet = async (req, res) => {
                     },
                     { upsert: true, new: false }
                 );
-                // result is null when a new document was inserted (upserted)
                 if (result === null) {
                     savedCount++;
                 } else {
@@ -150,16 +141,13 @@ export const importWorksheet = async (req, res) => {
                 }
             } catch (err) {
                 if (err.code === 11000) {
-                    skippedCount++; // race-condition duplicate
+                    skippedCount++;
                 } else {
                     console.error('[Worksheet] Row save error:', err.message);
                 }
             }
         }
 
-
-
-        // WebSocket notification
         try {
             const io = getIO();
             const dates = validRows.map(r => r.date).sort();
@@ -191,9 +179,6 @@ export const importWorksheet = async (req, res) => {
     }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TEMPLATE DOWNLOAD
-// ─────────────────────────────────────────────────────────────────────────────
 export const getTemplate = async (req, res) => {
     const format = (req.query.format || 'csv').toLowerCase();
 
@@ -287,9 +272,7 @@ export const getTemplate = async (req, res) => {
     res.status(400).json({ message: 'Unsupported template format. Use: csv, json, xlsx, docx' });
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GET ENTRIES
-// ─────────────────────────────────────────────────────────────────────────────
+
 export const getEntries = async (req, res) => {
     try {
         const { fromDate, toDate, project, status, page = 1, limit = 50 } = req.query;
@@ -323,9 +306,6 @@ export const getEntries = async (req, res) => {
     }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ANALYSIS
-// ─────────────────────────────────────────────────────────────────────────────
 export const getAnalysis = async (req, res) => {
     try {
         const { fromDate, toDate } = req.query;
@@ -340,9 +320,6 @@ export const getAnalysis = async (req, res) => {
     }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// EXPORT
-// ─────────────────────────────────────────────────────────────────────────────
 export const exportEntries = async (req, res) => {
     try {
         const { format = 'csv', fromDate, toDate, project, status } = req.query;
@@ -398,9 +375,7 @@ export const exportEntries = async (req, res) => {
         res.status(500).json({ message: 'Export failed', error: err.message });
     }
 };
-// ─────────────────────────────────────────────────────────────────────────────
-// BULK SAVE ENTRIES (Manual Entry)
-// ─────────────────────────────────────────────────────────────────────────────
+
 export const saveEntries = async (req, res) => {
     try {
         const { entries: rawEntries } = req.body;
@@ -419,7 +394,6 @@ export const saveEntries = async (req, res) => {
         const errors = [];
         const now = new Date();
 
-        // Map and validate each row
         rawEntries.forEach((raw, i) => {
             const row = mapRow(raw);
             const { valid, errors: rowErrors } = validateRow(row, i);
@@ -438,7 +412,6 @@ export const saveEntries = async (req, res) => {
             });
         }
 
-        // Detect overlaps in the batch being saved
         const overlapIndexes = detectOverlaps(validRows.map((r, i) => ({ ...r, _originalIndex: i })));
         if (overlapIndexes.size > 0) {
             const overlapErrors = Array.from(overlapIndexes).map(idx => ({
@@ -484,7 +457,6 @@ export const saveEntries = async (req, res) => {
             }
         }
 
-        // WebSocket notification
         try {
             const io = getIO();
             const dates = validRows.map(r => r.date).sort();

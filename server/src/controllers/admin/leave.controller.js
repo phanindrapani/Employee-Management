@@ -6,23 +6,19 @@ import { sendEmail } from '../../utils/mailHelper.js';
 
 export const getAllLeaves = async (req, res) => {
     try {
-        // Only return leaves from Managers (direct reports to Admin)
-        // OR leaves specifically assigned to this Admin as approver
         const leaves = await Leave.find({
             $or: [
                 { approver: req.user._id },
-                { 'user.role': 'manager' } // This requires population for filtering in some cases, 
-                                          // but let's filter by checking users who have Admin as reporting manager
+                { 'user.role': 'manager' }
             ]
         })
-        .populate({
-            path: 'user',
-            select: 'name email department role',
-            match: { $or: [{ role: 'manager' }, { reportingManager: req.user._id }] }
-        })
-        .sort({ createdAt: -1 });
+            .populate({
+                path: 'user',
+                select: 'name email department role',
+                match: { $or: [{ role: 'manager' }, { reportingManager: req.user._id }] }
+            })
+            .sort({ createdAt: -1 });
 
-        // Filter out null users (those that didn't match the populate filter)
         const filteredLeaves = leaves.filter(l => l.user !== null);
         res.json(filteredLeaves);
     } catch (e) { res.status(500).json({ msg: "Failed" }); }
@@ -50,8 +46,6 @@ export const updateLeaveStatus = async (req, res) => {
         const wasBalanceApplied = leave.balanceApplied === true;
         const beforeBalance = balanceKey ? Number(user.leaveBalance?.[balanceKey] ?? 0) : null;
 
-        // Debit only when approval is finalized and not yet applied.
-        // Refund if moving away from approved after already applying.
         if (balanceKey && balanceKey !== 'lop') {
             const currentBalance = Number(user.leaveBalance?.[balanceKey] ?? 0);
 
@@ -69,7 +63,6 @@ export const updateLeaveStatus = async (req, res) => {
                 leave.balanceApplied = false;
             }
         } else if (nextStatus === 'approved') {
-            // LOP: no balance debit, but mark as handled.
             leave.balanceApplied = true;
         } else if (nextStatus !== 'approved' && wasBalanceApplied) {
             leave.balanceApplied = false;
@@ -89,18 +82,15 @@ export const updateLeaveStatus = async (req, res) => {
 
         const updatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role');
 
-        // Socket Emit
         try {
             const io = getIO();
-            
-            // Only broadcast to admin role if the requester is a Manager
+
             if (updatedLeave.user && updatedLeave.user.role === 'manager') {
                 io.to('role:admin').emit('leave:updated', updatedLeave);
             }
-            
+
             io.to(`user:${updatedLeave.user._id}`).emit('leave:updated', updatedLeave);
-            
-            // --- EMAIL NOTIFICATION ---
+
             if (updatedLeave.user && updatedLeave.user.email) {
                 await sendEmail({
                     to: updatedLeave.user.email,

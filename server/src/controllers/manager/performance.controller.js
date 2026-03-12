@@ -3,16 +3,11 @@ import Team from '../../models/team.model.js';
 import Project from '../../models/project.model.js';
 import mongoose from 'mongoose';
 
-/**
- * GET /manager/performance/dashboard
- * Returns performance stats for all teams managed by the logged-in manager.
- */
 export const getManagerPerformanceStats = async (req, res) => {
     try {
         const period = req.query.period || new Date().toISOString().slice(0, 7);
         const managerId = req.user._id;
 
-        // Fetch all teams managed by this manager
         const teams = await Team.find({ manager: managerId })
             .populate('teamLead', 'name email')
             .populate('members', 'name role')
@@ -33,19 +28,16 @@ export const getManagerPerformanceStats = async (req, res) => {
             if (t.teamLead) allMemberIds.add(t.teamLead._id.toString());
         });
 
-        // Fetch Metrics for the current period
         const metrics = await PerformanceMetric.find({
             period,
             user: { $in: Array.from(allMemberIds).map(id => new mongoose.Types.ObjectId(id)) }
         }).populate('user', 'name role department');
 
-        // Fetch Active Projects
         const activeProjectsCount = await Project.countDocuments({
             assignedTeams: { $in: teamIds },
             status: { $in: ['ongoing', 'upcoming', 'on-hold'] }
         });
 
-        // Calculate Team Stats
         const teamStats = teams.map(team => {
             const memberIds = team.members.map(m => m._id.toString());
             if (team.teamLead && !memberIds.includes(team.teamLead._id.toString())) {
@@ -88,14 +80,12 @@ export const getManagerPerformanceStats = async (req, res) => {
             };
         });
 
-        // 5. Aggregate Summary
         const orgAvgScore = teamStats.length > 0
             ? Math.round(teamStats.reduce((sum, t) => sum + t.avgScore, 0) / teamStats.length)
             : 0;
         const highestTeamAvg = teamStats.length > 0 ? Math.max(...teamStats.map(t => t.avgScore)) : 0;
         const teamsNeedingAttention = teamStats.filter(t => t.avgScore < 60).length;
 
-        // 6. Performance Trend (Last 6 Months)
         const periods = [];
         const date = new Date(period + "-01");
         for (let i = 5; i >= 0; i--) {
@@ -117,7 +107,6 @@ export const getManagerPerformanceStats = async (req, res) => {
             return { name: p, score: avg };
         });
 
-        // 7. Top Leads
         const topLeads = teamStats
             .filter(ts => ts.leadId)
             .sort((a, b) => b.avgScore - a.avgScore)

@@ -64,13 +64,13 @@ const TasksOverview = () => {
     useSocketListener('task:created', fetchDashboardData);
     useSocketListener('task:updated', fetchDashboardData);
     useSocketListener('task:deleted', fetchDashboardData);
-    useSocketListener('task:assigned', fetchDashboardData); // NEW
-    useSocketListener('project:created', fetchDashboardData); // NEW
-    useSocketListener('project:updated', fetchDashboardData); // NEW
-    useSocketListener('project:deleted', fetchDashboardData); // NEW
-    useSocketListener('milestone:created', fetchDashboardData); // NEW
-    useSocketListener('milestone:updated', fetchDashboardData); // NEW
-    useSocketListener('milestone:deleted', fetchDashboardData); // NEW
+    useSocketListener('task:assigned', fetchDashboardData);
+    useSocketListener('project:created', fetchDashboardData);
+    useSocketListener('project:updated', fetchDashboardData);
+    useSocketListener('project:deleted', fetchDashboardData);
+    useSocketListener('milestone:created', fetchDashboardData);
+    useSocketListener('milestone:updated', fetchDashboardData);
+    useSocketListener('milestone:deleted', fetchDashboardData);
 
     if (loading && !stats) return (
         <div className="flex items-center justify-center min-h-[400px] text-[#0B3C5D] font-black italic tracking-widest text-xs uppercase animate-pulse">
@@ -82,7 +82,7 @@ const TasksOverview = () => {
 
     return (
         <div className="space-y-8 pb-12">
-            {/* 1️⃣ Summary Cards (Top Section) */}
+            {/* Summary Cards (Top Section) */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <StatCard title="Total Tasks" value={stats?.summary?.total || 0} colorClass="border-blue-500" titleColor="text-blue-500" />
                 <StatCard title="Pending" value={stats?.summary?.pending || 0} colorClass="border-slate-400" titleColor="text-slate-400" />
@@ -92,7 +92,7 @@ const TasksOverview = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* 3️⃣ Task Status Chart */}
+                {/* Task Status Chart */}
                 <div className="lg:col-span-2 bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50">
                     <div className="flex items-center justify-between mb-8">
                         <div>
@@ -129,7 +129,7 @@ const TasksOverview = () => {
                             </ResponsiveContainer>
                         </div>
 
-                        {/* 8️⃣ Project Task Progress */}
+                        {/* Project Task Progress */}
                         <div className="w-full md:w-1/2 space-y-4">
                             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Project Milestones</h4>
                             {stats?.projectProgress?.map((proj, i) => (
@@ -150,7 +150,7 @@ const TasksOverview = () => {
                     </div>
                 </div>
 
-                {/* 6️⃣ Overdue Tasks Panel */}
+                {/* Overdue Tasks Panel */}
                 <div className="bg-white p-8 rounded-[2rem] shadow-sm border-l-4 border-rose-500 border-y border-r border-slate-50 overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-black text-[#0B3C5D] flex items-center gap-2">
@@ -182,7 +182,7 @@ const TasksOverview = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* 2️⃣ Team Task Breakdown */}
+                {/* Team Task Breakdown */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden">
                     <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                         <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest flex items-center gap-2">
@@ -215,7 +215,7 @@ const TasksOverview = () => {
                     </div>
                 </div>
 
-                {/* 7️⃣ Employee Workload Overview */}
+                {/* Employee Workload Overview */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden">
                     <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                         <h3 className="text-sm font-black text-[#0B3C5D] uppercase tracking-widest flex items-center gap-2">
@@ -256,7 +256,7 @@ const TasksOverview = () => {
                 </div>
             </div>
 
-            {/* 4️⃣ Filters & 5️⃣ Main Task Table */}
+            {/* Filters & Main Task Table */}
             <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-3 py-2">
                     <div className="flex items-center gap-2 px-3 text-slate-400">

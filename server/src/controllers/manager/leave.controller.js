@@ -103,23 +103,23 @@ export const updateLeaveStatus = async (req, res) => {
 
         // Notification & Socket logic
         const notificationMessage = `Your leave request for ${leave.totalDays} day(s) has been ${status}.`;
-        
+
         try {
-            // 1. In-App Notification
+            // In-App Notification
             await Notification.create({
                 user: leave.user._id,
                 message: notificationMessage,
                 isRead: false
             });
 
-            // 2. Socket update
+            // Socket update
             const io = getIO();
             const populatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role profilePicture');
-            
+
             io.to(`user:${leave.user._id}`).emit('leave:updated', populatedLeave);
             io.to(`user:${leave.user._id}`).emit('notification', { message: notificationMessage });
 
-            // 3. Email Notification
+            // Email Notification
             if (leave.user && leave.user.email) {
                 await sendEmail({
                     to: leave.user.email,
@@ -199,7 +199,6 @@ export const applyManagerLeave = async (req, res) => {
         const populatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role profilePicture');
 
         const notifications = [];
-        // Notify Reporting Manager (usually Admin for Managers)
         if (user.reportingManager) {
             notifications.push({
                 user: user.reportingManager,
