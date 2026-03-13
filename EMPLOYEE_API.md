@@ -1050,3 +1050,1185 @@ Invalid range:
 | rejected | Rejected by approver |
 
 ---
+
+# Employee Notification APIs
+
+# Get My Notifications
+
+**GET** `employee/notifications`
+
+### Description
+Returns all notifications for the logged-in user.
+
+Notifications are sorted by:
+
+```
+Newest first
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Example Request
+
+```
+GET employee/notifications
+```
+
+---
+
+### Success Response (200)
+
+```json
+[
+  {
+    "_id": "65notif123",
+    "user": "65user123",
+    "message": "New Leave Request from Rahul",
+    "isRead": false,
+    "createdAt": "2026-03-12T10:00:00.000Z"
+  },
+  {
+    "_id": "65notif456",
+    "message": "Project assigned to you",
+    "isRead": true,
+    "createdAt": "2026-03-11T15:30:00.000Z"
+  }
+]
+```
+
+---
+
+# Mark Notification As Read
+
+**PUT** `employee/notifications/:id/read`
+
+### Description
+Marks a specific notification as **read**.
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Example Request
+
+```
+PUT employee/notifications/65notif123/read
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "message": "Notification marked as read"
+}
+```
+
+---
+
+### Error Response
+
+```json
+{
+  "message": "Notification not found"
+}
+```
+
+---
+
+# Mark All Notifications As Read
+
+**PUT** `employee/notifications/read-all`
+
+### Description
+Marks **all unread notifications** for the logged-in user as **read**.
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Example Request
+
+```
+PUT employee/notifications/read-all
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "message": "All notifications marked as read"
+}
+```
+
+# Employee Project APIs
+
+# Get My Team Projects
+
+**GET** `/employee/projects`
+
+### Description
+Fetches all projects assigned to the **logged-in employee's team**.
+
+Logic used:
+
+```
+req.user.team → used to find projects
+assignedTeams field in Project collection
+```
+
+If the user **does not belong to any team**, the API returns:
+
+```
+[]
+```
+
+Projects are sorted by:
+
+```
+End Date (earliest deadline first)
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Example Request
+
+```
+GET /employee/projects
+```
+
+---
+
+### Success Response (200)
+
+```json
+[
+  {
+    "_id": "65project123",
+    "projectId": "PRJ-001",
+    "name": "Employee Management System",
+    "description": "Internal HR management platform",
+    "status": "ongoing",
+    "priority": "high",
+    "startDate": "2026-03-01T00:00:00.000Z",
+    "endDate": "2026-05-30T00:00:00.000Z",
+    "assignedTeams": [
+      {
+        "_id": "65team123",
+        "name": "Backend Team"
+      }
+    ],
+    "progress": 45
+  }
+]
+```
+
+---
+
+### Empty Response Example
+
+If the employee **does not belong to any team**:
+
+```json
+[]
+```
+
+---
+
+### Error Response
+
+```json
+{
+  "message": "Failed to fetch projects"
+}
+```
+
+# Employee Task APIs
+
+# Get My Tasks
+
+**GET** `/employee/tasks`
+
+### Description
+Returns all tasks assigned to the logged-in employee.
+
+Tasks are sorted by:
+
+```
+deadline (earliest first)
+```
+
+Related data included:
+
+- Project name
+- Milestone name
+- Assigned manager/team lead
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Example Request
+
+```
+GET /employee/tasks
+```
+
+---
+
+### Success Response
+
+```json
+[
+  {
+    "_id": "65task123",
+    "taskId": "PRJ-001-TSK-0001",
+    "title": "Build login API",
+    "status": "in-progress",
+    "progress": 40,
+    "priority": "high",
+    "deadline": "2026-04-10T00:00:00.000Z",
+    "project": {
+      "name": "Employee Management System"
+    }
+  }
+]
+```
+
+---
+
+# Update Task Content
+
+**PATCH** `/employee/tasks/:id/content`
+
+### Description
+Updates the **task content** including:
+
+- Task progress
+- Comments
+- Attachments
+
+Employees can only update **their own tasks**.
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+
+---
+
+### Request Body
+
+| Field | Type | Description |
+|------|------|-------------|
+| progress | number | Task completion percentage |
+| comment | string | Comment message |
+| file | file | Attachment file |
+
+---
+
+### Example Request
+
+```
+PATCH /employee/tasks/65task123/content
+```
+
+Form-data:
+
+```
+progress: 60
+comment: Completed API integration
+file: api_code.zip
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "_id": "65task123",
+  "title": "Build login API",
+  "progress": 60,
+  "comments": [
+    {
+      "user": "65user123",
+      "text": "Completed API integration"
+    }
+  ]
+}
+```
+
+---
+
+### Error Response
+
+```json
+{
+  "message": "Not authorized to update this task"
+}
+```
+
+---
+
+# Update Task Status
+
+**PATCH** `/employee/tasks/:id/status`
+
+### Description
+Updates the **status of a task**.
+
+Allowed statuses:
+
+```
+todo
+in-progress
+review
+done
+```
+
+---
+
+### Status Workflow
+
+```
+todo
+ → in-progress
+ → review
+ → done
+```
+
+Rules:
+
+```
+Employees cannot directly mark tasks as done
+Team Lead must approve the task
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+---
+
+### Request Body
+
+```json
+{
+  "status": "review"
+}
+```
+
+---
+
+### Example Request
+
+```
+PATCH /employee/tasks/65task123/status
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "_id": "65task123",
+  "status": "review",
+  "progress": 80
+}
+```
+
+---
+
+### Error Responses
+
+Invalid status:
+
+```json
+{
+  "message": "Invalid status value"
+}
+```
+
+Unauthorized user:
+
+```json
+{
+  "message": "Not authorized to update this task"
+}
+```
+
+Employee trying to mark task done:
+
+```json
+{
+  "message": "Team lead review is required before marking a task done"
+}
+```
+
+# Employee Ticket APIs
+
+# Get Ticket Statistics
+
+**GET** `/employee/tickets/stats`
+
+### Description
+Returns statistics of tickets assigned to the logged-in employee.
+
+Useful for:
+
+```
+Employee dashboard
+Support workload tracking
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Example Request
+
+```
+GET /employee/tickets/stats
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "total": 12,
+  "pending": 3,
+  "inProgress": 5,
+  "waitingForClient": 1,
+  "doubtRaised": 2,
+  "resolved": 1
+}
+```
+
+---
+
+# Get My Tickets
+
+**GET** `/employee/tickets`
+
+### Description
+Returns all tickets assigned to the logged-in employee.
+
+Supports optional filters:
+
+```
+status
+priority
+```
+
+Tickets are sorted by:
+
+```
+priority (highest first)
+createdAt (latest first)
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|----------|------|-------------|
+| status | string | Filter by ticket status |
+| priority | string | Filter by priority |
+
+---
+
+### Example Request
+
+```
+GET /employee/tickets?status=IN_PROGRESS
+```
+
+---
+
+### Success Response
+
+```json
+[
+  {
+    "_id": "65ticket123",
+    "ticketCode": "TKT-1001",
+    "title": "Login issue",
+    "priority": "HIGH",
+    "status": "IN_PROGRESS",
+    "clientId": {
+      "name": "ABC Pvt Ltd"
+    },
+    "assignedManager": {
+      "name": "Rahul Sharma"
+    },
+    "projectId": {
+      "name": "CRM System"
+    }
+  }
+]
+```
+
+---
+
+# Get Ticket Details
+
+**GET** `/employee/tickets/:id`
+
+### Description
+Fetches detailed information about a specific ticket assigned to the employee.
+
+Includes:
+
+```
+Client information
+Project details
+Manager & Team Lead
+Comments
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Example Request
+
+```
+GET /employee/tickets/65ticket123
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "_id": "65ticket123",
+  "ticketCode": "TKT-1001",
+  "title": "Login issue",
+  "description": "Unable to login to portal",
+  "priority": "HIGH",
+  "status": "IN_PROGRESS",
+  "clientId": {
+    "name": "ABC Pvt Ltd",
+    "email": "support@abc.com"
+  },
+  "comments": [
+    {
+      "message": "Investigating issue",
+      "role": "employee"
+    }
+  ]
+}
+```
+
+---
+
+# Update Ticket Status
+
+**PATCH** `/employee/tickets/:id/status`
+
+### Description
+Updates the status of a ticket assigned to the employee.
+
+Allowed statuses:
+
+```
+IN_PROGRESS
+WAITING_FOR_CLIENT
+DOUBT_RAISED
+RESOLVED
+```
+
+Special behaviors:
+
+```
+RESOLVED → adds resolution note and timestamp
+DOUBT_RAISED → notifies team lead and manager
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+---
+
+### Request Body
+
+```json
+{
+  "status": "RESOLVED",
+  "resolutionNote": "Fixed authentication middleware issue"
+}
+```
+
+OR
+
+```json
+{
+  "status": "DOUBT_RAISED",
+  "doubtNote": "Need clarification about API requirements"
+}
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "message": "Ticket status updated to RESOLVED",
+  "ticket": {
+    "status": "RESOLVED"
+  }
+}
+```
+
+---
+
+### Error Response
+
+```json
+{
+  "message": "Status must be one of: IN_PROGRESS, WAITING_FOR_CLIENT, DOUBT_RAISED, RESOLVED"
+}
+```
+
+---
+
+# Add Comment to Ticket
+
+**POST** `/employee/tickets/:id/comment`
+
+### Description
+Adds a comment to a ticket.
+
+Comments can be:
+
+```
+Public → visible to client
+Internal → visible only to support team
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+---
+
+### Request Body
+
+```json
+{
+  "message": "Please provide server logs",
+  "isInternal": false
+}
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "message": "Comment added"
+}
+```
+
+---
+
+### Error Response
+
+```json
+{
+  "message": "Ticket not found"
+}
+```
+
+# Employee Worksheet APIs
+
+# Save Worksheet Entries
+
+**POST** `/employee/worksheet/save`
+
+### Description
+Allows employees to **manually save worksheet entries** in bulk.
+
+This endpoint validates:
+
+- Required fields
+- Time overlaps
+- Duplicate entries
+
+Duplicate rows are automatically skipped.
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+---
+
+### Request Body
+
+```json
+{
+  "entries": [
+    {
+      "date": "2026-02-18",
+      "startTime": "09:00",
+      "endTime": "10:30",
+      "durationMinutes": 90,
+      "taskTitle": "Implement login feature",
+      "project": "Auth Module",
+      "category": "development",
+      "status": "completed",
+      "priority": "high",
+      "notes": "Used JWT tokens",
+      "tags": ["auth", "backend"]
+    }
+  ]
+}
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "message": "2 entries saved successfully.",
+  "savedRows": 2,
+  "skippedRows": 0
+}
+```
+
+---
+
+# Import Worksheet File
+
+**POST** `/employee/worksheet/import`
+
+### Description
+Imports worksheet entries from a file.
+
+Supported file formats:
+
+```
+CSV
+JSON
+XLSX
+DOCX
+PDF
+```
+
+Features:
+
+```
+Duplicate detection
+Row validation
+Time overlap detection
+Bulk processing
+```
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+
+---
+
+### Form Data
+
+| Field | Type | Description |
+|------|------|-------------|
+| file | file | Worksheet file |
+
+---
+
+### Success Response
+
+```json
+{
+  "message": "Import complete. 45 entries saved.",
+  "totalRows": 50,
+  "validRows": 45,
+  "savedRows": 45,
+  "skippedRows": 5,
+  "invalidRows": 0
+}
+```
+
+---
+
+### Error Response
+
+```json
+{
+  "message": "Unsupported file type"
+}
+```
+
+---
+
+# Download Worksheet Template
+
+**GET** `/employee/worksheet/template`
+
+### Description
+Downloads a worksheet template for importing entries.
+
+Supported formats:
+
+```
+csv
+json
+xlsx
+docx
+```
+
+---
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|----------|------|-------------|
+| format | string | Template format |
+
+---
+
+### Example Request
+
+```
+GET /employee/worksheet/template?format=csv
+```
+
+---
+
+### Response
+
+Downloads template file.
+
+Example CSV template:
+
+```
+date,start_time,end_time,duration_minutes,task_title,project,category,status,priority,notes,tags
+2026-02-18,09:00,10:30,90,Implement login feature,Auth Module,development,completed,high,Used JWT tokens,auth;backend
+```
+
+---
+
+# Get Worksheet Entries
+
+**GET** `/employee/worksheet/entries`
+
+### Description
+Fetch worksheet entries for the logged-in employee.
+
+Supports filtering and pagination.
+
+---
+
+### Headers
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|----------|------|-------------|
+| fromDate | string | Start date |
+| toDate | string | End date |
+| project | string | Filter by project |
+| status | string | Filter by status |
+| page | number | Page number |
+| limit | number | Results per page |
+
+---
+
+### Example Request
+
+```
+GET /employee/worksheet/entries?fromDate=2026-02-01&toDate=2026-02-28
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "entries": [
+    {
+      "date": "2026-02-18",
+      "startTime": "09:00",
+      "endTime": "10:30",
+      "taskTitle": "Implement login feature",
+      "project": "Auth Module",
+      "category": "development"
+    }
+  ],
+  "pagination": {
+    "total": 20,
+    "page": 1,
+    "limit": 50,
+    "pages": 1
+  }
+}
+```
+
+---
+
+# Worksheet Productivity Analysis
+
+**GET** `/employee/worksheet/analysis`
+
+### Description
+Provides productivity insights based on worksheet entries.
+
+Metrics include:
+
+```
+Total hours worked
+Work category breakdown
+Daily productivity
+Project distribution
+```
+
+---
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|----------|------|-------------|
+| fromDate | string | Analysis start date |
+| toDate | string | Analysis end date |
+
+---
+
+### Example Request
+
+```
+GET /employee/worksheet/analysis?fromDate=2026-02-01&toDate=2026-02-28
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "fromDate": "2026-02-01",
+  "toDate": "2026-02-28",
+  "totalEntries": 40,
+  "totalHours": 160,
+  "categoryBreakdown": {
+    "development": 80,
+    "meeting": 20,
+    "testing": 30,
+    "documentation": 30
+  }
+}
+```
+
+---
+
+# Export Worksheet Entries
+
+**GET** `/employee/worksheet/export`
+
+### Description
+Exports worksheet entries into downloadable reports.
+
+Supported formats:
+
+```
+csv
+xlsx
+pdf
+docx
+```
+
+---
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|----------|------|-------------|
+| format | string | Export format |
+| fromDate | string | Start date |
+| toDate | string | End date |
+| project | string | Project filter |
+| status | string | Status filter |
+
+---
+
+### Example Request
+
+```
+GET /employee/worksheet/export?format=pdf
+```
+
+---
+
+### Response
+
+Downloads worksheet report file.
+
+Example filenames:
+
+```
+worksheet_2026-02-18.csv
+worksheet_2026-02-18.xlsx
+worksheet_2026-02-18.pdf
+worksheet_2026-02-18.docx
+```
+
+---
+
+# Worksheet Categories
+
+| Category | Description |
+|--------|-------------|
+| development | Coding tasks |
+| design | UI/UX work |
+| testing | QA tasks |
+| meeting | Meetings |
+| documentation | Writing docs |
+| research | Investigation work |
+| support | Client support |
+| other | Miscellaneous |
+
+---
+
+# Worksheet Status
+
+| Status | Description |
+|------|-------------|
+| completed | Task finished |
+| in-progress | Task ongoing |
+| blocked | Task blocked |
+| pending | Not started |
+
+---
+
+# Real-Time Updates
+
+Socket event triggered when worksheet entries change.
+
+Event:
+
+```
+worksheet:updated
+```
+
+Payload:
+
+```json
+{
+  "employeeId": "userId",
+  "fromDate": "2026-02-01",
+  "toDate": "2026-02-05",
+  "changedCount": 5
+}
+```
+
+Used to update:
+
+```
+Timesheet dashboards
+Analytics
+Employee productivity reports
+```
