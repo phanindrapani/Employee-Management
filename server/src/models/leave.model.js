@@ -31,5 +31,7 @@ const leaveSchema = new mongoose.Schema({
     appliedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
+leaveSchema.index({ user: 1, appliedAt: -1 });
+
 const Leave = mongoose.model('Leave', leaveSchema);
 export default Leave;

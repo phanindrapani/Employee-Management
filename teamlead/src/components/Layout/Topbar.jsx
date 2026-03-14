@@ -14,14 +14,6 @@ const Topbar = ({ toggleSidebar }) => {
     const [showNotifications, setShowNotifications] = useState(false);
 
     useEffect(() => {
-        const fetchNotifications = async () => {
-            try {
-                const { data } = await API.get('/notifications');
-                setNotifications(data);
-            } catch (err) {
-                console.error('Failed to fetch notifications');
-            }
-        };
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 30000);
         return () => clearInterval(interval);
@@ -30,7 +22,7 @@ const Topbar = ({ toggleSidebar }) => {
     const fetchNotifications = async () => {
         try {
             const { data } = await API.get('/notifications');
-            setNotifications(data);
+            setNotifications(Array.isArray(data.notifications) ? data.notifications : []);
         } catch (err) {
             console.error('Failed to fetch notifications');
         }

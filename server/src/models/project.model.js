@@ -47,5 +47,7 @@ projectSchema.pre('save', async function (next) {
     next();
 });
 
+projectSchema.index({ assignedTeams: 1 });
+
 const Project = mongoose.model('Project', projectSchema);
 export default Project;

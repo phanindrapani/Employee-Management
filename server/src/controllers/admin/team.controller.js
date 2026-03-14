@@ -3,15 +3,26 @@ import User from '../../models/user.model.js';
 import Team from '../../models/team.model.js';
 import { promoteUser } from '../../services/promotion.service.js';
 import { getIO } from '../../socket.js';
+import { areTransactionsSupported } from '../../utils/dbUtils.js';
 
 export const createTeam = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session = null;
+    const supportsTransactions = await areTransactionsSupported();
+    if (supportsTransactions) {
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+        } catch (e) {
+            session = null;
+        }
+    }
+
     try {
         const { name, department, teamLead, manager, members = [] } = req.body;
 
         // Create Team
-        const [team] = await Team.create([{ name, department, teamLead, manager, members }], { session });
+        const createOptions = session ? { session } : {};
+        const [team] = await Team.create([{ name, department, teamLead, manager, members }], createOptions);
 
         // Promote Lead (if assigned)
         if (teamLead) {
@@ -47,7 +58,7 @@ export const createTeam = async (req, res) => {
             );
         }
 
-        await session.commitTransaction();
+        if (session) await session.commitTransaction();
 
         try {
             const io = getIO();
@@ -59,24 +70,35 @@ export const createTeam = async (req, res) => {
 
         res.status(201).json(team);
     } catch (error) {
-        await session.abortTransaction();
+        if (session) await session.abortTransaction();
         if (error?.code === 11000) {
             return res.status(400).json({ message: "Team name already exists in this department" });
         }
         res.status(500).json({ message: error.message || "Failed to create team" });
     } finally {
-        session.endSession();
+        if (session) session.endSession();
     }
-};
+}
 
 export const updateTeam = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session = null;
+    const supportsTransactions = await areTransactionsSupported();
+    if (supportsTransactions) {
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+        } catch (e) {
+            session = null;
+        }
+    }
+
     try {
         const { id } = req.params;
         const { name, department, teamLead, manager, members = [] } = req.body;
 
-        const team = await Team.findById(id).session(session);
+        const teamQuery = Team.findById(id);
+        if (session) teamQuery.session(session);
+        const team = await teamQuery;
         if (!team) throw new Error("Team not found");
 
         const oldLeadId = team.teamLead ? team.teamLead.toString() : null;
@@ -196,7 +218,7 @@ export const updateTeam = async (req, res) => {
             throw e;
         }
 
-        await session.commitTransaction();
+        if (session) await session.commitTransaction();
 
         const updatedTeam = await Team.findById(id).populate('department').populate('teamLead', 'name email').populate('manager', 'name email');
 
@@ -208,20 +230,30 @@ export const updateTeam = async (req, res) => {
 
         res.json(updatedTeam);
     } catch (error) {
-        await session.abortTransaction();
+        if (session) await session.abortTransaction();
         console.error("Update Team Transaction Error:", error);
         res.status(500).json({ message: error.message || "Failed to update team" });
     } finally {
-        session.endSession();
+        if (session) session.endSession();
     }
-};
+}
 
 export const deleteTeam = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session = null;
+    const supportsTransactions = await areTransactionsSupported();
+    if (supportsTransactions) {
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+        } catch (e) {
+            session = null;
+        }
+    }
     try {
         const { id } = req.params;
-        const team = await Team.findById(id).session(session);
+        const teamQuery = Team.findById(id);
+        if (session) teamQuery.session(session);
+        const team = await teamQuery;
 
         if (team && team.teamLead) {
             await promoteUser(team.teamLead, 'employee', session);
@@ -235,7 +267,7 @@ export const deleteTeam = async (req, res) => {
         await User.updateMany({ team: id }, { team: null }, { session });
         await Team.findByIdAndDelete(id).session(session);
 
-        await session.commitTransaction();
+        if (session) await session.commitTransaction();
 
         try {
             const io = getIO();
@@ -245,12 +277,12 @@ export const deleteTeam = async (req, res) => {
 
         res.json({ message: "Team deleted" });
     } catch (error) {
-        await session.abortTransaction();
+        if (session) await session.abortTransaction();
         res.status(500).json({ message: error.message || "Failed to delete team" });
     } finally {
-        session.endSession();
+        if (session) session.endSession();
     }
-};
+}
 
 export const getAllTeams = async (req, res) => {
     try {
@@ -260,11 +292,21 @@ export const getAllTeams = async (req, res) => {
 };
 
 export const manageTeamMembers = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session = null;
+    const supportsTransactions = await areTransactionsSupported();
+    if (supportsTransactions) {
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+        } catch (e) {
+            session = null;
+        }
+    }
     try {
         const { teamId, memberId, action } = req.body;
-        const team = await Team.findById(teamId).session(session);
+        const teamQuery = Team.findById(teamId);
+        if (session) teamQuery.session(session);
+        const team = await teamQuery;
         if (!team) throw new Error("Team not found");
 
         if (action === 'add') {
@@ -278,10 +320,10 @@ export const manageTeamMembers = async (req, res) => {
         }
 
         await team.save({ session });
-        await session.commitTransaction();
+        if (session) await session.commitTransaction();
         res.json(team);
     } catch (error) {
-        await session.abortTransaction();
+        if (session) await session.abortTransaction();
         res.status(500).json({ message: "Failed to manage team members" });
-    } finally { session.endSession(); }
-};
+    } finally { if (session) session.endSession(); }
+}

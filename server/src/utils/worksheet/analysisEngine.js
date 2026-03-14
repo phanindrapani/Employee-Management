@@ -1,179 +1,165 @@
+import mongoose from 'mongoose';
 import WorksheetEntry from '../../models/worksheetEntry.model.js';
 
-export const computeAnalysis = async (employeeId, fromDate, toDate) => {
-    const query = {
-        employee: employeeId,
-        date: { $gte: fromDate, $lte: toDate }
-    };
+const PRODUCTIVE_CATEGORIES = ['development', 'design', 'testing', 'documentation', 'research'];
 
-    const entries = await WorksheetEntry.find(query).lean();
-
-    if (entries.length === 0) {
-        return {
-            totalHours: 0,
-            productiveHours: 0,
-            nonProductiveHours: 0,
-            tasksCompleted: 0,
-            completionRatio: 0,
-            avgTaskDuration: 0,
-            topProjects: [],
-            topCategories: [],
-            trend: []
-        };
+const getAnalysisAggregation = (matchQuery) => [
+    { $match: matchQuery },
+    {
+        $addFields: {
+            durationMinutesVal: { $ifNull: ["$durationMinutes", 0] },
+            isCompleted: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
+            isProductive: { $cond: [{ $in: ["$category", PRODUCTIVE_CATEGORIES] }, 1, 0] }
+        }
+    },
+    {
+        $facet: {
+            summary: [
+                {
+                    $group: {
+                        _id: null,
+                        totalMinutes: { $sum: "$durationMinutesVal" },
+                        tasksCompletedCount: { $sum: "$isCompleted" },
+                        productiveMinutes: { $sum: { $cond: ["$isProductive", "$durationMinutesVal", 0] } },
+                        totalTasks: { $sum: 1 }
+                    }
+                }
+            ],
+            topProjects: [
+                {
+                    $group: {
+                        _id: { $ifNull: ["$project", "Unassigned"] },
+                        minutes: { $sum: "$durationMinutesVal" },
+                        tasks: { $sum: 1 }
+                    }
+                },
+                { $project: { name: "$_id", hours: { $round: [{ $divide: ["$minutes", 60] }, 2] }, tasks: 1, _id: 0 } },
+                { $sort: { hours: -1 } },
+                { $limit: 5 }
+            ],
+            topCategories: [
+                {
+                    $group: {
+                        _id: { $ifNull: ["$category", "other"] },
+                        minutes: { $sum: "$durationMinutesVal" },
+                        tasks: { $sum: 1 }
+                    }
+                },
+                { $project: { name: "$_id", hours: { $round: [{ $divide: ["$minutes", 60] }, 2] }, tasks: 1, _id: 0 } },
+                { $sort: { hours: -1 } }
+            ],
+            trend: [
+                {
+                    $group: {
+                        _id: "$date",
+                        minutes: { $sum: "$durationMinutesVal" },
+                        tasks: { $sum: 1 }
+                    }
+                },
+                { $project: { date: "$_id", hours: { $round: [{ $divide: ["$minutes", 60] }, 2] }, tasks: 1, _id: 0 } },
+                { $sort: { date: 1 } }
+            ]
+        }
     }
+];
 
-    const totalMinutes = entries.reduce((sum, e) => sum + (e.durationMinutes || 0), 0);
-    const totalHours = +(totalMinutes / 60).toFixed(2);
+const formatResult = (results) => {
+    const data = results[0];
+    const summary = data.summary[0] || { totalMinutes: 0, tasksCompletedCount: 0, productiveMinutes: 0, totalTasks: 0 };
 
-    const productiveCategories = ['development', 'design', 'testing', 'documentation', 'research'];
-    const productiveMinutes = entries
-        .filter(e => productiveCategories.includes(e.category))
-        .reduce((sum, e) => sum + (e.durationMinutes || 0), 0);
-    const productiveHours = +(productiveMinutes / 60).toFixed(2);
-    const nonProductiveHours = +(totalHours - productiveHours).toFixed(2);
-
-    const tasksCompleted = entries.filter(e => e.status === 'completed').length;
-    const completionRatio = entries.length > 0
-        ? +((tasksCompleted / entries.length) * 100).toFixed(1)
-        : 0;
-    const avgTaskDuration = entries.length > 0
-        ? +(totalMinutes / entries.length).toFixed(1)
-        : 0;
-
-    // Top projects
-    const projectMap = {};
-    entries.forEach(e => {
-        const p = e.project || 'Unassigned';
-        if (!projectMap[p]) projectMap[p] = { name: p, hours: 0, tasks: 0 };
-        projectMap[p].hours += e.durationMinutes / 60;
-        projectMap[p].tasks += 1;
-    });
-    const topProjects = Object.values(projectMap)
-        .map(p => ({ ...p, hours: +p.hours.toFixed(2) }))
-        .sort((a, b) => b.hours - a.hours)
-        .slice(0, 5);
-
-    // Top categories
-    const catMap = {};
-    entries.forEach(e => {
-        const c = e.category || 'other';
-        if (!catMap[c]) catMap[c] = { name: c, hours: 0, tasks: 0 };
-        catMap[c].hours += e.durationMinutes / 60;
-        catMap[c].tasks += 1;
-    });
-    const topCategories = Object.values(catMap)
-        .map(c => ({ ...c, hours: +c.hours.toFixed(2) }))
-        .sort((a, b) => b.hours - a.hours);
-
-    // Daily trend
-    const trendMap = {};
-    entries.forEach(e => {
-        if (!trendMap[e.date]) trendMap[e.date] = { date: e.date, hours: 0, tasks: 0 };
-        trendMap[e.date].hours += e.durationMinutes / 60;
-        trendMap[e.date].tasks += 1;
-    });
-    const trend = Object.values(trendMap)
-        .map(d => ({ ...d, hours: +d.hours.toFixed(2) }))
-        .sort((a, b) => a.date.localeCompare(b.date));
+    const totalHours = +(summary.totalMinutes / 60).toFixed(2);
+    const productiveHours = +(summary.productiveMinutes / 60).toFixed(2);
 
     return {
         totalHours,
         productiveHours,
-        nonProductiveHours,
-        tasksCompleted,
-        completionRatio,
-        avgTaskDuration,
-        topProjects,
-        topCategories,
-        trend
+        nonProductiveHours: +(totalHours - productiveHours).toFixed(2),
+        tasksCompleted: summary.tasksCompletedCount,
+        completionRatio: summary.totalTasks > 0 ? +((summary.tasksCompletedCount / summary.totalTasks) * 100).toFixed(1) : 0,
+        avgTaskDuration: summary.totalTasks > 0 ? +(summary.totalMinutes / summary.totalTasks).toFixed(1) : 0,
+        topProjects: data.topProjects,
+        topCategories: data.topCategories,
+        trend: data.trend
+    };
+};
+
+export const computeAnalysis = async (employeeId, fromDate, toDate) => {
+    const eid = typeof employeeId === 'string' ? new mongoose.Types.ObjectId(employeeId) : employeeId;
+    const matchQuery = {
+        employee: eid,
+        date: { $gte: fromDate, $lte: toDate }
+    };
+
+    const [summaryRes, projectsRes, categoriesRes, trendRes] = await Promise.all([
+        // 1. Summary
+        WorksheetEntry.aggregate([
+            { $match: matchQuery },
+            {
+                $group: {
+                    _id: null,
+                    totalMinutes: { $sum: { $ifNull: ["$durationMinutes", 0] } },
+                    tasksCompletedCount: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
+                    productiveMinutes: {
+                        $sum: {
+                            $cond: [
+                                { $in: ["$category", PRODUCTIVE_CATEGORIES] },
+                                { $ifNull: ["$durationMinutes", 0] },
+                                0
+                            ]
+                        }
+                    },
+                    totalTasks: { $sum: 1 }
+                }
+            }
+        ]),
+        // 2. Top Projects
+        WorksheetEntry.aggregate([
+            { $match: matchQuery },
+            { $group: { _id: { $ifNull: ["$project", "Unassigned"] }, hours: { $sum: { $divide: ["$durationMinutes", 60] } }, tasks: { $sum: 1 } } },
+            { $project: { name: "$_id", hours: { $round: ["$hours", 2] }, tasks: 1, _id: 0 } },
+            { $sort: { hours: -1 } },
+            { $limit: 5 }
+        ]),
+        // 3. Top Categories
+        WorksheetEntry.aggregate([
+            { $match: matchQuery },
+            { $group: { _id: { $ifNull: ["$category", "other"] }, hours: { $sum: { $divide: ["$durationMinutes", 60] } }, tasks: { $sum: 1 } } },
+            { $project: { name: "$_id", hours: { $round: ["$hours", 2] }, tasks: 1, _id: 0 } },
+            { $sort: { hours: -1 } }
+        ]),
+        // 4. Daily Trend
+        WorksheetEntry.aggregate([
+            { $match: matchQuery },
+            { $group: { _id: "$date", hours: { $sum: { $divide: ["$durationMinutes", 60] } }, tasks: { $sum: 1 } } },
+            { $project: { date: "$_id", hours: { $round: ["$hours", 2] }, tasks: 1, _id: 0 } },
+            { $sort: { date: 1 } }
+        ])
+    ]);
+
+    const summary = summaryRes[0] || { totalMinutes: 0, tasksCompletedCount: 0, productiveMinutes: 0, totalTasks: 0 };
+    const totalHours = +(summary.totalMinutes / 60).toFixed(2);
+    const productiveHours = +(summary.productiveMinutes / 60).toFixed(2);
+
+    return {
+        totalHours,
+        productiveHours,
+        nonProductiveHours: +(totalHours - productiveHours).toFixed(2),
+        tasksCompleted: summary.tasksCompletedCount,
+        completionRatio: summary.totalTasks > 0 ? +((summary.tasksCompletedCount / summary.totalTasks) * 100).toFixed(1) : 0,
+        avgTaskDuration: summary.totalTasks > 0 ? +(summary.totalMinutes / summary.totalTasks).toFixed(1) : 0,
+        topProjects: projectsRes,
+        topCategories: categoriesRes,
+        trend: trendRes
     };
 };
 
 export const computeTeamAnalysis = async (employeeIds, fromDate, toDate) => {
-    const query = {
-        employee: { $in: employeeIds },
+    const ids = employeeIds.map(id => typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id);
+    const matchQuery = {
+        employee: { $in: ids },
         date: { $gte: fromDate, $lte: toDate }
     };
 
-    const entries = await WorksheetEntry.find(query).lean();
-
-    if (entries.length === 0) {
-        return {
-            totalHours: 0,
-            productiveHours: 0,
-            nonProductiveHours: 0,
-            tasksCompleted: 0,
-            completionRatio: 0,
-            avgTaskDuration: 0,
-            topProjects: [],
-            topCategories: [],
-            trend: []
-        };
-    }
-
-    const totalMinutes = entries.reduce((sum, e) => sum + (e.durationMinutes || 0), 0);
-    const totalHours = +(totalMinutes / 60).toFixed(2);
-
-    const productiveCategories = ['development', 'design', 'testing', 'documentation', 'research'];
-    const productiveMinutes = entries
-        .filter(e => productiveCategories.includes(e.category))
-        .reduce((sum, e) => sum + (e.durationMinutes || 0), 0);
-    const productiveHours = +(productiveMinutes / 60).toFixed(2);
-    const nonProductiveHours = +(totalHours - productiveHours).toFixed(2);
-
-    const tasksCompleted = entries.filter(e => e.status === 'completed').length;
-    const completionRatio = entries.length > 0
-        ? +((tasksCompleted / entries.length) * 100).toFixed(1)
-        : 0;
-    const avgTaskDuration = entries.length > 0
-        ? +(totalMinutes / entries.length).toFixed(1)
-        : 0;
-
-    // Top projects
-    const projectMap = {};
-    entries.forEach(e => {
-        const p = e.project || 'Unassigned';
-        if (!projectMap[p]) projectMap[p] = { name: p, hours: 0, tasks: 0 };
-        projectMap[p].hours += e.durationMinutes / 60;
-        projectMap[p].tasks += 1;
-    });
-    const topProjects = Object.values(projectMap)
-        .map(p => ({ ...p, hours: +p.hours.toFixed(2) }))
-        .sort((a, b) => b.hours - a.hours)
-        .slice(0, 5);
-
-    // Top categories
-    const catMap = {};
-    entries.forEach(e => {
-        const c = e.category || 'other';
-        if (!catMap[c]) catMap[c] = { name: c, hours: 0, tasks: 0 };
-        catMap[c].hours += e.durationMinutes / 60;
-        catMap[c].tasks += 1;
-    });
-    const topCategories = Object.values(catMap)
-        .map(c => ({ ...c, hours: +c.hours.toFixed(2) }))
-        .sort((a, b) => b.hours - a.hours);
-
-    // Daily trend
-    const trendMap = {};
-    entries.forEach(e => {
-        if (!trendMap[e.date]) trendMap[e.date] = { date: e.date, hours: 0, tasks: 0 };
-        trendMap[e.date].hours += e.durationMinutes / 60;
-        trendMap[e.date].tasks += 1;
-    });
-    const trend = Object.values(trendMap)
-        .map(d => ({ ...d, hours: +d.hours.toFixed(2) }))
-        .sort((a, b) => a.date.localeCompare(b.date));
-
-    return {
-        totalHours,
-        productiveHours,
-        nonProductiveHours,
-        tasksCompleted,
-        completionRatio,
-        avgTaskDuration,
-        topProjects,
-        topCategories,
-        trend
-    };
-};
+    const results = await WorksheetEntry.aggregate(getAnalysisAggregation(matchQuery));
+    return formatResult(results);
+};

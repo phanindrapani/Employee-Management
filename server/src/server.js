@@ -1,4 +1,6 @@
+process.env.UV_THREADPOOL_SIZE = 128;
 import express from "express";
+import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
@@ -6,6 +8,7 @@ import { fileURLToPath } from "url";
 import http from "http";
 import os from "os";
 import { initSocket } from "./socket.js";
+import { createServer } from 'http';
 
 // Load env vars immediately
 const result = dotenv.config();
@@ -72,6 +75,9 @@ const corsOptions = {
 };
 
 // Middlewares
+if (process.env.SILENT_LOGS !== "true") {
+  app.use(morgan("dev"));
+}
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -115,7 +121,21 @@ const getLanIP = () => {
 
 const LAN_IP = getLanIP();
 
-server.listen(PORT, HOST, () => {
+// 🔹 Increase connection backlog (important for load testing)
+const BACKLOG = 2048;
+
+server.keepAliveTimeout = 120000;
+server.headersTimeout = 125000;
+server.requestTimeout = 120000;
+server.maxConnections = 10000;
+
+// 🔹 Reduce connection delays under load
+server.on('connection', (socket) => {
+  socket.setNoDelay(true);           // Disable Nagle's algorithm
+  socket.setKeepAlive(true, 60000);  // Enable TCP keepalive
+});
+
+server.listen(PORT, HOST, BACKLOG, () => {
   console.log("Server running on:");
   console.log(`- Local:   http://localhost:${PORT}`);
   console.log(`- Network: http://${LAN_IP}:${PORT}`);

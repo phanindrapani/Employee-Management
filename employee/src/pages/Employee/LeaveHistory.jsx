@@ -14,7 +14,9 @@ import useSocketListener from '../../hooks/useSocketListener';
 const LeaveHistory = () => {
     const [leaves, setLeaves] = useState(() => {
         const cached = localStorage.getItem('ls_emp_leaves_history');
-        return cached ? JSON.parse(cached) : [];
+        if (!cached) return [];
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) ? parsed : (parsed.leaves || []);
     });
     const [loading, setLoading] = useState(leaves.length === 0);
     const [filterStatus, setFilterStatus] = useState('all');
@@ -22,8 +24,9 @@ const LeaveHistory = () => {
     const fetchLeaves = async () => {
         try {
             const { data } = await API.get('/employee/leaves');
-            setLeaves(data);
-            localStorage.setItem('ls_emp_leaves_history', JSON.stringify(data));
+            const leavesData = data.leaves || data;
+            setLeaves(leavesData);
+            localStorage.setItem('ls_emp_leaves_history', JSON.stringify(leavesData));
         } catch (err) {
             console.error('Failed to fetch leaves');
         } finally {

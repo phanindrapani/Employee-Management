@@ -1,6 +1,10 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 
+// Simple in-memory cache for user lookups to reduce DB load under high concurrency
+const userCache = new Map();
+const CACHE_TTL = 30000; // 30 seconds
+
 export const protect = async (req, res, next) => {
     let token;
 
@@ -9,10 +13,22 @@ export const protect = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
 
-            // Find user but exclude password (already handled by select: false, but good to be explicit)
-            req.user = await User.findById(decoded.id).select('-password');
-            if (!req.user) {
-                return res.status(401).json({ message: 'User no longer exists' });
+            // Check cache first
+            const cachedUser = userCache.get(decoded.id);
+            if (cachedUser && (Date.now() - cachedUser.timestamp < CACHE_TTL)) {
+                req.user = cachedUser.data;
+            } else {
+                // Optimized user lookup: use .lean() and select specific fields
+                const user = await User.findById(decoded.id)
+                    .select('name email role isActive department team reportingManager')
+                    .lean();
+                
+                if (user) {
+                    userCache.set(decoded.id, { data: user, timestamp: Date.now() });
+                    req.user = user;
+                } else {
+                    return res.status(401).json({ message: 'User no longer exists' });
+                }
             }
 
             if (!req.user.isActive) {

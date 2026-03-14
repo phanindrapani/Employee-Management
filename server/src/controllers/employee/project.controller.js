@@ -7,7 +7,9 @@ export const getMyTeamProjects = async (req, res) => {
 
         const projects = await Project.find({ assignedTeams: teamId })
             .populate('assignedTeams', 'name')
-            .sort({ endDate: 1 });
+            .select('name description status priority startDate endDate progress progressMode')
+            .sort({ endDate: 1 })
+            .lean();
 
         res.json(projects);
     } catch (error) {

@@ -8,11 +8,15 @@ import useSocketListener from '../../hooks/useSocketListener';
 const HolidayCalendar = () => {
     const [holidays, setHolidays] = useState(() => {
         const cached = localStorage.getItem('ls_emp_holidays');
-        return cached ? JSON.parse(cached) : [];
+        if (!cached) return [];
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) ? parsed : (parsed.holidays || []);
     });
     const [leaves, setLeaves] = useState(() => {
         const cached = localStorage.getItem('ls_emp_leaves_history');
-        return cached ? JSON.parse(cached) : [];
+        if (!cached) return [];
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) ? parsed : (parsed.leaves || []);
     });
     const [loading, setLoading] = useState(holidays.length === 0 && leaves.length === 0);
 
@@ -24,12 +28,14 @@ const HolidayCalendar = () => {
             ]);
 
             if (holidaysRes.status === 'fulfilled') {
-                setHolidays(holidaysRes.value.data);
-                localStorage.setItem('ls_emp_holidays', JSON.stringify(holidaysRes.value.data));
+                const holidaysData = holidaysRes.value.data.holidays || holidaysRes.value.data;
+                setHolidays(holidaysData);
+                localStorage.setItem('ls_emp_holidays', JSON.stringify(holidaysData));
             }
             if (leavesRes.status === 'fulfilled') {
-                setLeaves(leavesRes.value.data);
-                localStorage.setItem('ls_emp_leaves_history', JSON.stringify(leavesRes.value.data));
+                const leavesData = leavesRes.value.data.leaves || leavesRes.value.data;
+                setLeaves(leavesData);
+                localStorage.setItem('ls_emp_leaves_history', JSON.stringify(leavesData));
             }
 
         } catch (err) {

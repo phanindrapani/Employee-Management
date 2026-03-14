@@ -1,5 +1,6 @@
 import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
+import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret', {
@@ -132,10 +133,10 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
-import { uploadBufferToCloudinary } from '../utils/cloudinaryHelper.js';
 
 export const updateProfile = async (req, res) => {
     try {
+        console.log("Updating profile for user:", req.user?._id);
         const user = await User.findById(req.user._id);
 
         if (user) {
@@ -172,8 +173,8 @@ export const updateProfile = async (req, res) => {
             res.status(404).json({ message: 'User not found' });
         }
     } catch (error) {
-        console.error("Update Profile Error:", error);
-        res.status(500).json({ message: error.message || "Failed to update profile" });
+        console.error("Update Profile Error (Full Error):", error);
+        res.status(500).json({ message: error.message || "Failed to update profile", stack: error.stack });
     }
 };
 
@@ -184,7 +185,7 @@ export const changePassword = async (req, res) => {
         return res.status(400).json({ message: 'Current and new password are required' });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+password');
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });

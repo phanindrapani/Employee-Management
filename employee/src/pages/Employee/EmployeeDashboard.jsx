@@ -22,10 +22,10 @@ const EmployeeDashboard = () => {
         return cached ? JSON.parse(cached) : null;
     });
 
-    const [leaves, setLeaves] = useState(cachedData?.leaves || []);
+    const [leaves, setLeaves] = useState(() => Array.isArray(cachedData?.leaves) ? cachedData.leaves : (cachedData?.leaves?.leaves || []));
     const [balance, setBalance] = useState(cachedData?.balance || { cl: 0, sl: 0, el: 0 });
-    const [notifications, setNotifications] = useState(cachedData?.notifications || []);
-    const [tasks, setTasks] = useState(cachedData?.tasks || []);
+    const [notifications, setNotifications] = useState(() => Array.isArray(cachedData?.notifications) ? cachedData.notifications : (cachedData?.notifications?.notifications || []));
+    const [tasks, setTasks] = useState(() => Array.isArray(cachedData?.tasks) ? cachedData.tasks : (cachedData?.tasks?.tasks || []));
     const [projects, setProjects] = useState(cachedData?.projects || []);
     const [loading, setLoading] = useState(!cachedData);
 
@@ -40,10 +40,10 @@ const EmployeeDashboard = () => {
             ]);
 
             const freshCache = {
-                leaves: leavesResult.status === 'fulfilled' ? leavesResult.value.data : (cachedData?.leaves || []),
-                notifications: notifResult.status === 'fulfilled' ? notifResult.value.data : (cachedData?.notifications || []),
+                leaves: leavesResult.status === 'fulfilled' ? (leavesResult.value.data.leaves || leavesResult.value.data) : (cachedData?.leaves || []),
+                notifications: notifResult.status === 'fulfilled' ? (notifResult.value.data.notifications || notifResult.value.data) : (cachedData?.notifications || []),
                 balance: userResult.status === 'fulfilled' ? userResult.value.data?.leaveBalance : (cachedData?.balance || { cl: 0, sl: 0, el: 0 }),
-                tasks: tasksResult.status === 'fulfilled' ? tasksResult.value.data : (cachedData?.tasks || []),
+                tasks: tasksResult.status === 'fulfilled' ? (tasksResult.value.data.tasks || tasksResult.value.data) : (cachedData?.tasks || []),
                 projects: projectsResult.status === 'fulfilled' ? projectsResult.value.data : (cachedData?.projects || [])
             };
 

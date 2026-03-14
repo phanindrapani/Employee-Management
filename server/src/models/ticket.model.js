@@ -197,7 +197,7 @@ ticketSchema.index({ clientId: 1 });
 ticketSchema.index({ status: 1 });
 ticketSchema.index({ assignedManager: 1 });
 ticketSchema.index({ assignedTeamLead: 1 });
-ticketSchema.index({ assignedEmployee: 1 });
+ticketSchema.index({ assignedEmployee: 1, status: 1 });
 ticketSchema.index({ dueDate: 1, slaBreached: 1 });
 
 const Ticket = mongoose.model('Ticket', ticketSchema);

@@ -1,7 +1,7 @@
 import EmployeeDocument from '../../models/employeeDocument.model.js';
 import Notification from '../../models/notification.model.js';
 import User from '../../models/user.model.js';
-import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
+import { uploadBufferToCloudinary, deleteFromCloudinary } from '../../utils/cloudinaryHelper.js';
 import { getIO } from '../../socket.js';
 
 export const uploadDocument = async (req, res) => {
@@ -15,43 +15,46 @@ export const uploadDocument = async (req, res) => {
         const userId = req.user._id;
         const folder = `documents/${userId}`;
 
-        const fileUrl = await uploadBufferToCloudinary(req.file, folder);
+        const { secure_url, public_id } = await uploadBufferToCloudinary(req.file, folder);
 
         const newDoc = await EmployeeDocument.create({
             user: userId,
             category,
             documentName,
-            fileUrl,
+            fileUrl: secure_url,
+            publicId: public_id,
             originalName: req.file.originalname,
             verificationStatus: 'pending'
         });
 
         res.status(201).json(newDoc);
 
-        try {
-            const admins = await User.find({ role: 'admin' });
+        // Offload notification logic to avoid blocking the user's response
+        setImmediate(async () => {
+            try {
+                const admins = await User.find({ role: 'admin' }).select('_id').lean();
 
-            const notifications = admins.map(admin => ({
-                user: admin._id,
-                message: `New Document Uploaded: ${req.user.name} uploaded "${documentName}" (${category})`,
-                isRead: false
-            }));
+                const notifications = admins.map(admin => ({
+                    user: admin._id,
+                    message: `New Document Uploaded: ${req.user.name} uploaded "${documentName}" (${category})`,
+                    isRead: false
+                }));
 
-            if (notifications.length > 0) {
-                await Notification.insertMany(notifications);
+                if (notifications.length > 0) {
+                    await Notification.insertMany(notifications);
 
-                const io = getIO();
-                io.to('role:admin').emit('notification', {
-                    message: `New Document: ${req.user.name} uploaded "${documentName}"`,
-                    type: 'document_upload',
-                    documentId: newDoc._id,
-                    user: req.user.name
-                });
+                    const io = getIO();
+                    io.to('role:admin').emit('notification', {
+                        message: `New Document: ${req.user.name} uploaded "${documentName}"`,
+                        type: 'document_upload',
+                        documentId: newDoc._id,
+                        user: req.user.name
+                    });
+                }
+            } catch (notifError) {
+                console.error("Notification Error (Async):", notifError);
             }
-        } catch (notifError) {
-            console.error("Notification Error:", notifError);
-
-        }
+        });
     } catch (error) {
         console.error("Upload Document Error:", error);
         res.status(500).json({ message: "Failed to upload document" });
@@ -63,7 +66,8 @@ export const getDocuments = async (req, res) => {
         let targetUserId = req.user._id;
 
         const documents = await EmployeeDocument.find({ user: targetUserId })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
 
         res.json(documents);
     } catch (error) {
@@ -86,8 +90,13 @@ export const deleteDocument = async (req, res) => {
             return res.status(400).json({ message: "Cannot delete verified documents" });
         }
 
+        // Delete from Cloudinary
+        if (doc.publicId) {
+            await deleteFromCloudinary(doc.publicId);
+        }
+
         await EmployeeDocument.findByIdAndDelete(id);
-        res.json({ message: "Document deleted successfully" });
+        res.json({ message: "Document deleted successfully both from database and Cloudinary" });
     } catch (error) {
         res.status(500).json({ message: "Failed to delete document" });
     }

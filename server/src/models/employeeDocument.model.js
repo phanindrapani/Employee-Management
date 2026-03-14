@@ -19,6 +19,10 @@ const employeeDocumentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    publicId: {
+        type: String,
+        required: true
+    },
     originalName: {
         type: String // The original filename uploaded
     },
@@ -42,6 +46,8 @@ const employeeDocumentSchema = new mongoose.Schema({
         type: String
     }
 }, { timestamps: true });
+
+employeeDocumentSchema.index({ user: 1, createdAt: -1 });
 
 const EmployeeDocument = mongoose.model('EmployeeDocument', employeeDocumentSchema);
 

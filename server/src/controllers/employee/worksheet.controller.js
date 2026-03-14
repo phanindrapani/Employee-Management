@@ -107,57 +107,49 @@ export const importWorksheet = async (req, res) => {
             }
         });
 
-        let savedCount = 0;
-        let skippedCount = 0;
         const now = new Date();
-
-        for (const row of validRows) {
-            try {
-                const result = await WorksheetEntry.findOneAndUpdate(
-                    {
+        const bulkOps = validRows.map(row => ({
+            updateOne: {
+                filter: {
+                    employee: req.user._id,
+                    date: row.date,
+                    startTime: row.startTime,
+                    taskTitle: row.taskTitle
+                },
+                update: {
+                    $setOnInsert: {
+                        ...row,
                         employee: req.user._id,
-                        date: row.date,
-                        startTime: row.startTime,
-                        taskTitle: row.taskTitle
-                    },
-                    {
-                        $setOnInsert: {
-                            ...row,
-                            employee: req.user._id,
-                            sourceApp: 'import',
-                            sourceFileName: originalname,
-                            sourceChecksum: checksum,
-                            importedAt: now,
-                            importedBy: req.user._id,
-                            rawRow: row
-                        }
-                    },
-                    { upsert: true, new: false }
-                );
-                if (result === null) {
-                    savedCount++;
-                } else {
-                    skippedCount++;
-                }
-            } catch (err) {
-                if (err.code === 11000) {
-                    skippedCount++;
-                } else {
-                    console.error('[Worksheet] Row save error:', err.message);
-                }
+                        sourceApp: 'import',
+                        sourceFileName: originalname,
+                        sourceChecksum: checksum,
+                        importedAt: now,
+                        importedBy: req.user._id,
+                        rawRow: row
+                    }
+                },
+                upsert: true
             }
-        }
+        }));
 
-        try {
-            const io = getIO();
-            const dates = validRows.map(r => r.date).sort();
-            io.to(`user:${req.user._id}`).emit('worksheet:updated', {
-                employeeId: req.user._id,
-                fromDate: dates[0] || null,
-                toDate: dates[dates.length - 1] || null,
-                changedCount: savedCount
-            });
-        } catch (e) { console.error('[Worksheet] Socket emit error:', e.message); }
+        const bulkResult = await WorksheetEntry.bulkWrite(bulkOps, { ordered: false });
+        const savedCount = bulkResult.upsertedCount;
+        const skippedCount = bulkResult.matchedCount;
+
+        setImmediate(async () => {
+            try {
+                const io = getIO();
+                const dates = [...new Set(validRows.map(r => r.date))].sort();
+                io.to(`user:${req.user._id}`).emit('worksheet:updated', {
+                    employeeId: req.user._id,
+                    fromDate: dates[0] || null,
+                    toDate: dates[dates.length - 1] || null,
+                    changedCount: savedCount
+                });
+            } catch (e) {
+                console.error('[Worksheet] Import Socket emit error:', e.message);
+            }
+        });
 
         res.status(200).json({
             message: skippedCount > 0
@@ -287,8 +279,16 @@ export const getEntries = async (req, res) => {
         if (status) query.status = status;
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
+        const userId = req.user._id || req.user.id;
+        query.employee = userId;
+
         const [entries, total] = await Promise.all([
-            WorksheetEntry.find(query).sort({ date: -1, startTime: -1 }).skip(skip).limit(parseInt(limit)).lean(),
+            WorksheetEntry.find(query)
+                .select('-rawRow -validationFlags')
+                .sort({ date: -1, startTime: -1 })
+                .skip(skip)
+                .limit(parseInt(limit))
+                .lean(),
             WorksheetEntry.countDocuments(query)
         ]);
 
@@ -391,27 +391,29 @@ export const saveEntries = async (req, res) => {
         }
 
         const validRows = [];
-        const errors = [];
+        const validationErrors = [];
         const now = new Date();
+        const userId = req.user._id || req.user.id;
 
         rawEntries.forEach((raw, i) => {
             const row = mapRow(raw);
             const { valid, errors: rowErrors } = validateRow(row, i);
 
             if (!valid) {
-                errors.push(...rowErrors.map(e => ({ row: i + 1, field: e.field, message: e.message })));
+                validationErrors.push(...rowErrors.map(e => ({ row: i + 1, field: e.field, message: e.message })));
             } else {
-                validRows.push(row);
+                validRows.push({ ...row, employee: userId });
             }
         });
 
-        if (errors.length > 0) {
+        if (validationErrors.length > 0) {
             return res.status(422).json({
                 message: 'Validation failed for some rows',
-                errors
+                errors: validationErrors
             });
         }
 
+        // Intra-batch overlap check
         const overlapIndexes = detectOverlaps(validRows.map((r, i) => ({ ...r, _originalIndex: i })));
         if (overlapIndexes.size > 0) {
             const overlapErrors = Array.from(overlapIndexes).map(idx => ({
@@ -425,55 +427,51 @@ export const saveEntries = async (req, res) => {
             });
         }
 
-        let savedCount = 0;
-        let skippedCount = 0;
-
-        for (const row of validRows) {
-            try {
-                const result = await WorksheetEntry.findOneAndUpdate(
-                    {
-                        employee: req.user._id,
-                        date: row.date,
-                        startTime: row.startTime,
-                        taskTitle: row.taskTitle
-                    },
-                    {
-                        $setOnInsert: {
-                            ...row,
-                            employee: req.user._id,
-                            sourceApp: 'direct-entry',
-                            importedAt: now,
-                            importedBy: req.user._id,
-                            rawRow: row
-                        }
-                    },
-                    { upsert: true, new: false }
-                );
-                if (result === null) savedCount++;
-                else skippedCount++;
-            } catch (err) {
-                if (err.code === 11000) skippedCount++;
-                else console.error('[Worksheet] Save error:', err.message);
+        // Optimized bulkWrite implementation
+        const bulkOps = validRows.map(row => ({
+            updateOne: {
+                filter: {
+                    employee: userId,
+                    date: row.date,
+                    startTime: row.startTime,
+                    taskTitle: row.taskTitle
+                },
+                update: {
+                    $setOnInsert: {
+                        ...row,
+                        sourceApp: 'direct-entry',
+                        importedAt: now,
+                        importedBy: userId,
+                        rawRow: row
+                    }
+                },
+                upsert: true
             }
-        }
+        }));
 
-        try {
-            const io = getIO();
-            const dates = validRows.map(r => r.date).sort();
-            io.to(`user:${req.user._id}`).emit('worksheet:updated', {
-                employeeId: req.user._id,
-                fromDate: dates[0] || null,
-                toDate: dates[dates.length - 1] || null,
-                changedCount: savedCount
-            });
-        } catch (e) { console.error('[Worksheet] Socket emit error:', e.message); }
+        const result = await WorksheetEntry.bulkWrite(bulkOps, { ordered: false });
+
+        setImmediate(async () => {
+            try {
+                const io = getIO();
+                const dates = [...new Set(validRows.map(r => r.date))].sort();
+                io.to(`user:${userId}`).emit('worksheet:updated', {
+                    employeeId: userId,
+                    fromDate: dates[0] || null,
+                    toDate: dates[dates.length - 1] || null,
+                    changedCount: result.upsertedCount
+                });
+            } catch (e) {
+                console.error('[Worksheet] Background Socket emit error:', e.message);
+            }
+        });
 
         res.status(200).json({
-            message: skippedCount > 0
-                ? `${savedCount} entries saved, ${skippedCount} duplicates skipped.`
-                : `${savedCount} entries saved successfully.`,
-            savedRows: savedCount,
-            skippedRows: skippedCount
+            message: result.upsertedCount > 0
+                ? `${result.upsertedCount} entries saved, ${result.matchedCount} duplicates skipped.`
+                : `${result.matchedCount} duplicates detected, no new entries saved.`,
+            savedRows: result.upsertedCount,
+            skippedRows: result.matchedCount
         });
 
     } catch (err) {

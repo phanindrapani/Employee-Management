@@ -16,7 +16,7 @@ const Topbar = ({ toggleSidebar }) => {
     const fetchNotifications = useCallback(async () => {
         try {
             const { data } = await API.get('/employee/notifications');
-            setNotifications(data);
+            setNotifications(Array.isArray(data.notifications) ? data.notifications : []);
         } catch (err) {
             console.error('Failed to fetch notifications');
         }

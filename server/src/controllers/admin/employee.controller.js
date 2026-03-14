@@ -71,6 +71,18 @@ export const getEmployees = async (req, res) => {
   }
 };
 
+export const getTeamLeads = async (req, res) => {
+  try {
+    const teamLeads = await User.find({ role: 'team-lead' })
+      .select('name email uid profilePicture')
+      .populate('department', 'name')
+      .sort({ name: 1 });
+    res.json(teamLeads);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getEmployeeById = async (req, res) => {
   try {
     const employee = await User.findById(req.params.id)
@@ -143,14 +155,30 @@ export const addEmployee = async (req, res) => {
   }
 };
 
+import { areTransactionsSupported } from '../../utils/dbUtils.js';
+
 export const updateEmployee = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session = null;
+  const supportsTransactions = await areTransactionsSupported();
+  
+  if (supportsTransactions) {
+    try {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    } catch (e) {
+      session = null;
+      console.warn("Failed to start MongoDB session even though transactions should be supported.");
+    }
+  }
+
   try {
     const { id } = req.params;
     const { role, skills, ...updateData } = req.body;
 
-    const user = await User.findById(id).session(session);
+    const query = User.findById(id);
+    if (session) query.session(session);
+    const user = await query;
+
     if (!user) {
       throw new Error("Employee not found");
     }
@@ -179,13 +207,16 @@ export const updateEmployee = async (req, res) => {
       };
     }
 
+    const updateOptions = { new: true, runValidators: true };
+    if (session) updateOptions.session = session;
+
     const updatedEmployee = await User.findByIdAndUpdate(
       id,
       { $set: { ...updateData, role: role || user.role } },
-      { new: true, runValidators: true, session }
+      updateOptions
     );
 
-    await session.commitTransaction();
+    if (session) await session.commitTransaction();
 
     try {
       const io = getIO();
@@ -198,10 +229,10 @@ export const updateEmployee = async (req, res) => {
       employee: updatedEmployee
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session) await session.abortTransaction();
     res.status(500).json({ error: error.message });
   } finally {
-    session.endSession();
+    if (session) session.endSession();
   }
 };
 

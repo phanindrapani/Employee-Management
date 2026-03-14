@@ -37,6 +37,12 @@ const taskSchema = new mongoose.Schema({
     completedAt: { type: Date }
 }, { timestamps: true });
 
+// Performance Optimization: Indexes for lookups and performance calculations
+taskSchema.index({ project: 1 });
+taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ createdAt: 1 });
+taskSchema.index({ status: 1 });
+
 taskSchema.pre('save', async function (next) {
     if (this.isNew && !this.taskId) {
         try {

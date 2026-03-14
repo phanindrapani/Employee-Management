@@ -6,15 +6,35 @@ import mongoose from 'mongoose';
 import Notification from '../../models/notification.model.js';
 import { getIO } from '../../socket.js';
 import { uploadBufferToCloudinary } from '../../utils/cloudinaryHelper.js';
+import { debounceBackgroundTask } from '../../utils/backgroundTasks.js';
 
 export const getMyTasks = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
         const tasks = await Task.find({ assignedTo: req.user._id })
             .populate('project', 'name')
             .populate('milestoneId', 'name')
             .populate('assignedBy', 'name')
-            .sort({ deadline: 1 });
-        res.json(tasks);
+            .select('title description status progress priority deadline taskId project milestoneId assignedBy createdAt')
+            .sort({ deadline: 1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const total = await Task.countDocuments({ assignedTo: req.user._id });
+
+        res.json({
+            tasks,
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch your tasks" });
     }
@@ -25,169 +45,161 @@ export const updateTaskContent = async (req, res) => {
         const { id } = req.params;
         const { progress, comment } = req.body;
 
-        const task = await Task.findById(id);
-        if (!task || task.assignedTo.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ message: "Not authorized to update this task" });
-        }
+        const update = {};
+        if (progress !== undefined) update.progress = progress;
 
-        if (progress !== undefined) {
-            task.progress = progress;
-        }
+        const query = { _id: id, assignedTo: req.user._id };
 
         if (comment) {
             const commentText = typeof comment === 'object' ? comment.text : comment;
             if (commentText) {
-                task.comments.push({
-                    user: req.user._id,
-                    text: commentText,
-                    createdAt: new Date()
-                });
+                update.$push = {
+                    comments: {
+                        user: req.user._id,
+                        text: commentText,
+                        createdAt: new Date()
+                    }
+                };
             }
         }
 
         if (req.file) {
             const attachmentUrl = await uploadBufferToCloudinary(req.file, 'task_attachments');
-            task.attachments.push({
+            const attachment = {
                 name: req.file.originalname,
                 url: attachmentUrl,
                 uploadedAt: new Date()
-            });
+            };
+            if (update.$push) {
+                update.$push.attachments = attachment;
+            } else {
+                update.$push = { attachments: attachment };
+            }
         }
 
-        await task.save();
+        const updatedTask = await Task.findOneAndUpdate(query, update, { new: true })
+            .select('progress status updatedAt taskId')
+            .lean();
 
-        const populatedTask = await Task.findById(task._id)
-            .populate('project', 'name')
-            .populate('milestoneId', 'name')
-            .populate('assignedTo', 'name email profilePicture')
-            .populate('assignedBy', 'name')
-            .populate('comments.user', 'name profilePicture');
-
-        try {
-            const io = getIO();
-            const worker = await User.findById(req.user._id);
-            if (worker?.team) {
-                io.to(`team:${worker.team}`).emit('task:updated', populatedTask);
-            }
-            if (worker?.reportingManager) {
-                io.to(`user:${worker.reportingManager}`).emit('task:updated', populatedTask);
-            }
-        } catch (err) {
-            console.error('Socket emit error (task content update):', err.message);
+        if (!updatedTask) {
+            return res.status(404).json({ message: "Task not found or Not authorized" });
         }
 
-        res.json(populatedTask);
+        // Return immediately with minimal data
+        res.json(updatedTask);
+
+        // Heavy Populates for Sockets in Background
+        setImmediate(async () => {
+            try {
+                const populatedTask = await Task.findById(id)
+                    .populate('project', 'name')
+                    .populate('milestoneId', 'name')
+                    .populate('assignedTo', 'name email profilePicture team reportingManager')
+                    .populate('assignedBy', 'name')
+                    .populate('comments.user', 'name profilePicture')
+                    .lean();
+
+                const io = getIO();
+                const worker = populatedTask.assignedTo;
+                if (worker?.team) {
+                    io.to(`team:${worker.team}`).emit('task:updated', populatedTask);
+                }
+                if (worker?.reportingManager) {
+                    io.to(`user:${worker.reportingManager}`).emit('task:updated', populatedTask);
+                }
+            } catch (err) {
+                console.error('Background task error (task content update):', err.message);
+            }
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 export const updateTaskStatus = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
         const { id } = req.params;
         const { status } = req.body;
         const allowedStatuses = ['todo', 'in-progress', 'review', 'done'];
 
         if (!allowedStatuses.includes(status)) {
-            await session.abortTransaction();
             return res.status(400).json({ message: "Invalid status value" });
         }
 
-        const task = await Task.findById(id).session(session);
-        if (!task) {
-            await session.abortTransaction();
-            return res.status(404).json({ message: "Task not found" });
+        const update = { status };
+        if (status === 'done') {
+            update.completedAt = new Date();
+        } else {
+            update.completedAt = null;
         }
 
-        const isAssigned = task.assignedTo && task.assignedTo.toString() === req.user._id.toString();
-        const worker = task.assignedTo ? await User.findById(task.assignedTo).session(session) : null;
-        const isTL = req.user.role === 'team-lead' && worker && worker.team?.toString() === req.user.team?.toString();
+        const query = { _id: id };
+        
+        if (req.user.role === 'employee') {
+            query.assignedTo = req.user._id;
+        } else if (req.user.role === 'team-lead') {
+            query.$or = [
+                { assignedTo: req.user._id },
+                { teamId: req.user.team }
+            ];
+        }
 
-        if (!isAssigned && !isTL) {
-            await session.abortTransaction();
-            return res.status(403).json({ message: "Not authorized to update this task" });
+        const updatedTask = await Task.findOneAndUpdate(query, update, { new: true })
+            .populate('assignedTo', 'team role reportingManager name')
+            .lean();
+
+        if (!updatedTask) {
+            return res.status(404).json({ message: "Task not found or Not authorized" });
         }
 
         if (status === 'done' && req.user.role === 'employee') {
-            await session.abortTransaction();
-            return res.status(403).json({ message: "Team lead review is required before marking a task done" });
+            await Task.updateOne({ _id: id }, { status: 'review', completedAt: null });
+            return res.status(403).json({ message: "Team lead review is required" });
         }
 
-        if (status === 'done' && req.user.role === 'team-lead' && task.status !== 'review') {
-            await session.abortTransaction();
-            return res.status(400).json({ message: "Task must be in review before it can be marked done" });
-        }
-
-        if (status === 'done' && task.status !== 'done') {
-            task.completedAt = new Date();
-        } else if (status !== 'done' && task.status === 'done') {
-            task.completedAt = null;
-        }
-
-        task.status = status;
-        await task.save({ session });
-
-        await syncProjectProgress(task.project, req.user._id, session);
-        const shouldRecalculateEmployeeScore = Boolean(
-            worker &&
-            ['employee', 'team-lead'].includes(worker.role) &&
-            task.assignedTo &&
-            status !== undefined
-        );
-
-
-        await session.commitTransaction();
-
-        if (shouldRecalculateEmployeeScore) {
-            const now = new Date();
-            const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        const backgroundPostProcessing = async () => {
             try {
-                const metric = await recalculatePerformanceForUser(task.assignedTo, period);
-            } catch (scoreError) {
-                console.error("Performance Recalculation Error:", scoreError);
-            }
-        }
+                const worker = updatedTask.assignedTo;
+                
+                debounceBackgroundTask(`projectSync:${updatedTask.project}`, () => 
+                    syncProjectProgress(updatedTask.project, req.user._id)
+                , 5000);
 
-        try {
-            const io = getIO();
-            const payload = await Task.findById(task._id)
-                .populate('project', 'name')
-                .populate('assignedTo', 'name email profilePicture');
+                if (worker && ['employee', 'team-lead'].includes(worker.role)) {
+                    const now = new Date();
+                    const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    debounceBackgroundTask(`perfRecalc:${worker._id}:${period}`, () => 
+                        recalculatePerformanceForUser(worker._id, period)
+                    , 10000);
+                }
 
-            if (task.assignedTo) {
-                io.to(`user:${task.assignedTo}`).emit('task:updated', payload);
-            }
-            if (worker?.team) {
-                io.to(`team:${worker.team}`).emit('task:updated', payload);
-            }
-            if (worker?.reportingManager) {
-                io.to(`user:${worker.reportingManager}`).emit('task:updated', payload);
-            }
-            io.to('role:admin').emit('task:updated', payload);
+                const io = getIO();
+                const socketPayload = { ...updatedTask };
+                
+                if (updatedTask.assignedTo) io.to(`user:${updatedTask.assignedTo._id}`).emit('task:updated', socketPayload);
+                if (worker?.team) io.to(`team:${worker.team}`).emit('task:updated', socketPayload);
+                if (worker?.reportingManager) io.to(`user:${worker.reportingManager}`).emit('task:updated', socketPayload);
+                io.to('role:admin').emit('task:updated', socketPayload);
 
-            if (status === 'review' && req.user.role === 'employee' && worker?.reportingManager) {
-                await Notification.create({
-                    user: worker.reportingManager,
-                    message: `Task submitted for Review: "${task.title}" by ${req.user.name}`,
-                    isRead: false
-                });
+                if (status === 'review' && req.user.role === 'employee' && worker?.reportingManager) {
+                    Notification.create({
+                        user: worker.reportingManager,
+                        message: `Task submitted for Review: "${updatedTask.title}" by ${req.user.name}`,
+                        isRead: false
+                    }).then(() => {
+                        io.to(`user:${worker.reportingManager}`).emit('notification', { message: `Task submitted for Review` });
+                    }).catch(() => {});
+                }
+            } catch (bgErr) { /* Silent background fail */ }
+        };
 
-                io.to(`user:${worker.reportingManager}`).emit('notification', {
-                    message: `Task submitted for Review: "${task.title}"`
-                });
-            }
-        } catch (socketError) {
-            console.error('Socket emit error (task status update):', socketError.message);
-        }
+        backgroundPostProcessing();
 
-        res.json(task);
+        res.json(updatedTask);
+
     } catch (error) {
-        await session.abortTransaction();
-        console.error("Task Update Error:", error);
-        res.status(500).json({ message: error.message || "Failed to update task" });
-    } finally {
-        session.endSession();
+        console.error("Extreme Performance Task Update Error:", error);
+        res.status(500).json({ message: "Failed to update task" });
     }
 };

@@ -1,12 +1,20 @@
 import mongoose from 'mongoose';
 import User from '../models/user.model.js';
 import { getLeaveQuotas } from './settings.service.js';
-
+import { areTransactionsSupported } from '../utils/dbUtils.js';
 
 export const promoteUser = async (id, targetRole, session = null) => {
 
     const localSession = session || await mongoose.startSession();
-    if (!session) localSession.startTransaction();
+    const supportsTransactions = await areTransactionsSupported();
+
+    if (!session && supportsTransactions) {
+        try {
+            localSession.startTransaction();
+        } catch (e) {
+            console.warn("Transactions not supported in promoteUser. Proceeding without transaction.");
+        }
+    }
 
     try {
         const user = await User.findById(id).session(localSession);
@@ -21,7 +29,9 @@ export const promoteUser = async (id, targetRole, session = null) => {
         if (currentRole === targetRole) {
 
             if (!session) {
-                await localSession.commitTransaction();
+                if (localSession.transaction && localSession.transaction.state !== 'NO_TRANSACTION') {
+                    await localSession.commitTransaction();
+                }
                 localSession.endSession();
             }
             return user;
@@ -90,7 +100,9 @@ export const promoteUser = async (id, targetRole, session = null) => {
         const updatedUser = result.value || result;
 
         if (!session) {
-            await localSession.commitTransaction();
+            if (localSession.transaction && localSession.transaction.state !== 'NO_TRANSACTION') {
+                await localSession.commitTransaction();
+            }
             localSession.endSession();
         }
 
@@ -99,7 +111,9 @@ export const promoteUser = async (id, targetRole, session = null) => {
     } catch (error) {
 
         if (!session) {
-            await localSession.abortTransaction();
+            if (localSession.transaction && localSession.transaction.state !== 'NO_TRANSACTION') {
+                await localSession.abortTransaction();
+            }
             localSession.endSession();
         }
         throw error;

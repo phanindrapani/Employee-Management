@@ -74,7 +74,7 @@ export const checkIn = async (req, res) => {
         let record = await Attendance.findOne({
             user: req.user._id,
             date: { $gte: start, $lt: end }
-        });
+        }).lean();
 
         if (record?.checkIn) {
             return res.status(400).json({ message: 'Already checked in for today' });
@@ -96,25 +96,33 @@ export const checkIn = async (req, res) => {
                 status
             });
         } else {
-            record.checkIn = now;
-            record.status = status;
-            record.checkInLocation = {
-                latitude: locationCheck.lat,
-                longitude: locationCheck.lng
-            };
-            await record.save();
+            record = await Attendance.findByIdAndUpdate(record._id, {
+                $set: {
+                    checkIn: now,
+                    status: status,
+                    checkInLocation: {
+                        latitude: locationCheck.lat,
+                        longitude: locationCheck.lng
+                    }
+                }
+            }, { new: true });
         }
 
-        try {
-            const io = getIO();
-            io.to(`user:${req.user._id}`).emit('attendance:updated', record);
-            io.to('role:admin').emit('attendance:updated', record);
-        } catch (socketError) {
-            console.error('Socket emit error (attendance check-in):', socketError.message);
-        }
+        setImmediate(() => {
+            try {
+                const io = getIO();
+                io.to(`user:${req.user._id}`).emit('attendance:updated', record);
+                io.to('role:admin').emit('attendance:updated', record);
+            } catch (socketError) {
+                console.error('Socket emit error (attendance check-in):', socketError.message);
+            }
+        });
 
         res.json(record);
     } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Already checked in for today' });
+        }
         res.status(500).json({ message: error.message || 'Failed to check in' });
     }
 };
@@ -133,7 +141,7 @@ export const checkOut = async (req, res) => {
         const record = await Attendance.findOne({
             user: req.user._id,
             date: { $gte: start, $lt: end }
-        });
+        }).lean();
 
         if (!record || !record.checkIn) {
             return res.status(400).json({ message: 'Check in first before check out' });
@@ -142,33 +150,41 @@ export const checkOut = async (req, res) => {
             return res.status(400).json({ message: 'Already checked out for today' });
         }
 
-        record.checkOut = now;
-        record.checkOutLocation = {
-            latitude: locationCheck.lat,
-            longitude: locationCheck.lng
-        };
         const hours = (now - new Date(record.checkIn)) / (1000 * 60 * 60);
-        record.workingHours = Math.max(0, Number(hours.toFixed(2)));
+        const workingHours = Math.max(0, Number(hours.toFixed(2)));
+        let status = record.status;
 
-        if (record.workingHours >= 8) {
-            record.status = 'Present';
-        } else if (record.workingHours >= 4) {
-            record.status = 'Half-Day';
+        if (workingHours >= 8) {
+            status = 'Present';
+        } else if (workingHours >= 4) {
+            status = 'Half-Day';
         } else {
-            record.status = 'Absent';
+            status = 'Absent';
         }
 
-        await record.save();
+        const updatedRecord = await Attendance.findByIdAndUpdate(record._id, {
+            $set: {
+                checkOut: now,
+                checkOutLocation: {
+                    latitude: locationCheck.lat,
+                    longitude: locationCheck.lng
+                },
+                workingHours,
+                status
+            }
+        }, { new: true });
 
-        try {
-            const io = getIO();
-            io.to(`user:${req.user._id}`).emit('attendance:updated', record);
-            io.to('role:admin').emit('attendance:updated', record);
-        } catch (socketError) {
-            console.error('Socket emit error (attendance check-out):', socketError.message);
-        }
+        setImmediate(() => {
+            try {
+                const io = getIO();
+                io.to(`user:${req.user._id}`).emit('attendance:updated', updatedRecord);
+                io.to('role:admin').emit('attendance:updated', updatedRecord);
+            } catch (socketError) {
+                console.error('Socket emit error (attendance check-out):', socketError.message);
+            }
+        });
 
-        res.json(record);
+        res.json(updatedRecord);
     } catch (error) {
         res.status(500).json({ message: error.message || 'Failed to check out' });
     }
@@ -180,7 +196,7 @@ export const getTodayAttendance = async (req, res) => {
         const record = await Attendance.findOne({
             user: req.user._id,
             date: { $gte: start, $lt: end }
-        });
+        }).lean();
         res.json(record || null);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch today attendance' });
@@ -198,7 +214,10 @@ export const getMyAttendance = async (req, res) => {
         const records = await Attendance.find({
             user: req.user._id,
             date: { $gte: start, $lt: end }
-        }).sort({ date: -1 });
+        })
+        .select('date status checkIn checkOut workingHours')
+        .sort({ date: -1 })
+        .lean();
 
         res.json(records);
     } catch (error) {

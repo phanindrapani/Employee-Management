@@ -43,8 +43,9 @@ const worksheetEntrySchema = new mongoose.Schema({
     validationFlags: [{ type: String }]
 }, { timestamps: true });
 
-// Compound indexes
-worksheetEntrySchema.index({ employee: 1, date: 1 });
+// Compound indexes for listing and filtering
+worksheetEntrySchema.index({ employee: 1, date: -1, startTime: -1 }); // Supports default sort
+worksheetEntrySchema.index({ employee: 1, status: 1, date: -1 });     // Supports status filter + sort
 worksheetEntrySchema.index({ employee: 1, date: 1, startTime: 1, taskTitle: 1 }, { unique: true });
 
 const WorksheetEntry = mongoose.model('WorksheetEntry', worksheetEntrySchema);

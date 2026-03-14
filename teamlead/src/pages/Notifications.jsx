@@ -22,8 +22,9 @@ const Notifications = () => {
         const fetchNotifications = async () => {
             try {
                 const { data } = await API.get('/notifications');
-                setNotifications(data);
-                localStorage.setItem('ls_tl_notifications', JSON.stringify(data));
+                const notifs = Array.isArray(data.notifications) ? data.notifications : [];
+                setNotifications(notifs);
+                localStorage.setItem('ls_tl_notifications', JSON.stringify(notifs));
                 setLoading(false);
             } catch (error) {
                 console.error("Fetch notifications error:", error);

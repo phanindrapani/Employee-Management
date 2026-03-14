@@ -233,7 +233,9 @@ const MyTasks = () => {
     const { user } = useAuth();
     const [tasks, setTasks] = useState(() => {
         const cached = localStorage.getItem(`ls_emp_my_tasks_${user?._id}`);
-        return cached ? JSON.parse(cached) : [];
+        if (!cached) return [];
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) ? parsed : (parsed.tasks || []);
     });
     const [loading, setLoading] = useState(tasks.length === 0);
     const [selectedTask, setSelectedTask] = useState(null);
@@ -245,8 +247,9 @@ const MyTasks = () => {
         try {
             // Fetch tasks assigned to the current employee
             const { data } = await API.get('/employee/tasks');
-            setTasks(data);
-            localStorage.setItem(`ls_emp_my_tasks_${user?._id}`, JSON.stringify(data));
+            const tasksData = data.tasks || data;
+            setTasks(tasksData);
+            localStorage.setItem(`ls_emp_my_tasks_${user?._id}`, JSON.stringify(tasksData));
             setLoading(false);
         } catch (error) {
             console.error("Error fetching tasks:", error);

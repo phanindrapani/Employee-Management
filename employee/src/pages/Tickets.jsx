@@ -40,7 +40,9 @@ const PRIORITY_STYLES = {
 const Tickets = () => {
     const [tickets, setTickets] = useState(() => {
         const cached = localStorage.getItem('ls_emp_tickets');
-        return cached ? JSON.parse(cached) : [];
+        if (!cached) return [];
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) ? parsed : (parsed.tickets || []);
     });
     const [stats, setStats] = useState(() => {
         const cached = localStorage.getItem('ls_emp_ticket_stats');
@@ -64,9 +66,10 @@ const Tickets = () => {
                 API.get('/employee/tickets'),
                 API.get('/employee/tickets/stats')
             ]);
-            setTickets(tRes.data);
+            const ticketsData = tRes.data.tickets || tRes.data;
+            setTickets(ticketsData);
             setStats(sRes.data);
-            localStorage.setItem('ls_emp_tickets', JSON.stringify(tRes.data));
+            localStorage.setItem('ls_emp_tickets', JSON.stringify(ticketsData));
             localStorage.setItem('ls_emp_ticket_stats', JSON.stringify(sRes.data));
         } catch (error) {
             showToast('Failed to load tickets', 'error');

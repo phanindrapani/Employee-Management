@@ -3,6 +3,7 @@ import User from '../../models/user.model.js';
 import mongoose from 'mongoose';
 import { getIO } from '../../socket.js';
 import { sendEmail } from '../../utils/mailHelper.js';
+import { areTransactionsSupported } from '../../utils/dbUtils.js';
 
 export const getAllLeaves = async (req, res) => {
     try {
@@ -25,19 +26,31 @@ export const getAllLeaves = async (req, res) => {
 };
 
 export const updateLeaveStatus = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session = null;
+    const supportsTransactions = await areTransactionsSupported();
+    if (supportsTransactions) {
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+        } catch (e) {
+            session = null;
+        }
+    }
     try {
         const { status, rejectionReason } = req.body;
-        const leave = await Leave.findById(req.params.id).session(session);
+        const leaveQuery = Leave.findById(req.params.id);
+        if (session) leaveQuery.session(session);
+        const leave = await leaveQuery;
         if (!leave) {
-            await session.abortTransaction();
+            if (session) await session.abortTransaction();
             return res.status(404).json({ message: 'Leave request not found' });
         }
 
-        const user = await User.findById(leave.user).session(session);
+        const userQuery = User.findById(leave.user);
+        if (session) userQuery.session(session);
+        const user = await userQuery;
         if (!user) {
-            await session.abortTransaction();
+            if (session) await session.abortTransaction();
             return res.status(400).json({ message: 'User associated with this leave no longer exists' });
         }
 
@@ -51,15 +64,15 @@ export const updateLeaveStatus = async (req, res) => {
 
             if (nextStatus === 'approved' && !wasBalanceApplied) {
                 if (currentBalance < leave.totalDays) {
-                    await session.abortTransaction();
+                    if (session) await session.abortTransaction();
                     return res.status(400).json({ message: `Insufficient ${leave.leaveType} balance` });
                 }
                 user.leaveBalance[balanceKey] = currentBalance - leave.totalDays;
-                await user.save({ session });
+                await user.save(session ? { session } : {});
                 leave.balanceApplied = true;
             } else if (nextStatus !== 'approved' && wasBalanceApplied) {
                 user.leaveBalance[balanceKey] = currentBalance + leave.totalDays;
-                await user.save({ session });
+                await user.save(session ? { session } : {});
                 leave.balanceApplied = false;
             }
         } else if (nextStatus === 'approved') {
@@ -78,7 +91,7 @@ export const updateLeaveStatus = async (req, res) => {
             { $set: leaveUpdate },
             { session, runValidators: false }
         );
-        await session.commitTransaction();
+        if (session) await session.commitTransaction();
 
         const updatedLeave = await Leave.findById(leave._id).populate('user', 'name email department role');
 
@@ -113,21 +126,32 @@ export const updateLeaveStatus = async (req, res) => {
 
         res.json(updatedLeave);
     } catch (e) {
-        await session.abortTransaction();
-        res.status(500).json({ msg: "Failed" });
+        if (session) await session.abortTransaction();
+        console.error('[ERROR][UpdateLeaveStatus]', e);
+        res.status(500).json({ msg: "Failed", error: e.message });
     } finally {
-        session.endSession();
+        if (session) session.endSession();
     }
 };
 
 export const reconcileLeaveBalances = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session = null;
+    const supportsTransactions = await areTransactionsSupported();
+    if (supportsTransactions) {
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+        } catch (e) {
+            session = null;
+        }
+    }
     try {
-        const staleApprovedLeaves = await Leave.find({
+        const staleLeavesQuery = Leave.find({
             status: 'approved',
             $or: [{ balanceApplied: { $exists: false } }, { balanceApplied: false }]
-        }).session(session);
+        });
+        if (session) staleLeavesQuery.session(session);
+        const staleApprovedLeaves = await staleLeavesQuery;
 
         let updatedLeaves = 0;
         let skippedLeaves = 0;
@@ -145,7 +169,9 @@ export const reconcileLeaveBalances = async (req, res) => {
                 continue;
             }
 
-            const user = await User.findById(leave.user).session(session);
+            const userQuery = User.findById(leave.user);
+            if (session) userQuery.session(session);
+            const user = await userQuery;
             if (!user) {
                 skippedLeaves += 1;
                 continue;
@@ -158,7 +184,7 @@ export const reconcileLeaveBalances = async (req, res) => {
             }
 
             user.leaveBalance[balanceKey] = currentBalance - leave.totalDays;
-            await user.save({ session });
+            await user.save(session ? { session } : {});
 
             await Leave.updateOne(
                 { _id: leave._id },
@@ -168,17 +194,17 @@ export const reconcileLeaveBalances = async (req, res) => {
             updatedLeaves += 1;
         }
 
-        await session.commitTransaction();
+        if (session) await session.commitTransaction();
         res.json({
             message: 'Leave balance reconciliation completed',
             updatedLeaves,
             skippedLeaves
         });
     } catch (e) {
-        await session.abortTransaction();
+        if (session) await session.abortTransaction();
         console.error('[ERROR][ReconcileLeaves]', e);
         res.status(500).json({ msg: 'Reconciliation failed', details: e.message });
     } finally {
-        session.endSession();
+        if (session) session.endSession();
     }
 };
