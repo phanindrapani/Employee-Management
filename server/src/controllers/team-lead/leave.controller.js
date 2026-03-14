@@ -22,46 +22,39 @@ export const getTeamLeaves = async (req, res) => {
 };
 
 export const updateLeaveStatus = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
         const { id } = req.params;
         const { status, rejectionReason } = req.body;
 
         if (status === 'rejected' && !rejectionReason) {
-            await session.abortTransaction();
             return res.status(400).json({ message: 'Rejection reason is mandatory' });
         }
 
-        const leave = await Leave.findById(id).populate('user').session(session);
+        const leave = await Leave.findById(id).populate('user');
         if (!leave) {
-            await session.abortTransaction();
             return res.status(404).json({ message: 'Leave request not found' });
         }
 
         if (leave.status !== 'pending') {
-            await session.abortTransaction();
             return res.status(400).json({ message: 'Leave request already processed' });
         }
 
         if (!leave.user) {
-            await session.abortTransaction();
             return res.status(400).json({ message: 'User associated with this leave no longer exists' });
         }
 
         // Handle Balance Debit on Approval
         if (status === 'approved') {
-            const user = await User.findById(leave.user._id).session(session);
+            const user = leave.user;
             const balanceKey = leave.leaveType?.toLowerCase();
 
             if (balanceKey && balanceKey !== 'lop') {
                 const currentBalance = Number(user.leaveBalance?.[balanceKey] ?? 0);
                 if (currentBalance < leave.totalDays) {
-                    await session.abortTransaction();
                     return res.status(400).json({ message: `Insufficient ${leave.leaveType} balance` });
                 }
                 user.leaveBalance[balanceKey] = currentBalance - leave.totalDays;
-                await user.save({ session });
+                await user.save();
                 leave.balanceApplied = true;
             } else if (balanceKey === 'lop') {
                 leave.balanceApplied = true;
@@ -72,45 +65,46 @@ export const updateLeaveStatus = async (req, res) => {
             if (status === 'rejected') leave.rejectionReason = rejectionReason;
         }
 
-        await leave.save({ session });
-        await session.commitTransaction();
+        await leave.save();
 
-        const notificationMessage = `Your leave request for ${leave.totalDays} day(s) has been ${status}.`;
-        await Notification.create({
-            user: leave.user._id,
-            message: notificationMessage
-        });
-
-        try {
-            const io = getIO();
-            io.to(`user:${leave.user._id}`).emit('leave:updated', leave);
-            io.to(`user:${leave.user._id}`).emit('notification:new', { message: notificationMessage });
-
-            if (leave.user && leave.user.email) {
-                await sendEmail({
-                    to: leave.user.email,
-                    subject: `Leave Request ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-                    html: `
-                        <div style="font-family: sans-serif; padding: 20px; color: #0B3C5D;">
-                            <h2 style="color: ${status === 'approved' ? '#63C132' : '#F43F5E'}; text-transform: capitalize;">
-                                Leave Request ${status}
-                            </h2>
-                            <p>Hi ${leave.user.name},</p>
-                            <p>Your leave request for <strong>${leave.totalDays} day(s)</strong> has been <strong>${status}</strong>.</p>
-                            ${status === 'rejected' ? `<p><strong>Reason:</strong> ${rejectionReason}</p>` : ''}
-                            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;"/>
-                            <p>Please log in to your portal for more details.</p>
-                        </div>
-                    `
+        // Backgrounded tasks (Notifications, Sockets, Emails)
+        setImmediate(async () => {
+            try {
+                const notificationMessage = `Your leave request for ${leave.totalDays} day(s) has been ${status}.`;
+                await Notification.create({
+                    user: leave.user._id,
+                    message: notificationMessage
                 });
+
+                const io = getIO();
+                io.to(`user:${leave.user._id}`).emit('leave:updated', leave);
+                io.to(`user:${leave.user._id}`).emit('notification:new', { message: notificationMessage });
+
+                if (leave.user && leave.user.email && process.env.SKIP_EMAILS !== 'true') {
+                    await sendEmail({
+                        to: leave.user.email,
+                        subject: `Leave Request ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+                        html: `
+                            <div style="font-family: sans-serif; padding: 20px; color: #0B3C5D;">
+                                <h2 style="color: ${status === 'approved' ? '#63C132' : '#F43F5E'}; text-transform: capitalize;">
+                                    Leave Request ${status}
+                                </h2>
+                                <p>Hi ${leave.user.name},</p>
+                                <p>Your leave request for <strong>${leave.totalDays} day(s)</strong> has been <strong>${status}</strong>.</p>
+                                ${status === 'rejected' ? `<p><strong>Reason:</strong> ${rejectionReason}</p>` : ''}
+                                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;"/>
+                                <p>Please log in to your portal for more details.</p>
+                            </div>
+                        `
+                    });
+                }
+            } catch (e) {
+                console.error('Background updateLeaveStatus tasks error:', e);
             }
-        } catch (e) { console.error('Notification/Socket error:', e); }
+        });
 
         res.json(leave);
     } catch (error) {
-        await session.abortTransaction();
         res.status(500).json({ message: error.message || "Failed to update leave status" });
-    } finally {
-        session.endSession();
     }
 };

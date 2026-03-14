@@ -19,11 +19,12 @@ export const updateProjectProgress = async (req, res) => {
         const { id } = req.params;
         const { progress, mode } = req.body;
 
-        const project = await Project.findById(id);
+        const project = await Project.findById(id).select('assignedTeams').lean();
         if (!project) return res.status(404).json({ message: "Project not found" });
 
         // Authorization check
-        const isTLForTeam = req.user.role === 'team-lead' && project.assignedTeams?.includes(req.user.team);
+        const isTLForTeam = req.user.role === 'team-lead' && 
+            project.assignedTeams?.some(t => t.toString() === req.user.team?.toString());
 
         if (!isTLForTeam) {
             return res.status(403).json({ message: "Not authorized to override progress for this project" });
@@ -37,17 +38,22 @@ export const updateProjectProgress = async (req, res) => {
             return res.status(400).json({ message: "Invalid progress override parameters" });
         }
 
-        const updatedProject = await Project.findById(id).populate('assignedTeams', 'name');
-        try {
-            const io = getIO();
-            const teamId = updatedProject.assignedTeams?.[0]?._id || updatedProject.assignedTeams?.[0];
-            if (teamId) {
-                io.to(`team:${teamId}`).emit('project:updated', updatedProject);
+        const updatedProject = await Project.findById(id).populate('assignedTeams', 'name').lean();
+        
+        // Background socket emissions
+        setImmediate(() => {
+            try {
+                const io = getIO();
+                const teamId = updatedProject.assignedTeams?.[0]?._id || updatedProject.assignedTeams?.[0];
+                if (teamId) {
+                    io.to(`team:${teamId}`).emit('project:updated', updatedProject);
+                }
+                io.to('role:admin').emit('project:updated', updatedProject);
+            } catch (socketError) {
+                console.error('Socket emit error (project progress update):', socketError.message);
             }
-            io.to('role:admin').emit('project:updated', updatedProject);
-        } catch (socketError) {
-            console.error('Socket emit error (project progress update):', socketError.message);
-        }
+        });
+
         res.json(updatedProject);
     } catch (error) {
         res.status(500).json({ message: error.message || "Failed to update project progress" });

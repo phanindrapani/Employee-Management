@@ -15,7 +15,8 @@ export const getMyTickets = async (req, res) => {
             .populate('assignedManager', 'name')
             .populate('assignedEmployee', 'name')
             .populate('projectId', 'name')
-            .sort({ priority: -1, createdAt: -1 });
+            .sort({ priority: -1, createdAt: -1 })
+            .lean();
 
         res.json(tickets);
     } catch (error) {
@@ -30,7 +31,8 @@ export const getTicketById = async (req, res) => {
             .populate('assignedManager', 'name')
             .populate('assignedEmployee', 'name email')
             .populate('projectId', 'name')
-            .populate('comments.userId', 'name role');
+            .populate('comments.userId', 'name role')
+            .lean();
 
         if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
         res.json(ticket);
@@ -42,36 +44,43 @@ export const getTicketById = async (req, res) => {
 export const assignEmployee = async (req, res) => {
     try {
         const { employeeId, note } = req.body;
-        const employee = await User.findOne({ _id: employeeId, role: 'employee' });
+        const employee = await User.findOne({ _id: employeeId, role: 'employee' }).select('name').lean();
         if (!employee) return res.status(404).json({ message: 'Employee not found' });
 
-        const ticket = await Ticket.findOne({ _id: req.params.id, assignedTeamLead: req.user.id });
+        const ticket = await Ticket.findOne({ _id: req.params.id, assignedTeamLead: req.user.id }).select('title').lean();
         if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
 
-        ticket.assignedEmployee = employeeId;
-        ticket.status = 'ASSIGNED';
-        ticket.assignmentHistory.push({
-            assignedBy: req.user.id,
-            assignedTo: employeeId,
-            role: 'employee',
-            note: note || `Assigned to employee ${employee.name}`
+        const updatedTicket = await Ticket.findByIdAndUpdate(req.params.id, {
+            $set: { assignedEmployee: employeeId, status: 'ASSIGNED' },
+            $push: {
+                assignmentHistory: {
+                    assignedBy: req.user.id,
+                    assignedTo: employeeId,
+                    role: 'employee',
+                    note: note || `Assigned to employee ${employee.name}`
+                }
+            }
+        }, { new: true }).lean();
+
+        setImmediate(async () => {
+            try {
+                const io = getIO();
+                await Notification.create({
+                    user: employeeId,
+                    message: `New Ticket Assigned: "${ticket.title}" by Team Lead`,
+                    isRead: false
+                });
+
+                io.to(`user:${employeeId}`).emit('notification', {
+                    message: `New Ticket Assigned: "${ticket.title}"`
+                });
+                io.to(`user:${employeeId}`).emit('ticket:assigned', updatedTicket);
+            } catch (err) {
+                console.error('Background task error (assignEmployee):', err.message);
+            }
         });
 
-        await ticket.save();
-
-        const io = getIO();
-        await Notification.create({
-            user: employeeId,
-            message: `New Ticket Assigned: "${ticket.title}" by Team Lead`,
-            isRead: false
-        });
-
-        io.to(`user:${employeeId}`).emit('notification', {
-            message: `New Ticket Assigned: "${ticket.title}"`
-        });
-        io.to(`user:${employeeId}`).emit('ticket:assigned', ticket);
-
-        res.json({ message: `Ticket assigned to ${employee.name}`, ticket });
+        res.json({ message: `Ticket assigned to ${employee.name}`, ticket: updatedTicket });
     } catch (error) {
         res.status(500).json({ message: 'Failed to assign employee' });
     }
@@ -80,45 +89,52 @@ export const assignEmployee = async (req, res) => {
 export const addComment = async (req, res) => {
     try {
         const { message, isInternal } = req.body;
-        const ticket = await Ticket.findOne({ _id: req.params.id, assignedTeamLead: req.user.id });
+        const ticket = await Ticket.findOne({ _id: req.params.id, assignedTeamLead: req.user.id })
+            .select('title clientId assignedEmployee assignedManager')
+            .lean();
+        
         if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
 
-        ticket.comments.push({
-            userId: req.user.id,
-            role: 'team-lead',
-            message,
-            isInternal: isInternal || false
+        await Ticket.findByIdAndUpdate(req.params.id, {
+            $push: {
+                comments: {
+                    userId: req.user.id,
+                    role: 'team-lead',
+                    message,
+                    isInternal: !!isInternal
+                }
+            }
         });
 
-        await ticket.save();
-
-        try {
-            const io = getIO();
-            if (isInternal) {
-                const notifyUserIds = [ticket.assignedEmployee, ticket.assignedManager].filter(id => id);
-                for (const userId of notifyUserIds) {
+        setImmediate(async () => {
+            try {
+                const io = getIO();
+                if (isInternal) {
+                    const notifyUserIds = [ticket.assignedEmployee, ticket.assignedManager].filter(Boolean);
+                    for (const userId of notifyUserIds) {
+                        await Notification.create({
+                            user: userId,
+                            message: `Internal Note from Team Lead on "${ticket.title}"`,
+                            isRead: false
+                        });
+                        io.to(`user:${userId}`).emit('notification', {
+                            message: `Internal Note on ticket: "${ticket.title}"`
+                        });
+                    }
+                } else {
                     await Notification.create({
-                        user: userId,
-                        message: `Internal Note from Team Lead on "${ticket.title}"`,
+                        user: ticket.clientId,
+                        message: `New Message from Team Lead on ticket "${ticket.title}"`,
                         isRead: false
                     });
-                    io.to(`user:${userId}`).emit('notification', {
-                        message: `Internal Note on ticket: "${ticket.title}"`
+                    io.to(`user:${ticket.clientId}`).emit('notification', {
+                        message: `New Message on your ticket: "${ticket.title}"`
                     });
                 }
-            } else {
-                await Notification.create({
-                    user: ticket.clientId,
-                    message: `New Message from Team Lead on ticket "${ticket.title}"`,
-                    isRead: false
-                });
-                io.to(`user:${ticket.clientId}`).emit('notification', {
-                    message: `New Message on your ticket: "${ticket.title}"`
-                });
+            } catch (e) {
+                console.error('Team lead comment notification error:', e.message);
             }
-        } catch (e) {
-            console.error('Team lead comment notification error:', e);
-        }
+        });
 
         res.json({ message: 'Comment added' });
     } catch (error) {
@@ -129,14 +145,43 @@ export const addComment = async (req, res) => {
 export const getStats = async (req, res) => {
     try {
         const tlId = req.user.id;
-        const [total, assigned, inProgress, resolved, slaBreached] = await Promise.all([
-            Ticket.countDocuments({ assignedTeamLead: tlId }),
-            Ticket.countDocuments({ assignedTeamLead: tlId, status: 'ASSIGNED' }),
-            Ticket.countDocuments({ assignedTeamLead: tlId, status: 'IN_PROGRESS' }),
-            Ticket.countDocuments({ assignedTeamLead: tlId, status: 'RESOLVED' }),
-            Ticket.countDocuments({ assignedTeamLead: tlId, slaBreached: true, status: { $nin: ['CLOSED'] } })
+        
+        const stats = await Ticket.aggregate([
+            { $match: { assignedTeamLead: new mongoose.Types.ObjectId(tlId) } },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    assigned: {
+                        $sum: { $cond: [{ $eq: ['$status', 'ASSIGNED'] }, 1, 0] }
+                    },
+                    inProgress: {
+                        $sum: { $cond: [{ $eq: ['$status', 'IN_PROGRESS'] }, 1, 0] }
+                    },
+                    resolved: {
+                        $sum: { $cond: [{ $eq: ['$status', 'RESOLVED'] }, 1, 0] }
+                    },
+                    slaBreached: {
+                        $sum: {
+                            $cond: [
+                                { $and: [{ $eq: ['$slaBreached', true] }, { $ne: ['$status', 'CLOSED'] }] },
+                                1, 0
+                            ]
+                        }
+                    }
+                }
+            }
         ]);
-        res.json({ total, pendingAssignment: assigned, inProgress, resolved, slaBreached });
+
+        const result = stats[0] || { total: 0, assigned: 0, inProgress: 0, resolved: 0, slaBreached: 0 };
+
+        res.json({
+            total: result.total,
+            pendingAssignment: result.assigned,
+            inProgress: result.inProgress,
+            resolved: result.resolved,
+            slaBreached: result.slaBreached
+        });
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch stats' });
     }

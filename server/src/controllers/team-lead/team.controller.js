@@ -1,53 +1,54 @@
-import User from '../../models/user.model.js';
-import Task from '../../models/task.model.js';
-import Leave from '../../models/leave.model.js';
-import PerformanceMetric from '../../models/performanceMetric.model.js';
-
 export const getTeamMembers = async (req, res) => {
     try {
         const teamId = req.user.team;
 
+        // 1. Fetch members with lean
         const members = await User.find({ team: teamId })
-            .select('name email phone role experienceLevel skills profilePicture isActive individualPerformanceScore');
+            .select('name email phone role experienceLevel skills profilePicture isActive individualPerformanceScore')
+            .lean();
 
-        const teamInfo = await User.findById(req.user._id)
-            .populate({
-                path: 'team',
-                select: 'name'
-            })
-            .populate({
-                path: 'department',
-                select: 'name'
-            });
+        if (!members.length) {
+            return res.json({ members: [], metadata: { teamName: 'My Team', departmentName: 'Human Resources' } });
+        }
 
+        const memberIds = members.map(m => m._id);
+
+        // 2. Batch fetch task counts
+        const taskCounts = await Task.aggregate([
+            { $match: { assignedTo: { $in: memberIds }, status: { $in: ['todo', 'in-progress'] } } },
+            { $group: { _id: '$assignedTo', count: { $sum: 1 } } }
+        ]);
+        const taskCountMap = Object.fromEntries(taskCounts.map(tc => [tc._id.toString(), tc.count]));
+
+        // 3. Batch fetch leave status
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const activeLeaves = await Leave.find({
+            user: { $in: memberIds },
+            status: 'approved',
+            fromDate: { $lte: today },
+            toDate: { $gte: today }
+        }).select('user').lean();
+        const leaveSet = new Set(activeLeaves.map(l => l.user.toString()));
 
-        const membersEnhanced = await Promise.all(members.map(async (member) => {
-            const taskCount = await Task.countDocuments({
-                assignedTo: member._id,
-                status: { $in: ['todo', 'in-progress'] }
-            });
+        // 4. Team and Dept info (Lean)
+        const teamInfo = await User.findById(req.user._id)
+            .select('team department')
+            .populate('team', 'name')
+            .populate('department', 'name')
+            .lean();
 
-            const isOnLeave = await Leave.exists({
-                user: member._id,
-                status: 'approved',
-                fromDate: { $lte: today },
-                toDate: { $gte: today }
-            });
-
-            return {
-                ...member.toObject(),
-                activeTasks: taskCount,
-                isOnLeave: !!isOnLeave
-            };
+        const membersEnhanced = members.map(member => ({
+            ...member,
+            activeTasks: taskCountMap[member._id.toString()] || 0,
+            isOnLeave: leaveSet.has(member._id.toString())
         }));
 
         res.json({
             members: membersEnhanced,
             metadata: {
-                teamName: teamInfo.team?.name || 'My Team',
-                departmentName: teamInfo.department?.name || 'Human Resources'
+                teamName: teamInfo?.team?.name || 'My Team',
+                departmentName: teamInfo?.department?.name || 'Human Resources'
             }
         });
     } catch (error) {
@@ -61,7 +62,8 @@ export const calculateTeamPerformanceScore = async (req, res) => {
         const teamId = req.user.team;
 
         const members = await User.find({ team: teamId })
-            .select('individualPerformanceScore');
+            .select('individualPerformanceScore')
+            .lean();
 
         if (!members || members.length === 0) {
             await User.findByIdAndUpdate(teamLeadId, { teamPerformanceScore: 0 });
@@ -85,7 +87,6 @@ export const calculateTeamPerformanceScore = async (req, res) => {
             message: 'Team performance score calculated'
         });
     } catch (error) {
-        console.error('Calculate team performance error:', error);
         res.status(500).json({ message: "Failed to calculate team performance score" });
     }
 };
@@ -97,17 +98,18 @@ export const getTeamMemberPerformance = async (req, res) => {
         const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
         const members = await User.find({ team: teamId })
-            .select('name email role profilePicture individualPerformanceScore');
+            .select('name email role profilePicture individualPerformanceScore')
+            .lean();
 
         const memberIds = members.map(m => m._id);
         const metrics = await PerformanceMetric.find({
             user: { $in: memberIds },
             period
-        }).populate('user', 'name email role profilePicture individualPerformanceScore');
+        }).select('user taskCompletionScore attendanceScore totalScore period').lean();
 
         const metricMap = {};
         for (const m of metrics) {
-            metricMap[m.user._id.toString()] = m;
+            metricMap[m.user.toString()] = m;
         }
 
         const result = members.map(member => {
@@ -132,7 +134,6 @@ export const getTeamMemberPerformance = async (req, res) => {
 
         res.json({ members: result, avgScore, period });
     } catch (error) {
-        console.error('Team member performance error:', error);
         res.status(500).json({ message: "Failed to fetch team performance" });
     }
 };

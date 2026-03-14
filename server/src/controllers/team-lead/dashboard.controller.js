@@ -9,7 +9,7 @@ export const getTeamDashboardStats = async (req, res) => {
         if (!teamId) return res.status(400).json({ message: "No team assigned to this profile" });
 
         const stats = await getTeamStats(teamId);
-        const members = await User.find({ team: teamId }).select('_id');
+        const members = await User.find({ team: teamId }).select('_id').lean();
         const memberIds = members.map(m => m._id);
 
         const productivityTrend = await getProductivityTrend(memberIds);
@@ -19,7 +19,7 @@ export const getTeamDashboardStats = async (req, res) => {
         start.setDate(now.getDate() - 7);
         const holidays = await Holiday.find({
             date: { $gte: start, $lte: now }
-        });
+        }).lean();
         const holidayDates = new Set(holidays.map(h => new Date(h.date).toDateString()));
 
         const activeDays = productivityTrend.filter(p => {

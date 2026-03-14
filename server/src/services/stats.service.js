@@ -146,7 +146,56 @@ export const getTeamStats = async (teamId) => {
 };
 
 export const getProductivityTrend = async (memberIds, days = 7) => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (days - 1));
+    startDate.setHours(0, 0, 0, 0);
+
+    const query = memberIds ? { assignedTo: { $in: memberIds } } : {};
+
+    const statsAgg = await Task.aggregate([
+        {
+            $match: {
+                ...query,
+                $or: [
+                    { createdAt: { $lt: new Date() } },
+                    { updatedAt: { $gte: startDate } }
+                ]
+            }
+        },
+        {
+            $facet: {
+                completed: [
+                    {
+                        $match: {
+                            status: 'done',
+                            updatedAt: { $gte: startDate }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: { $dateToString: { format: "%Y-%m-%d", date: "$updatedAt" } },
+                            count: { $sum: 1 }
+                        }
+                    }
+                ],
+                totalHistorical: [
+                    {
+                        $group: {
+                            _id: null,
+                            total: { $sum: 1 }
+                        }
+                    }
+                ]
+            }
+        }
+    ]);
+
     const productivityTrend = [];
+    const completedMap = {};
+    statsAgg[0].completed.forEach(item => {
+        completedMap[item._id] = item.count;
+    });
+
     for (let i = days - 1; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
@@ -154,22 +203,13 @@ export const getProductivityTrend = async (memberIds, days = 7) => {
         const nextDay = new Date(date);
         nextDay.setDate(nextDay.getDate() + 1);
 
-        const query = memberIds ? { assignedTo: { $in: memberIds } } : {};
-
-        const completedTasksToday = await Task.countDocuments({
-            ...query,
-            status: 'done',
-            updatedAt: { $gte: date, $lt: nextDay }
-        });
-
-        const totalTeamTasks = await Task.countDocuments({
-            ...query,
-            createdAt: { $lt: nextDay }
-        });
-
         const offset = date.getTimezoneOffset();
         const localDate = new Date(date.getTime() - (offset * 60 * 1000));
         const dateString = localDate.toISOString().split('T')[0];
+
+        const completedTasksToday = completedMap[dateString] || 0;
+
+        const totalTeamTasks = statsAgg[0].totalHistorical[0]?.total || 0;
 
         productivityTrend.push({
             name: date.toLocaleDateString('en-US', { weekday: 'short' }),
