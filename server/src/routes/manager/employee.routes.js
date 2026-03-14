@@ -17,7 +17,10 @@ router.get('/', protect, authorizeRole(['manager']), async (req, res) => {
             query = { role: { $in: ['employee', 'team-lead', 'manager'] } };
         }
 
-        const users = await User.find(query).select('name email role company').sort({ name: 1 });
+        const users = await User.find(query)
+            .select('name email role company')
+            .sort({ name: 1 })
+            .lean();
         res.json(users);
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch users" });

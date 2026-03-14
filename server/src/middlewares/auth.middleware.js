@@ -17,16 +17,16 @@ export const protect = async (req, res, next) => {
             const cachedUser = userCache.get(decoded.id);
             if (cachedUser && (Date.now() - cachedUser.timestamp < CACHE_TTL)) {
                 req.user = cachedUser.data;
+                req.user.id = req.user._id.toString(); // Ensure ID is present
             } else {
-                // Optimized user lookup: use .lean() and select specific fields
-                const user = await User.findById(decoded.id)
-                    .select('name email role isActive department team reportingManager')
-                    .lean();
-                
-                if (user) {
-                    userCache.set(decoded.id, { data: user, timestamp: Date.now() });
-                    req.user = user;
-                } else {
+            // Reverted lean lookup to avoid breaking assumptions throughout the codebase
+            const user = await User.findById(decoded.id);
+            
+            if (user) {
+                user.id = user._id.toString(); // For compatibility with existing controller logic
+                userCache.set(decoded.id, { data: user, timestamp: Date.now() });
+                req.user = user;
+            } else {
                     return res.status(401).json({ message: 'User no longer exists' });
                 }
             }

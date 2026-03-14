@@ -2,6 +2,10 @@ import nodemailer from 'nodemailer';
 
 export const sendEmail = async ({ to, subject, html }) => {
     try {
+        if (String(process.env.SKIP_EMAILS) === 'true') {
+            console.log(`[SKIP_EMAILS] Skipping email to ${to}: ${subject}`);
+            return { skipped: true };
+        }
         const host = process.env.SMTP_HOST;
         const port = parseInt(process.env.SMTP_PORT);
         const user = process.env.SMTP_USER;

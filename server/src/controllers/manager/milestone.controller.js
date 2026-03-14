@@ -43,7 +43,10 @@ export const getProjectMilestones = async (req, res) => {
             return res.status(403).json({ message: "Not authorized" });
         }
 
-        const milestones = await Milestone.find({ projectId }).populate('assignedTeam', 'name');
+        const milestones = await Milestone.find({ projectId })
+            .populate('assignedTeam', 'name')
+            .select('name milestoneId projectId assignedTeam dueDate')
+            .lean();
         res.json(milestones);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -96,9 +99,11 @@ export const getProjectTasks = async (req, res) => {
         }
 
         const tasks = await Task.find({ project: projectId })
+            .select('taskId title status progress priority deadline assignedTo teamId milestoneId')
             .populate('assignedTo', 'name email')
             .populate('teamId', 'name')
-            .populate('milestoneId', 'name');
+            .populate('milestoneId', 'name')
+            .lean();
 
         res.json(tasks);
     } catch (error) {

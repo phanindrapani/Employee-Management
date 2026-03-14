@@ -6,112 +6,159 @@ import mongoose from 'mongoose';
 export const getManagerTaskDashboard = async (req, res) => {
     try {
         const managerId = req.user.id;
-        const teams = await Team.find({ manager: managerId }).populate('members', 'name role');
+        const now = new Date();
+
+        // 1. Initial Data: Teams and Projects
+        const teams = await Team.find({ manager: managerId }).select('name members').lean();
         const teamIds = teams.map(t => t._id);
         const projects = await Project.find({
             $or: [
                 { managerId: managerId },
                 { assignedTeams: { $in: teamIds } }
             ]
-        });
+        }).select('name').lean();
         const projectIds = projects.map(p => p._id);
+        const allMemberIds = Array.from(new Set(teams.flatMap(t => t.members.map(m => m._id.toString())))).map(id => new mongoose.Types.ObjectId(id));
 
-        const now = new Date();
+        if (projectIds.length === 0) {
+            return res.json({
+                summary: { total: 0, pending: 0, inProgress: 0, completed: 0, overdue: 0, blocked: 0 },
+                teamBreakdown: [],
+                employeeWorkload: [],
+                projectProgress: [],
+                recentActivity: [],
+                taskList: [],
+                overdueDetailed: []
+            });
+        }
 
-        // Summary Metrics
-        const stats = await Task.aggregate([
-            { $match: { project: { $in: projectIds } } },
-            {
-                $group: {
-                    _id: "$status",
-                    count: { $sum: 1 },
-                    overdueCount: {
-                        $sum: {
-                            $cond: [{ $and: [{ $lt: ["$deadline", now] }, { $ne: ["$status", "done"] }] }, 1, 0]
-                        }
-                    }
-                }
-            }
-        ]);
-
-        const summary = {
-            total: stats.reduce((acc, curr) => acc + curr.count, 0),
-            pending: stats.find(s => s._id === 'todo')?.count || 0,
-            inProgress: stats.find(s => s._id === 'in-progress')?.count || 0,
-            completed: stats.find(s => s._id === 'done')?.count || 0,
-            overdue: stats.reduce((acc, curr) => acc + curr.overdueCount, 0),
-            blocked: stats.find(s => s._id === 'blocked')?.count || 0
-        };
-
-        // Team Task Breakdown
-        const teamBreakdown = await Promise.all(teams.map(async (team) => {
-            const teamStats = await Task.aggregate([
-                { $match: { teamId: team._id } },
+        // 2. Parallel Data Fetching
+        const [
+            mainStats,
+            teamStatsRaw,
+            employeeWorkload,
+            projectStatsRaw,
+            recentActivity,
+            taskList,
+            overdueDetailed
+        ] = await Promise.all([
+            // Global Summary Metrics
+            Task.aggregate([
+                { $match: { project: { $in: projectIds } } },
                 {
                     $group: {
                         _id: "$status",
                         count: { $sum: 1 },
+                        overdueCount: {
+                            $sum: {
+                                $cond: [{ $and: [{ $lt: ["$deadline", now] }, { $ne: ["$status", "done"] }] }, 1, 0]
+                            }
+                        }
+                    }
+                }
+            ]),
+            // Consolidated Team Breakdown
+            Task.aggregate([
+                { $match: { teamId: { $in: teamIds } } },
+                {
+                    $group: {
+                        _id: { teamId: "$teamId", status: "$status" },
+                        count: { $sum: 1 },
                         overdue: { $sum: { $cond: [{ $and: [{ $lt: ["$deadline", now] }, { $ne: ["$status", "done"] }] }, 1, 0] } }
                     }
                 }
-            ]);
-
-            return {
-                teamId: team._id,
-                teamName: team.name,
-                total: teamStats.reduce((acc, curr) => acc + curr.count, 0),
-                completed: teamStats.find(s => s._id === 'done')?.count || 0,
-                inProgress: teamStats.find(s => s._id === 'in-progress')?.count || 0,
-                overdue: teamStats.reduce((acc, curr) => acc + curr.overdue, 0)
-            };
-        }));
-
-        // Employee Workload
-        const allMemberIds = teams.flatMap(t => t.members.map(m => m._id));
-        const employeeWorkload = await Task.aggregate([
-            { $match: { assignedTo: { $in: allMemberIds } } },
-            {
-                $group: {
-                    _id: "$assignedTo",
-                    totalTasks: { $sum: 1 },
-                    inProgress: { $sum: { $cond: [{ $eq: ["$status", "in-progress"] }, 1, 0] } },
-                    overdue: { $sum: { $cond: [{ $and: [{ $lt: ["$deadline", now] }, { $ne: ["$status", "done"] }] }, 1, 0] } }
-                }
-            },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: '_id',
-                    foreignField: '_id',
-                    as: 'user'
-                }
-            },
-            { $unwind: "$user" },
-            {
-                $project: {
-                    name: "$user.name",
-                    totalTasks: 1,
-                    inProgress: 1,
-                    overdue: 1
-                }
-            }
-        ]);
-
-        // Project Progress (Actual Aggregation)
-        const projectProgress = await Promise.all(projects.map(async (p) => {
-            const pStats = await Task.aggregate([
-                { $match: { project: p._id } },
+            ]),
+            // Employee Workload
+            Task.aggregate([
+                { $match: { assignedTo: { $in: allMemberIds } } },
                 {
                     $group: {
-                        _id: null,
+                        _id: "$assignedTo",
+                        totalTasks: { $sum: 1 },
+                        inProgress: { $sum: { $cond: [{ $eq: ["$status", "in-progress"] }, 1, 0] } },
+                        overdue: { $sum: { $cond: [{ $and: [{ $lt: ["$deadline", now] }, { $ne: ["$status", "done"] }] }, 1, 0] } }
+                    }
+                },
+                { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+                { $unwind: "$user" },
+                { $project: { name: "$user.name", totalTasks: 1, inProgress: 1, overdue: 1 } }
+            ]),
+            // Project Progress
+            Task.aggregate([
+                { $match: { project: { $in: projectIds } } },
+                {
+                    $group: {
+                        _id: "$project",
                         total: { $sum: 1 },
                         completed: { $sum: { $cond: [{ $eq: ["$status", "done"] }, 1, 0] } }
                     }
                 }
-            ]);
+            ]),
+            // Recent Activity
+            Task.find({ project: { $in: projectIds } })
+                .sort({ updatedAt: -1 })
+                .limit(5)
+                .populate('assignedTo', 'name')
+                .select('title status updatedAt assignedTo')
+                .lean(),
+            // Main Task List (limited or filtered)
+            (async () => {
+                const { status, priority, search, team: teamFilter, project: projectFilter } = req.query;
+                let q = { project: { $in: projectIds } };
+                if (teamFilter) {
+                    const tProjects = await Project.find({ assignedTeams: teamFilter }).select('_id').lean();
+                    q.project = { $in: tProjects.map(p => p._id) };
+                }
+                if (projectFilter) q.project = projectFilter;
+                if (status) q.status = status;
+                if (priority) q.priority = priority;
+                if (search) q.title = { $regex: search, $options: 'i' };
 
-            const total = pStats[0]?.total || 0;
-            const completed = pStats[0]?.completed || 0;
+                return Task.find(q)
+                    .populate('assignedTo', 'name')
+                    .populate('project', 'name')
+                    .sort({ deadline: 1 })
+                    .limit(100) // Sanity limit for dashboard
+                    .lean();
+            })(),
+            // Overdue Detailed
+            Task.find({
+                project: { $in: projectIds },
+                status: { $ne: 'done' },
+                deadline: { $lt: now }
+            })
+                .populate('assignedTo', 'name')
+                .populate('project', 'name')
+                .sort({ deadline: 1 })
+                .lean()
+        ]);
+
+        // 3. Post-process Data
+        const summary = {
+            total: mainStats.reduce((acc, curr) => acc + curr.count, 0),
+            pending: mainStats.find(s => s._id === 'todo')?.count || 0,
+            inProgress: mainStats.find(s => s._id === 'in-progress')?.count || 0,
+            completed: mainStats.find(s => s._id === 'done')?.count || 0,
+            overdue: mainStats.reduce((acc, curr) => acc + curr.overdueCount, 0),
+            blocked: mainStats.find(s => s._id === 'blocked')?.count || 0
+        };
+
+        const teamBreakdown = teams.map(team => {
+            const stats = teamStatsRaw.filter(s => s._id.teamId.toString() === team._id.toString());
+            return {
+                teamId: team._id,
+                teamName: team.name,
+                total: stats.reduce((acc, curr) => acc + curr.count, 0),
+                completed: stats.find(s => s._id.status === 'done')?.count || 0,
+                inProgress: stats.find(s => s._id.status === 'in-progress')?.count || 0,
+                overdue: stats.reduce((acc, curr) => acc + curr.overdue, 0)
+            };
+        });
+
+        const projectProgress = projects.map(p => {
+            const stats = projectStatsRaw.find(s => s._id.toString() === p._id.toString());
+            const total = stats?.total || 0;
+            const completed = stats?.completed || 0;
             return {
                 projectId: p._id,
                 projectName: p.name,
@@ -119,48 +166,7 @@ export const getManagerTaskDashboard = async (req, res) => {
                 completed: completed,
                 progress: total > 0 ? Math.round((completed / total) * 100) : 0
             };
-        }));
-
-        // Recent Activity (Last 5 updates)
-        const recentActivity = await Task.find({ project: { $in: projectIds } })
-            .sort({ updatedAt: -1 })
-            .limit(5)
-            .populate('assignedTo', 'name')
-            .select('title status updatedAt assignedTo');
-
-        // Filtered Task List (For Main Table)
-        const { status, priority, search, team: teamFilter, project: projectFilter } = req.query;
-        let query = { project: { $in: projectIds } };
-
-        if (teamFilter) {
-            const teamProjects = await Project.find({ assignedTeams: teamFilter });
-            const teamProjectIds = teamProjects.map(p => p._id);
-            query.project = { $in: teamProjectIds };
-        }
-        if (projectFilter) query.project = projectFilter;
-
-        if (status) query.status = status;
-        if (priority) query.priority = priority;
-        if (search) {
-            query.$or = [
-                { title: { $regex: search, $options: 'i' } }
-            ];
-        }
-
-        const taskList = await Task.find(query)
-            .populate('assignedTo', 'name')
-            .populate('project', 'name')
-            .sort({ deadline: 1 });
-
-        // Overdue Detailed (Global Oversight - NOT affected by table filters)
-        const overdueDetailed = await Task.find({
-            project: { $in: projectIds },
-            status: { $ne: 'done' },
-            deadline: { $lt: now }
-        })
-            .populate('assignedTo', 'name')
-            .populate('project', 'name')
-            .sort({ deadline: 1 });
+        });
 
         res.json({
             summary,

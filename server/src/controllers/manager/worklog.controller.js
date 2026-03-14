@@ -6,19 +6,18 @@ import { computeTeamAnalysis } from '../../utils/worksheet/analysisEngine.js';
 export const getManagerWorkLogs = async (req, res) => {
     try {
         const managerId = req.user.id;
-        const teams = await Team.find({ manager: managerId });
+        const teams = await Team.find({ manager: managerId }).select('members').lean();
 
-        const memberIds = teams.reduce((acc, team) => {
-            team.members.forEach(m => {
-                if (!acc.includes(m.toString())) acc.push(m.toString());
-            });
-            return acc;
-        }, []);
+        const memberIds = Array.from(new Set(teams.flatMap(t => t.members.map(m => m.toString()))));
+
+        if (memberIds.length === 0) return res.json([]);
 
         const workLogs = await WorksheetEntry.find({ employee: { $in: memberIds } })
+            .select('employee date startTime endTime durationMinutes category description')
             .populate('employee', 'name email')
             .sort({ date: -1, startTime: -1 })
-            .limit(100);
+            .limit(100)
+            .lean();
 
         res.json(workLogs);
     } catch (error) {
@@ -29,13 +28,10 @@ export const getManagerWorkLogs = async (req, res) => {
 export const getManagerWorkLogStats = async (req, res) => {
     try {
         const managerId = req.user.id;
-        const teams = await Team.find({ manager: managerId });
-        const memberIds = teams.reduce((acc, team) => {
-            team.members.forEach(m => {
-                if (!acc.includes(m.toString())) acc.push(m.toString());
-            });
-            return acc;
-        }, []);
+        const teams = await Team.find({ manager: managerId }).select('members').lean();
+        const memberIds = Array.from(new Set(teams.flatMap(t => t.members.map(m => m.toString()))));
+
+        if (memberIds.length === 0) return res.json([]);
 
         const stats = await WorksheetEntry.aggregate([
             { $match: { employee: { $in: memberIds.map(id => new mongoose.Types.ObjectId(id)) } } },
@@ -45,7 +41,8 @@ export const getManagerWorkLogStats = async (req, res) => {
                     totalMinutes: { $sum: "$durationMinutes" },
                     count: { $sum: 1 }
                 }
-            }
+            },
+            { $sort: { totalMinutes: -1 } }
         ]);
 
         res.json(stats);
@@ -81,25 +78,18 @@ export const getManagerWorkLogAnalysis = async (req, res) => {
         const entries = await WorksheetEntry.find({
             employee: { $in: memberIds },
             date: { $gte: from, $lte: to }
-        }).populate('employee', 'name').lean();
+        }).select('employee durationMinutes').populate('employee', 'name').lean();
 
         const teamEmployeeMap = {};
-
         teams.forEach(team => {
             teamEmployeeMap[team.name] = { name: team.name };
         });
 
         entries.forEach(e => {
-            let empIdStr;
-            let empName = 'Unknown Employee';
-
-            if (e.employee && e.employee._id) {
-                empIdStr = e.employee._id.toString();
-                empName = e.employee.name || empName;
-            } else if (e.employee) {
-                empIdStr = e.employee.toString();
-            }
-
+            if (!e.employee) return;
+            
+            const empIdStr = e.employee._id ? e.employee._id.toString() : e.employee.toString();
+            const empName = e.employee.name || 'Unknown Employee';
             const teamName = employeeToTeamMap[empIdStr] || 'Unknown Team';
 
             if (!teamEmployeeMap[teamName]) {
@@ -111,7 +101,7 @@ export const getManagerWorkLogAnalysis = async (req, res) => {
             teamEmployeeMap[teamName][empName] += e.durationMinutes / 60;
         });
 
-        const teamEmployeeDistribution = Object.valsues(teamEmployeeMap).map(team => {
+        const teamEmployeeDistribution = Object.values(teamEmployeeMap).map(team => {
             const roundedTeam = { name: team.name };
             let totalTeamHours = 0;
             for (const key in team) {

@@ -1,3 +1,9 @@
+import User from '../../models/user.model.js';
+import Task from '../../models/task.model.js';
+import Leave from '../../models/leave.model.js';
+import PerformanceMetric from '../../models/performanceMetric.model.js';
+import mongoose from 'mongoose';
+
 export const getTeamMembers = async (req, res) => {
     try {
         const teamId = req.user.team;
@@ -52,6 +58,7 @@ export const getTeamMembers = async (req, res) => {
             }
         });
     } catch (error) {
+        console.error('Error in getTeamMembers:', error);
         res.status(500).json({ message: "Failed to fetch team members" });
     }
 };
@@ -87,6 +94,7 @@ export const calculateTeamPerformanceScore = async (req, res) => {
             message: 'Team performance score calculated'
         });
     } catch (error) {
+        console.error('Error in calculateTeamPerformanceScore:', error);
         res.status(500).json({ message: "Failed to calculate team performance score" });
     }
 };
@@ -134,6 +142,7 @@ export const getTeamMemberPerformance = async (req, res) => {
 
         res.json({ members: result, avgScore, period });
     } catch (error) {
+        console.error('Error in getTeamMemberPerformance:', error);
         res.status(500).json({ message: "Failed to fetch team performance" });
     }
 };
