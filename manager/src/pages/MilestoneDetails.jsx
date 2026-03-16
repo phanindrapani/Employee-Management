@@ -4,11 +4,15 @@ import API from '../api';
 import { Plus, Pencil, Trash2, Calendar, Target, ChevronLeft, CheckCircle2, Clock } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { useAuth } from '../context/AuthContext';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 import useSocketListener from '../hooks/useSocketListener';
 
 const MilestoneDetails = () => {
     const { projectId } = useParams();
     const { user } = useAuth();
+    const { confirm } = useConfirmation();
+    const { showToast } = useToast();
     const [project, setProject] = useState(null);
     const [milestones, setMilestones] = useLocalStorage(`manager_milestone_details_${projectId}_${user?._id}`, []);
     const [teams, setTeams] = useState([]);
@@ -54,25 +58,37 @@ const MilestoneDetails = () => {
         try {
             if (editingMilestone) {
                 await API.put(`/manager/milestones/${editingMilestone._id}`, formData);
+                showToast('Milestone updated successfully', 'success');
             } else {
                 await API.post('/manager/milestones', { ...formData, projectId });
+                showToast('Milestone created successfully', 'success');
             }
             setShowModal(false);
             setEditingMilestone(null);
             setFormData({ name: '', assignedTeam: '', dueDate: '', status: 'pending' });
             fetchData();
         } catch (error) {
-            alert('Failed to save milestone');
+            showToast('Failed to save milestone', 'error');
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this milestone?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Milestone',
+            message: 'Are you sure you want to permanently delete this milestone? This action cannot be undone.',
+            confirmLabel: 'Delete Milestone',
+            cancelLabel: 'Keep Milestone',
+            type: 'danger'
+        });
+
+        if (!isConfirmed) return;
+
         try {
             await API.delete(`/manager/milestones/${id}`);
+            showToast('Milestone deleted successfully', 'success');
             fetchData();
         } catch (error) {
-            alert(error.response?.data?.message || 'Delete failed');
+            showToast(error.response?.data?.message || 'Delete failed', 'error');
         }
     };
 
@@ -95,7 +111,7 @@ const MilestoneDetails = () => {
                         </div>
                         <div>
                             <h1 className="text-2xl font-black text-[#0B3C5D]">{project?.name} - Milestones</h1>
-                            <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Define strategic phases and assign teams</p>
+                            <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Set goals and assign teams to your project</p>
                         </div>
                     </div>
                     <button
@@ -152,6 +168,11 @@ const MilestoneDetails = () => {
                                         {m.status === 'completed' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                                         {m.status}
                                     </div>
+                                    {m.status === 'completed' && m.completedAt && m.dueDate && (
+                                        <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${new Date(m.completedAt) <= new Date(new Date(m.dueDate).setHours(23, 59, 59, 999)) ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                            {new Date(m.completedAt) <= new Date(new Date(m.dueDate).setHours(23, 59, 59, 999)) ? 'On Time' : 'Late'}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))

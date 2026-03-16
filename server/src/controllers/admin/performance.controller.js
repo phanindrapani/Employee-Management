@@ -5,21 +5,81 @@ import User from '../../models/user.model.js';
 import Holiday from '../../models/holiday.model.js';
 import Team from '../../models/team.model.js';
 import Project from '../../models/project.model.js';
+import Milestone from '../../models/milestone.model.js';
 import mongoose from 'mongoose';
 import { getIO } from '../../socket.js';
 
 const calculateScore = async (userId, period) => {
+    const user = await User.findById(userId);
+    if (!user) return null;
+
     const [year, month] = period.split('-').map(Number);
     const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    if (user.role === 'manager') {
+        // Manager Performance: Strictly Milestone-based
+        const projects = await Project.find({ managerId: userId });
+        const projectIds = projects.map(p => p._id);
+
+        const milestones = await Milestone.find({
+            projectId: { $in: projectIds },
+            createdAt: { $lte: endDate }
+        });
+
+        const relevantMilestones = milestones.filter(m => {
+            // For managers, we consider ALL milestones that were either:
+            // 1. Completed during this period
+            // 2. Are still in progress or pending (representing assigned work)
+            const isCompletedBefore = m.status === 'completed' && m.completedAt && m.completedAt < startDate;
+            return !isCompletedBefore;
+        });
+
+        const milestonesAssigned = relevantMilestones.length;
+        const completedInPeriod = relevantMilestones.filter(m => m.status === 'completed' && m.completedAt && m.completedAt >= startDate && m.completedAt <= endDate);
+        const milestonesCompleted = completedInPeriod.length;
+
+        const onTimeMilestones = completedInPeriod.filter(m => {
+            return m.dueDate && m.completedAt && m.completedAt <= new Date(new Date(m.dueDate).setHours(23, 59, 59, 999));
+        }).length;
+
+        // NEW LOGIC: Each milestone has a potential 100% contribution to its share.
+        // Full credit (1.0) if on-time, partial credit (0.7) if late.
+        const totalScore = milestonesAssigned > 0 ? (relevantMilestones.reduce((acc, m) => {
+            if (m.status !== 'completed') return acc;
+            const isOnTime = m.dueDate && m.completedAt && m.completedAt <= new Date(new Date(m.dueDate).setHours(23, 59, 59, 999));
+            return acc + (isOnTime ? 1.0 : 0.7);
+        }, 0) / milestonesAssigned) * 100 : 0;
+
+        let category = 'Needs Improvement';
+        if (totalScore >= 85) category = 'Excellent';
+        else if (totalScore >= 70) category = 'Good';
+        else if (totalScore >= 50) category = 'Average';
+
+        return {
+            user: userId,
+            period,
+            tasksAssigned: milestonesAssigned,
+            tasksCompleted: milestonesCompleted,
+            onTimeTasks: onTimeMilestones,
+            attendanceDays: 0,
+            workingDays: 0,
+            taskCompletionScore: milestonesAssigned > 0 ? (milestonesCompleted / milestonesAssigned) * 100 : 0,
+            onTimeScore: milestonesCompleted > 0 ? (onTimeMilestones / milestonesCompleted) * 100 : 0,
+            attendanceScore: 0,
+            teamContributionScore: 0,
+            totalScore: Math.round(totalScore),
+            category
+        };
+    }
+
+    // Existing logic for Employee and Team Lead
     const now = new Date();
     const isCurrentMonth = now.getFullYear() === year && (now.getMonth() + 1) === month;
 
-    const monthEndDate = new Date(year, month, 0, 23, 59, 59);
-
+    const monthEndDate = endDate;
     const calcEndDate = isCurrentMonth ? now : monthEndDate;
     const effectiveEndDate = calcEndDate < startDate ? startDate : calcEndDate;
-
-    const endDate = monthEndDate;
 
     const tasks = await Task.find({
         assignedTo: userId,
@@ -189,7 +249,7 @@ export const recalculatePerformanceForUser = async (userId, period) => {
 export const triggerCalculation = async (req, res) => {
     try {
         const { period } = req.body; // "2026-02"
-        const users = await User.find({ role: { $in: ['employee', 'team-lead'] } });
+        const users = await User.find({ role: { $in: ['employee', 'team-lead', 'manager'] } });
 
         const results = [];
         for (const user of users) {
@@ -267,10 +327,35 @@ export const getAdminPerformanceStats = async (req, res) => {
             };
         }));
 
-        const orgAvgScore = teamStats.length > 0
-            ? Math.round(teamStats.reduce((sum, t) => sum + t.avgScore, 0) / teamStats.filter(t => t.trackedCount > 0).length || 0)
+        // Include Managers as a group
+        const managerMetrics = metrics.filter(m => m.user && m.user.role === 'manager');
+        if (managerMetrics.length > 0) {
+            const avgScore = Math.round(managerMetrics.reduce((sum, m) => sum + m.totalScore, 0) / managerMetrics.length);
+            const highestScore = Math.max(...managerMetrics.map(m => m.totalScore));
+            const needsAttention = managerMetrics.filter(m => m.totalScore < 50).length;
+
+            teamStats.push({
+                teamId: 'managers-virtual-id',
+                teamName: 'Managers',
+                leadName: 'Admin',
+                membersCount: managerMetrics.length,
+                trackedCount: managerMetrics.length,
+                avgScore,
+                highestScore,
+                needsAttention,
+                members: managerMetrics.map(m => ({
+                    name: m.user.name,
+                    score: m.totalScore,
+                    isLead: false
+                }))
+            });
+        }
+
+        // Summary metrics based on individuals
+        const orgAvgScore = metrics.length > 0
+            ? Math.round(metrics.reduce((sum, m) => sum + m.totalScore, 0) / metrics.length)
             : 0;
-        const highestTeamAvg = teamStats.length > 0 ? Math.max(...teamStats.map(t => t.avgScore)) : 0;
+        const highestIndividualScore = metrics.length > 0 ? Math.max(...metrics.map(m => m.totalScore)) : 0;
         const teamsNeedingAttention = teamStats.filter(t => t.needsAttention > 0).length;
         const topPerformers = [...metrics]
             .sort((a, b) => b.totalScore - a.totalScore)
@@ -280,7 +365,7 @@ export const getAdminPerformanceStats = async (req, res) => {
             summary: {
                 totalTeams: teams.length,
                 orgAvgScore,
-                highestTeamAvg,
+                highestIndividualScore,
                 teamsNeedingAttention
             },
             teams: teamStats.filter(t => t.membersCount > 0),

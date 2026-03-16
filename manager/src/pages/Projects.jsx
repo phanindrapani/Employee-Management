@@ -4,11 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import { Briefcase, Clock, Users2, ChevronRight, BarChart3, Plus, Pencil, Trash2, Globe, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 import useSocketListener from '../hooks/useSocketListener';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 const Projects = () => {
     const { user } = useAuth();
+    const confirm = useConfirmation();
+    const { showToast } = useToast();
     const [projects, setProjects] = useLocalStorage(`manager_projects_list_${user?._id}`, []);
     const [stats, setStats] = useLocalStorage(`manager_projects_stats_${user?._id}`, []);
     const [loading, setLoading] = useState(!projects.length || !stats.length);
@@ -43,12 +47,22 @@ const Projects = () => {
     const COLORS = ['#63C132', '#0B3C5D', '#F59E0B', '#EF4444', '#64748B'];
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this project and all its tasks?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Project',
+            message: 'Are you sure you want to delete this project and all its associated tasks? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            type: 'danger'
+        });
+
+        if (!isConfirmed) return;
+
         try {
             await API.delete(`/manager/projects/${id}`);
+            showToast("Project deleted successfully", "success");
             fetchProjects();
         } catch (err) {
-            alert('Delete failed');
+            showToast(err.response?.data?.message || 'Delete failed', 'error');
         }
     };
 
@@ -73,8 +87,8 @@ const Projects = () => {
                         <Briefcase size={32} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight text-[#0B3C5D]">Projects Overview</h1>
-                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Strategic oversight of active initiatives</p>
+                        <h1 className="text-3xl font-black tracking-tight text-[#0B3C5D]">Projects</h1>
+                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Track and manage your team projects</p>
                     </div>
                 </div>
 
@@ -158,7 +172,7 @@ const Projects = () => {
                                                 {project.name}
                                             </h3>
                                             <p className="text-sm text-slate-400 font-medium leading-relaxed italic line-clamp-1 opacity-80">
-                                                {project.description || "A strategic business transformation initiative."}
+                                                {project.description || "Manage project goals and tasks."}
                                             </p>
                                         </div>
 
@@ -182,7 +196,7 @@ const Projects = () => {
                                                 <div>
                                                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.1em] mb-0.5">Assigned</p>
                                                     <p className="text-[10px] font-black text-[#0B3C5D] truncate">
-                                                        {project.assignedTeams?.length || 0} Professional Teams
+                                                        {project.assignedTeams?.length || 0} Teams
                                                     </p>
                                                 </div>
                                             </div>

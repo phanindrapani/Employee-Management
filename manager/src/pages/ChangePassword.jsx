@@ -34,7 +34,7 @@ const ChangePassword = () => {
         <div className="max-w-2xl mx-auto space-y-8">
             <div>
                 <h1 className="text-4xl font-black tracking-tight mb-2">Security</h1>
-                <p className="text-slate-500 font-medium">Update your security credentials for the manager portal.</p>
+                <p className="text-slate-500 font-medium">Update your password to keep your account safe.</p>
             </div>
 
             <div className="card p-10">
@@ -44,13 +44,12 @@ const ChangePassword = () => {
                     </div>
                     <div>
                         <h2 className="text-xl font-black text-[#0B3C5D]">Update Password</h2>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Last changed 3 months ago</p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Key</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Password</label>
                         <input
                             type="password"
                             className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-[#0B3C5D]/10 transition-all font-medium text-slate-700"
@@ -63,7 +62,7 @@ const ChangePassword = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Key</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Password</label>
                             <input
                                 type="password"
                                 className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-[#0B3C5D]/10 transition-all font-medium text-slate-700"
@@ -74,7 +73,7 @@ const ChangePassword = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm New Key</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm New Password</label>
                             <input
                                 type="password"
                                 className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-[#0B3C5D]/10 transition-all font-medium text-slate-700"
@@ -89,7 +88,7 @@ const ChangePassword = () => {
                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex items-start gap-3">
                         <ShieldCheck size={20} className="text-[#0B3C5D] shrink-0" />
                         <p className="text-[11px] text-slate-600 font-medium leading-relaxed italic">
-                            Changing your password will update your access across all Manuen services. Ensure you use a strong, unique key combining letters, numbers, and symbols.
+                            Changing your password will update your access across all services. Use a strong, unique password.
                         </p>
                     </div>
 
@@ -98,7 +97,7 @@ const ChangePassword = () => {
                         className="w-full py-5 bg-[#0B3C5D] text-white rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-[#1A4B6D] active:scale-[0.98] transition-all shadow-2xl shadow-[#0B3C5D]/20 flex items-center justify-center gap-3"
                     >
                         <Save size={18} />
-                        Save Security Portals
+                        Update Password
                     </button>
                 </form>
             </div>

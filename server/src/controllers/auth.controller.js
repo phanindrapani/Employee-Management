@@ -93,6 +93,14 @@ export const loginUser = async (req, res) => {
     if (user && (await user.comparePassword(password))) {
 
         user.lastLogin = new Date();
+        const populatedUser = await User.findById(user._id).populate('reportingManager', 'name');
+        
+        // Fallback for managers
+        if (user.role === 'manager' && !populatedUser.reportingManager) {
+            const admin = await User.findOne({ role: 'admin' }).select('name');
+            if (admin) populatedUser.reportingManager = admin;
+        }
+
         await user.save();
 
         res.json({
@@ -102,6 +110,7 @@ export const loginUser = async (req, res) => {
             email: user.email,
             role: user.role,
             createdAt: user.createdAt,
+            reportingManager: populatedUser.reportingManager,
             token: generateToken(user._id, user.role),
         });
     } else {
@@ -119,6 +128,12 @@ export const getUserProfile = async (req, res) => {
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Fallback for managers
+        if (user.role === 'manager' && !user.reportingManager) {
+            const admin = await User.findOne({ role: 'admin' }).select('name profilePicture');
+            if (admin) user.reportingManager = admin;
         }
 
         const completeness = calculateCompleteness({ ...user, lastLogin: user.lastLogin || new Date() });
@@ -153,6 +168,14 @@ export const updateProfile = async (req, res) => {
             }
 
             const updatedUser = await user.save();
+            const populatedUser = await User.findById(updatedUser._id).populate('reportingManager', 'name');
+            
+            // Fallback for managers
+            if (updatedUser.role === 'manager' && !populatedUser.reportingManager) {
+                const admin = await User.findOne({ role: 'admin' }).select('name');
+                if (admin) populatedUser.reportingManager = admin;
+            }
+
             const completeness = calculateCompleteness({ ...updatedUser.toObject(), lastLogin: updatedUser.lastLogin || new Date() });
 
             res.json({
@@ -168,6 +191,7 @@ export const updateProfile = async (req, res) => {
                 skills: updatedUser.skills,
                 qualification: updatedUser.qualification,
                 createdAt: updatedUser.createdAt,
+                reportingManager: populatedUser.reportingManager,
                 completeness: completeness,
                 token: generateToken(updatedUser._id, updatedUser.role),
             });

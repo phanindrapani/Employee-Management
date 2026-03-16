@@ -54,8 +54,30 @@ export const syncMilestoneProgress = async (milestoneId) => {
             milestone.progress = newProgress;
             if (newProgress === 100) {
                 milestone.status = 'completed';
-            } else if (newProgress > 0) {
-                milestone.status = 'in-progress';
+                milestone.completedAt = new Date();
+                
+                // Trigger manager performance recalculation
+                setImmediate(async () => {
+                    try {
+                        const Project = mongoose.model('Project');
+                        const project = await Project.findById(milestone.projectId);
+                        if (project && project.managerId) {
+                            const now = new Date();
+                            const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                            const { recalculatePerformanceForUser } = await import('../controllers/admin/performance.controller.js');
+                            await recalculatePerformanceForUser(project.managerId, period);
+                        }
+                    } catch (err) {
+                        console.error('Error triggering manager performance sync:', err.message);
+                    }
+                });
+            } else {
+                if (newProgress > 0) {
+                    milestone.status = 'in-progress';
+                } else {
+                    milestone.status = 'pending';
+                }
+                milestone.completedAt = null;
             }
             await milestone.save();
         }

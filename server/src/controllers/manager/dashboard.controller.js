@@ -9,6 +9,9 @@ import Leave from '../../models/leave.model.js';
 export const getManagerDashboardStats = async (req, res) => {
     try {
         const managerId = req.user._id;
+        const freshUser = await User.findById(managerId).select('individualPerformanceScore');
+        const currentPerformanceScore = freshUser?.individualPerformanceScore || 0;
+        
         const now = new Date();
         const startOfToday = new Date(now.setHours(0, 0, 0, 0));
         const endOfToday = new Date(now.setHours(23, 59, 59, 999));
@@ -63,7 +66,8 @@ export const getManagerDashboardStats = async (req, res) => {
             employees: employeeCount,
             tasks: taskStats[0]?.total || 0,
             tickets: openTicketsCount,
-            overdue: taskStats[0]?.overdue || 0
+            overdue: taskStats[0]?.overdue || 0,
+            performanceScore: currentPerformanceScore
         };
 
         const projectHealth = projects.map(p => {

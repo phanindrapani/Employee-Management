@@ -5,10 +5,14 @@ import StatCard from '../components/StatCard';
 import ApplyLeaveModal from '../components/ApplyLeaveModal';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { useAuth } from '../context/AuthContext';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 import useSocketListener from '../hooks/useSocketListener';
 
 const Leaves = () => {
     const { user } = useAuth();
+    const { confirm, prompt } = useConfirmation();
+    const { showToast } = useToast();
     const [leaves, setLeaves] = useLocalStorage(`manager_leaves_list_${user?._id}`, []);
     const [myLeaves, setMyLeaves] = useLocalStorage(`manager_my_leaves_list_${user?._id}`, []);
     const [stats, setStats] = useLocalStorage(`manager_leaves_stats_${user?._id}`, []);
@@ -43,16 +47,22 @@ const Leaves = () => {
     const handleLeaveAction = async (id, status) => {
         let rejectionReason = '';
         if (status === 'rejected') {
-            rejectionReason = prompt("Please enter the reason for rejection:");
+            rejectionReason = await prompt({
+                title: 'Reject Leave Request',
+                message: 'Please provide a valid reason for rejecting this leave request.',
+                placeholder: 'Enter reason e.g., Insufficient project coverage...',
+                confirmLabel: 'Reject',
+                cancelLabel: 'Cancel'
+            });
             if (!rejectionReason) return;
         }
 
         try {
             await API.put(`/manager/leaves/${id}/status`, { status, rejectionReason });
+            showToast(`Leave request ${status} successfully`, "success");
             fetchData();
         } catch (error) {
-            console.error("Leave action error:", error);
-            alert(error.response?.data?.message || "Failed to process leave request");
+            showToast(error.response?.data?.message || "Failed to process leave request", "error");
         }
     };
 

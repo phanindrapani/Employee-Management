@@ -113,26 +113,21 @@ userSchema.pre('save', async function (next) {
                     );
                     this.uid = `CLI-${counter.count.toString().padStart(4, '0')}`;
                 }
-            } else {
-                if (!this.uid) {
-                    const counter = await Counter.findOneAndUpdate(
-                        { model: 'employee' },
-                        { $inc: { count: 1 } },
-                        { new: true, upsert: true }
-                    );
-                    this.uid = `EMP-${counter.count.toString().padStart(4, '0')}`;
-                }
-
-                // Auto-assign Admin as reporting manager for Managers
-                if (this.role === 'manager' && !this.reportingManager) {
-                    const admin = await Admin.findOne({ role: 'admin' });
-                    if (admin) {
-                        this.reportingManager = admin._id;
-                    }
-                }
             }
         } catch (error) {
             return next(error);
+        }
+    }
+
+    // Ensure Admin is reporting manager for all Managers
+    if (this.role === 'manager' && !this.reportingManager) {
+        try {
+            const admin = await Admin.findOne({ role: 'admin' });
+            if (admin) {
+                this.reportingManager = admin._id;
+            }
+        } catch (error) {
+            console.error('Error auto-assigning admin to manager:', error);
         }
     }
 

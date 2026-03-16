@@ -34,6 +34,9 @@ const milestoneSchema = new mongoose.Schema({
     },
     dueDate: {
         type: Date
+    },
+    completedAt: {
+        type: Date
     }
 }, { timestamps: true });
 

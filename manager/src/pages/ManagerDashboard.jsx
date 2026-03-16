@@ -87,6 +87,9 @@ const ManagerDashboard = () => {
                 <Link to="/tickets">
                     <StatCard title="Tickets" value={stats?.summaryKPIs?.tickets || 0} colorClass="border-amber-500" titleColor="text-amber-500" />
                 </Link>
+                <Link to="/team-performance">
+                    <StatCard title="Performance" value={`${stats?.summaryKPIs?.performanceScore || 0}%`} colorClass="border-emerald-500" titleColor="text-emerald-500" />
+                </Link>
                 <StatCard title="Overdue" value={stats?.summaryKPIs?.overdue || 0} colorClass="border-rose-500" titleColor="text-rose-500" />
             </div>
 

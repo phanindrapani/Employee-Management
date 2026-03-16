@@ -15,11 +15,15 @@ import {
     AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import useSocketListener from '../hooks/useSocketListener';
 
 const Milestones = () => {
     const { user } = useAuth();
+    const confirm = useConfirmation();
+    const { showToast } = useToast();
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     
@@ -37,8 +41,7 @@ const Milestones = () => {
         name: '',
         milestoneId: '',
         assignedTeam: '',
-        dueDate: '',
-        status: 'pending'
+        dueDate: ''
     });
 
     // Fetch all assigned projects first
@@ -105,25 +108,37 @@ const Milestones = () => {
         try {
             if (editingMilestone) {
                 await API.put(`/manager/milestones/${editingMilestone._id}`, formData);
+                showToast("Milestone updated successfully", "success");
             } else {
                 await API.post('/manager/milestones', { ...formData, projectId: selectedProject._id });
+                showToast("Milestone created successfully", "success");
             }
             setShowModal(false);
             setEditingMilestone(null);
-            setFormData({ name: '', milestoneId: '', assignedTeam: '', dueDate: '', status: 'pending' });
+            setFormData({ name: '', milestoneId: '', assignedTeam: '', dueDate: '' });
             fetchMilestones(selectedProject._id);
         } catch (error) {
-            alert('Failed to save milestone');
+            showToast(error.response?.data?.message || 'Failed to save milestone', 'error');
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this milestone?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Milestone',
+            message: 'Are you sure you want to delete this milestone? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            type: 'danger'
+        });
+
+        if (!isConfirmed) return;
+
         try {
             await API.delete(`/manager/milestones/${id}`);
+            showToast("Milestone deleted successfully", "success");
             fetchMilestones(selectedProject._id);
         } catch (error) {
-            alert(error.response?.data?.message || 'Delete failed');
+            showToast(error.response?.data?.message || 'Delete failed', 'error');
         }
     };
 
@@ -191,13 +206,13 @@ const Milestones = () => {
                                 </div>
                                 <div>
                                     <h1 className="text-2xl font-black text-[#0B3C5D] tracking-tight">{selectedProject.name}</h1>
-                                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">Strategic Milestone Management</p>
+                                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">Project Milestones</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => {
                                     setEditingMilestone(null);
-                                    setFormData({ name: '', milestoneId: '', assignedTeam: '', dueDate: '', status: 'pending' });
+                                    setFormData({ name: '', milestoneId: '', assignedTeam: '', dueDate: '' });
                                     setShowModal(true);
                                 }}
                                 className="w-full sm:w-auto px-6 py-4 bg-[#63C132] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#52A428] transition-all flex items-center justify-center gap-3 shadow-xl shadow-[#63C132]/20"
@@ -214,7 +229,7 @@ const Milestones = () => {
                         ) : milestones.length === 0 ? (
                             <div className="py-20 text-center bg-slate-50/50 rounded-[40px] border-2 border-dashed border-slate-100 italic">
                                 <Target size={64} className="mx-auto text-slate-100 mb-6" />
-                                <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No strategic phases defined for this initiative</p>
+                                <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No milestones added to this project yet</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -228,8 +243,7 @@ const Milestones = () => {
                                                         name: m.name,
                                                         milestoneId: m.milestoneId || '',
                                                         assignedTeam: m.assignedTeam?._id || m.assignedTeam || '',
-                                                        dueDate: m.dueDate ? new Date(m.dueDate).toISOString().split('T')[0] : '',
-                                                        status: m.status
+                                                        dueDate: m.dueDate ? new Date(m.dueDate).toISOString().split('T')[0] : ''
                                                     });
                                                     setShowModal(true);
                                                 }} className="p-2 bg-white shadow-md text-slate-400 hover:text-[#0B3C5D] rounded-xl transition-all border border-slate-50"><Pencil size={14} /></button>
@@ -238,7 +252,12 @@ const Milestones = () => {
                                         </div>
 
                                         <div className="space-y-4 pt-2">
-                                            <h3 className="text-lg font-black text-[#0B3C5D] tracking-tight line-clamp-1">{m.name}</h3>
+                                            <div className="flex items-start justify-between gap-2">
+                                                <h3 className="text-lg font-black text-[#0B3C5D] tracking-tight line-clamp-1">{m.name}</h3>
+                                                <span className="shrink-0 px-2 py-0.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded-md border border-blue-100 uppercase tracking-tighter">
+                                                    {m.milestoneId || '...'}
+                                                </span>
+                                            </div>
                                             
                                             <div className="space-y-3">
                                                 <div className="flex items-center gap-3">
@@ -256,7 +275,7 @@ const Milestones = () => {
                                                         <Briefcase size={14} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Responsible Team</p>
+                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Assigned Team</p>
                                                         <p className="text-xs font-bold text-slate-600 mt-0.5 truncate max-w-[140px]">{m.assignedTeam?.name || 'Pending Assignment'}</p>
                                                     </div>
                                                 </div>
@@ -282,8 +301,8 @@ const Milestones = () => {
                     <div className="bg-white p-20 rounded-[40px] shadow-sm border border-slate-50 text-center space-y-6">
                         <Target size={80} className="mx-auto text-slate-100" />
                         <div>
-                            <h2 className="text-2xl font-black text-[#0B3C5D] tracking-tight">Access Your Portfolio</h2>
-                            <p className="text-slate-400 font-medium max-w-sm mx-auto mt-2">Select a project from the sidebar to manage its strategic milestones and delivery phases.</p>
+                            <h2 className="text-2xl font-black text-[#0B3C5D] tracking-tight">Select a Project</h2>
+                            <p className="text-slate-400 font-medium max-w-sm mx-auto mt-2">Pick a project from the sidebar to see and manage its milestones.</p>
                         </div>
                     </div>
                 )}
@@ -299,8 +318,8 @@ const Milestones = () => {
                                     <Target size={24} />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight">{editingMilestone ? 'Refine Phase' : 'Establish Phase'}</h2>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Project Milepost Identity</p>
+                                    <h2 className="text-xl font-black text-[#0B3C5D] tracking-tight">{editingMilestone ? 'Edit Milestone' : 'Create Milestone'}</h2>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Milestone Details</p>
                                 </div>
                             </div>
                             <button onClick={() => setShowModal(false)} className="text-slate-300 hover:text-rose-500 transition-colors">
@@ -309,10 +328,10 @@ const Milestones = () => {
                         </div>
                         <form onSubmit={handleSubmit} className="p-8 space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phase Designation</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Milestone Name</label>
                                 <input
                                     type="text"
-                                    placeholder="e.g., Strategic Planning, System Architecture..."
+                                    placeholder="e.g., Development, Design, Launch..."
                                     className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#0B3C5D]/10 font-bold text-[#0B3C5D] placeholder:text-slate-300"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -321,7 +340,7 @@ const Milestones = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tracking ID (Optional)</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Milestone ID (Optional)</label>
                                 <input
                                     type="text"
                                     placeholder="e.g., M1, PHASE-A, V1.0"
@@ -333,7 +352,7 @@ const Milestones = () => {
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Collective</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Team</label>
                                         <select
                                             className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#0B3C5D]/10 font-bold text-[#0B3C5D] appearance-none"
                                             value={formData.assignedTeam}
@@ -346,7 +365,7 @@ const Milestones = () => {
                                         </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Target Date</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Due Date</label>
                                     <input
                                         type="date"
                                         className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#0B3C5D]/10 font-bold text-[#0B3C5D]"
@@ -356,40 +375,20 @@ const Milestones = () => {
                                 </div>
                             </div>
 
-                            {editingMilestone && (
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Operational Status</label>
-                                    <div className="flex bg-slate-50 p-1.5 rounded-2xl gap-1">
-                                        {['pending', 'in-progress', 'completed'].map(s => (
-                                            <button
-                                                key={s}
-                                                type="button"
-                                                onClick={() => setFormData({ ...formData, status: s })}
-                                                className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
-                                                    formData.status === s ? 'bg-white shadow-md text-[#0B3C5D]' : 'text-slate-400 hover:text-slate-600'
-                                                }`}
-                                            >
-                                                {s}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
                             <div className="flex gap-4 pt-4">
                                 <button 
                                     type="button" 
                                     onClick={() => setShowModal(false)} 
                                     className="flex-1 py-4 bg-slate-100 text-[#0B3C5D] rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
                                 >
-                                    Abort
+                                    Cancel
                                 </button>
                                 <button 
                                     type="submit" 
                                     className="flex-1 py-4 bg-[#0B3C5D] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#0B3C5D]/20 hover:bg-[#1A4B6D] transition-all flex items-center justify-center gap-2"
                                 >
                                     <CheckCircle2 size={18} />
-                                    {editingMilestone ? 'Update Phase' : 'Activate Phase'}
+                                    {editingMilestone ? 'Update Milestone' : 'Add Milestone'}
                                 </button>
                             </div>
                         </form>

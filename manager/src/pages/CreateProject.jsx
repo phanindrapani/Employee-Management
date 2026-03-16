@@ -4,10 +4,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import API from '../api';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import useSocketListener from '../hooks/useSocketListener';
 
 const CreateProject = () => {
     const { user } = useAuth();
+    const { showToast } = useToast();
     const [teams, setTeams] = useLocalStorage(`ls_manager_teams_list_${user?._id}`, []);
     const [clients, setClients] = useLocalStorage(`ls_manager_clients_list_${user?._id}`, []);
     const [loading, setLoading] = useState(!teams.length || !clients.length);
@@ -75,12 +77,14 @@ const CreateProject = () => {
         try {
             if (isEdit) {
                 await API.put(`/manager/projects/${id}`, formData);
+                showToast('Project updated successfully', 'success');
             } else {
                 await API.post('/manager/projects', formData);
+                showToast('Project created successfully', 'success');
             }
             navigate('/projects');
         } catch (err) {
-            alert(err.response?.data?.message || `Failed to ${isEdit ? 'update' : 'create'} project`);
+            showToast(err.response?.data?.message || `Failed to ${isEdit ? 'update' : 'create'} project`, 'error');
         }
     };
 

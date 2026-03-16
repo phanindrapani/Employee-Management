@@ -45,7 +45,7 @@ export const getProjectMilestones = async (req, res) => {
 
         const milestones = await Milestone.find({ projectId })
             .populate('assignedTeam', 'name')
-            .select('name milestoneId projectId assignedTeam dueDate')
+            .select('name milestoneId projectId assignedTeam dueDate status progress createdAt')
             .lean();
         res.json(milestones);
     } catch (error) {
@@ -63,6 +63,12 @@ export const updateMilestone = async (req, res) => {
         }
 
         const updatedMilestone = await Milestone.findByIdAndUpdate(id, req.body, { new: true });
+
+        if (req.body.status === 'completed' && updatedMilestone.completedAt) {
+            const { recalculatePerformanceForUser } = await import('../controllers/admin/performance.controller.js');
+            setImmediate(() => recalculatePerformanceForUser(req.user._id, `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`));
+        }
+
         res.json(updatedMilestone);
     } catch (error) {
         res.status(500).json({ message: error.message });

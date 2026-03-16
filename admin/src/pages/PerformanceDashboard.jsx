@@ -117,7 +117,7 @@ const PerformanceDashboard = () => {
                         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-amber-500 flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-1">Best Score</p>
-                                <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{stats?.summary?.highestTeamAvg || 0}%</h3>
+                                <h3 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{stats?.summary?.highestIndividualScore || 0}%</h3>
                             </div>
                         </div>
                         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 border-l-4 border-rose-500 flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
@@ -136,7 +136,7 @@ const PerformanceDashboard = () => {
                             </h3>
                             <div className="h-[280px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={stats.teams} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+                                    <BarChart data={stats.teams.filter(t => t.teamId !== 'managers-virtual-id')} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                         <XAxis dataKey="teamName" tick={{ fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} dy={8} />
                                         <YAxis domain={[0, 100]} tick={{ fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
@@ -156,6 +156,34 @@ const PerformanceDashboard = () => {
                         </div>
                     )}
 
+                    {/* Manager Performance Bar Chart */}
+                    {stats?.teams?.some(t => t.teamId === 'managers-virtual-id') && (
+                        <div className="bg-white p-8 rounded-[24px] shadow-sm border border-slate-50">
+                            <h3 className="text-lg font-black text-[#0B3C5D] mb-6 flex items-center gap-2">
+                                <Award size={20} className="text-amber-500" /> Manager Performance Scores
+                            </h3>
+                            <div className="h-[280px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={stats.teams.find(t => t.teamId === 'managers-virtual-id')?.members} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} dy={8} />
+                                        <YAxis domain={[0, 100]} tick={{ fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                                        <Tooltip
+                                            cursor={{ fill: '#f8fafc' }}
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                            formatter={(value) => [`${value}%`, 'Score']}
+                                        />
+                                        <Bar dataKey="score" radius={[6, 6, 0, 0]} barSize={36}>
+                                            {stats.teams.find(t => t.teamId === 'managers-virtual-id')?.members.map((m, i) => (
+                                                <Cell key={i} fill={m.score >= 75 ? '#63C132' : m.score >= 50 ? '#f59e0b' : '#ef4444'} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Team Cards */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-black text-[#0B3C5D] flex items-center gap-2">
@@ -164,7 +192,7 @@ const PerformanceDashboard = () => {
                         {stats?.teams?.length === 0 && (
                             <div className="text-center text-slate-400 py-12 font-medium italic">No team data available. Click "Update Scores" to calculate.</div>
                         )}
-                        {stats?.teams?.map((team, i) => (
+                        {stats?.teams?.filter(t => t.teamId !== 'managers-virtual-id').map((team, i) => (
                             <div key={i} className="bg-white rounded-[20px] shadow-sm border border-slate-50 overflow-hidden">
                                 {/* Team Header Row */}
                                 <div

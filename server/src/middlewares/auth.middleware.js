@@ -1,13 +1,5 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
-import fs from 'fs';
-import path from 'path';
-
-const logFile = path.resolve('auth_debug.log');
-const log = (msg) => {
-    const entry = `[${new Date().toISOString()}] ${msg}\n`;
-    fs.appendFileSync(logFile, entry);
-};
 
 const userCache = new Map();
 const CACHE_TTL = 30000; // 30 seconds
@@ -32,26 +24,22 @@ export const protect = async (req, res, next) => {
                     userCache.set(decoded.id, { data: user, timestamp: Date.now() });
                     req.user = user;
                 } else {
-                    log(`Authentication failed: User not found for ID ${decoded.id}`);
                     return res.status(401).json({ message: 'User no longer exists' });
                 }
             }
 
             if (!req.user.isActive) {
-                log(`Authentication failed: User account deactivated ${decoded.id}`);
                 return res.status(401).json({ message: 'User account is deactivated' });
             }
 
-            log(`Authentication success: User ${req.user.email} (${req.user.role}) for ${req.method} ${req.originalUrl}`);
             next();
         } catch (error) {
-            log(`JWT Error in protect: ${error.message} (token: ${token ? token.substring(0, 10) : 'none'})`);
+            console.error('JWT Error:', error.message);
             res.status(401).json({ message: 'Not authorized, token invalid or expired' });
         }
     }
 
     if (!token) {
-        log(`Authentication failed: No token provided for ${req.method} ${req.originalUrl}`);
         res.status(401).json({ message: 'Not authorized, no token provided' });
     }
 };

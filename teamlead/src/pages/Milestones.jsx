@@ -86,13 +86,13 @@ const Milestones = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
                 <div>
                     <h1 className="text-3xl md:text-4xl font-black text-[#0B3C5D] tracking-tight mb-2 uppercase tracking-widest">My Milestones</h1>
-                    <p className="text-sm md:text-base text-slate-500 font-medium italic">Project Planning • Phase Tracking</p>
+                    <p className="text-sm md:text-base text-slate-500 font-medium italic">Milestone Overview</p>
                 </div>
                 <div className="p-4 bg-[#63C132]/10 rounded-2xl border border-[#63C132]/20 flex items-center gap-3">
                     <TrendingUp className="text-[#63C132]" size={20} />
                     <div>
-                        <div className="text-[10px] font-black text-[#0B3C5D] uppercase tracking-widest leading-none">Global Progress</div>
-                        <div className="text-sm font-bold text-[#0B3C5D]">Aggregated Completion</div>
+                        <div className="text-[10px] font-black text-[#0B3C5D] uppercase tracking-widest leading-none">Total Progress</div>
+                        <div className="text-sm font-bold text-[#0B3C5D]">Completed Work</div>
                     </div>
                 </div>
             </div>
@@ -225,7 +225,7 @@ const Milestones = () => {
                                     <td colSpan="4" className="px-8 py-20 text-center text-slate-400 text-xs font-bold uppercase tracking-widest italic">
                                         <div className="flex flex-col items-center gap-4">
                                             <Clock size={40} className="text-slate-100" />
-                                            No milestones successfully assigned to your team yet.
+                                            No milestones assigned to your team yet.
                                         </div>
                                     </td>
                                 </tr>

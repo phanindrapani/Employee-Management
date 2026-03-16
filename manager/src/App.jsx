@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { ToastProvider } from './context/ToastContext';
+import { ConfirmationProvider } from './context/ConfirmationContext';
 import NotificationListener from './components/NotificationListener';
 import Login from './pages/Login';
 import DashboardLayout from './components/Layout/DashboardLayout';
@@ -31,34 +32,36 @@ function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-        <ToastProvider>
-          <NotificationListener />
-          <Router>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={
-                <PrivateRoute>
-                  <DashboardLayout />
-                </PrivateRoute>
-              }>
-                <Route index element={<ManagerDashboard />} />
-                <Route path="projects" element={<Projects />} />
-                <Route path="projects/create" element={<CreateProject />} />
-                <Route path="projects/edit/:id" element={<CreateProject />} />
-                <Route path="projects/:projectId/milestones" element={<MilestoneDetails />} />
-                <Route path="milestones" element={<Milestones />} />
-                <Route path="tasks" element={<TasksOverview />} />
-                <Route path="team-performance" element={<TeamPerformance />} />
-                <Route path="work-logs" element={<WorkLogs />} />
-                <Route path="leaves" element={<Leaves />} />
-                <Route path="holidays" element={<Holidays />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="change-password" element={<ChangePassword />} />
-                <Route path="tickets" element={<Tickets />} />
-              </Route>
-            </Routes>
-          </Router>
-        </ToastProvider>
+        <ConfirmationProvider>
+          <ToastProvider>
+            <NotificationListener />
+            <Router>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={
+                  <PrivateRoute>
+                    <DashboardLayout />
+                  </PrivateRoute>
+                }>
+                  <Route index element={<ManagerDashboard />} />
+                  <Route path="projects" element={<Projects />} />
+                  <Route path="projects/create" element={<CreateProject />} />
+                  <Route path="projects/edit/:id" element={<CreateProject />} />
+                  <Route path="projects/:projectId/milestones" element={<MilestoneDetails />} />
+                  <Route path="milestones" element={<Milestones />} />
+                  <Route path="tasks" element={<TasksOverview />} />
+                  <Route path="team-performance" element={<TeamPerformance />} />
+                  <Route path="work-logs" element={<WorkLogs />} />
+                  <Route path="leaves" element={<Leaves />} />
+                  <Route path="holidays" element={<Holidays />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="change-password" element={<ChangePassword />} />
+                  <Route path="tickets" element={<Tickets />} />
+                </Route>
+              </Routes>
+            </Router>
+          </ToastProvider>
+        </ConfirmationProvider>
       </SocketProvider>
     </AuthProvider>
   );
