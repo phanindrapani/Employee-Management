@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import useSocketListener from '../hooks/useSocketListener';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 import { FolderKanban, Plus, MoreVertical, Calendar, Users2, Activity, Trash2, Pencil } from 'lucide-react';
 
 const ProjectManagement = () => {
@@ -11,6 +13,8 @@ const ProjectManagement = () => {
     });
     const [loading, setLoading] = useState(projects.length === 0);
     const navigate = useNavigate();
+    const confirm = useConfirmation();
+    const { showToast } = useToast();
 
     const fetchProjects = async () => {
         try {
@@ -33,12 +37,21 @@ const ProjectManagement = () => {
     useSocketListener('project:deleted', fetchProjects);
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this project and all its tasks?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Project',
+            message: 'Are you sure you want to delete this project and all its tasks? This action cannot be undone.',
+            confirmLabel: 'Delete Project',
+            type: 'danger'
+        });
+
+        if (!isConfirmed) return;
+
         try {
             await API.delete(`/admin/projects/${id}`);
+            showToast('Project deleted successfully', 'success');
             fetchProjects();
         } catch (err) {
-            alert('Delete failed');
+            showToast('Delete failed', 'error');
         }
     };
 
@@ -122,18 +135,6 @@ const ProjectManagement = () => {
                                     <div className="min-w-0">
                                         <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5">Project Manager</p>
                                         <p className="text-xs font-black text-[#0B3C5D] truncate">{project.managerId?.name || 'Not Assigned'}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-3xl border border-transparent hover:border-slate-100 transition-all">
-                                    <div className="w-10 h-10 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded-2xl shadow-sm">
-                                        <Users2 size={18} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5">Assigned Teams</p>
-                                        <p className="text-xs font-black text-[#0B3C5D]">
-                                            {project.assignedTeams?.length || 0} {project.assignedTeams?.length === 1 ? 'Team' : 'Teams'}
-                                        </p>
                                     </div>
                                 </div>
 

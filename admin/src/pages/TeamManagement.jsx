@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import API from '../api';
 import { Users2, Plus, Trash2, X, UserCheck, ShieldCheck, Pencil } from 'lucide-react';
 import useSocketListener from '../hooks/useSocketListener';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 
 const TeamManagement = () => {
     const [teams, setTeams] = useState(() => {
@@ -27,6 +29,8 @@ const TeamManagement = () => {
         manager: '',
         members: []
     });
+    const confirm = useConfirmation();
+    const { showToast } = useToast();
 
     const fetchData = useCallback(async () => {
         try {
@@ -84,7 +88,7 @@ const TeamManagement = () => {
             setEditingId(null);
             fetchData();
         } catch (err) {
-            alert(err.response?.data?.message || 'Action failed');
+            showToast(err.response?.data?.message || 'Action failed', 'error');
         }
     };
 
@@ -102,12 +106,21 @@ const TeamManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Team',
+            message: 'Are you sure you want to delete this team? This action cannot be undone.',
+            confirmLabel: 'Delete Team',
+            type: 'danger'
+        });
+
+        if (!isConfirmed) return;
+
         try {
             await API.delete(`/admin/teams/${id}`);
+            showToast('Team deleted successfully', 'success');
             fetchData();
         } catch (err) {
-            alert('Delete failed');
+            showToast('Delete failed', 'error');
         }
     };
 

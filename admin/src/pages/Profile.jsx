@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import API from '../api';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Phone, Shield, Camera, Save, X } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 
 const Profile = () => {
     const { user: authUser, setUser, login } = useAuth();
+    const { showToast } = useToast();
     const [profile, setProfile] = useState(() => {
         const cached = localStorage.getItem('ls_admin_profile');
         return cached ? JSON.parse(cached) : null;
@@ -72,8 +74,9 @@ const Profile = () => {
             localStorage.setItem('ls_admin_profile', JSON.stringify(data));
             setIsEditing(false);
             setSelectedImage(null);
+            showToast('Profile updated successfully', 'success');
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to update profile');
+            showToast(err.response?.data?.message || 'Failed to update profile', 'error');
         }
     };
 

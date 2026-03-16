@@ -3,6 +3,7 @@ import Leave from '../../models/leave.model.js';
 import Project from '../../models/project.model.js';
 import Task from '../../models/task.model.js';
 import Team from '../../models/team.model.js';
+import Ticket from '../../models/ticket.model.js';
 import { getGlobalSummary } from '../../services/stats.service.js';
 
 export const getDashboardStats = async (req, res) => {
@@ -14,19 +15,48 @@ export const getDashboardStats = async (req, res) => {
             pendingLeaves,
             upcomingDeadlines,
             recentTasks,
-            teams
+            teams,
+            recentProjects,
+            recentLeaves,
+            recentTickets
         ] = await Promise.all([
             Leave.find({ status: 'pending', approver: req.user._id }).populate('user', 'name profilePicture').limit(5).sort({ createdAt: -1 }).lean(),
-            Project.find({ status: 'ongoing', endDate: { $gte: today } }).populate('assignedTeams', 'name').sort({ endDate: 1 }).limit(5).lean(),
-            Task.find().sort({ createdAt: -1 }).limit(5).populate('assignedTo', 'name').lean(),
-            Team.find().populate('teamLead', 'name').lean()
+            Project.find({ status: 'ongoing', endDate: { $gte: today } }).populate('managerId', 'name').sort({ endDate: 1 }).limit(5).lean(),
+            Task.find().sort({ createdAt: -1 }).limit(10).populate('assignedTo', 'name').lean(),
+            Team.find().populate('teamLead', 'name').lean(),
+            Project.find().sort({ createdAt: -1 }).limit(5).populate('createdBy', 'name').lean(),
+            Leave.find().sort({ createdAt: -1 }).limit(5).populate('user', 'name').lean(),
+            Ticket.find().sort({ createdAt: -1 }).limit(5).populate('clientId', 'name').lean()
         ]);
 
-        const activityFeed = recentTasks.map(task => ({
-            message: `${task.assignedTo?.name || 'System'} was assigned to "${task.title}"`,
-            time: task.createdAt,
-            type: 'task'
-        }));
+        // Aggregate activities
+        const activities = [
+            ...recentTasks.map(task => ({
+                message: `${task.assignedTo?.name || 'An employee'} was assigned to task "${task.title}"`,
+                time: task.createdAt,
+                type: 'task'
+            })),
+            ...recentProjects.map(proj => ({
+                message: `New project "${proj.name}" was initiated`,
+                time: proj.createdAt,
+                type: 'project'
+            })),
+            ...recentLeaves.map(leave => ({
+                message: `${leave.user?.name || 'An employee'} applied for ${leave.leaveType} leave`,
+                time: leave.createdAt,
+                type: 'leave'
+            })),
+            ...recentTickets.map(ticket => ({
+                message: `New support ticket "${ticket.title}" received from ${ticket.clientId?.name || 'a client'}`,
+                time: ticket.createdAt,
+                type: 'ticket'
+            }))
+        ];
+
+        // Sort by time descending and take top 15
+        const activityFeed = activities
+            .sort((a, b) => new Date(b.time) - new Date(a.time))
+            .slice(0, 15);
 
         const teamPerformance = await Promise.all(teams.map(async team => {
             const projects = await Project.find({ assignedTeams: team._id });
@@ -53,7 +83,7 @@ export const getDashboardStats = async (req, res) => {
                     _id: p._id,
                     name: p.name,
                     endDate: p.endDate,
-                    assignedTeams: p.assignedTeams
+                    managerId: p.managerId
                 }))
             },
             teamPerformance,

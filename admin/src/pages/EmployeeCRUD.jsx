@@ -6,6 +6,8 @@ import {
     Trash2, Mail, Phone, BookOpen, X, UserPlus, Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 
 const EmployeeCRUD = () => {
     const initialFormData = {
@@ -39,6 +41,8 @@ const EmployeeCRUD = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const confirm = useConfirmation();
+    const { showToast } = useToast();
 
     const [formData, setFormData] = useState(initialFormData);
 
@@ -94,17 +98,26 @@ const EmployeeCRUD = () => {
             setFormData(initialFormData);
             fetchData();
         } catch (err) {
-            alert(err.response?.data?.message || 'Action failed');
+            showToast(err.response?.data?.message || 'Action failed', 'error');
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Employee',
+            message: 'Are you sure you want to delete this employee? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            type: 'danger'
+        });
+
+        if (!isConfirmed) return;
+        
         try {
             await API.delete(`/admin/employees/${id}`);
+            showToast('Employee deleted successfully', 'success');
             fetchData();
         } catch (err) {
-            alert('Delete failed');
+            showToast('Delete failed', 'error');
         }
     };
 

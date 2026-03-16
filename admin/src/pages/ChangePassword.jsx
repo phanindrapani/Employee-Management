@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import API from '../api';
 import { KeyRound, ShieldCheck, AlertCircle } from 'lucide-react';
 
+import { useToast } from '../context/ToastContext';
+
 const ChangePassword = () => {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -9,6 +11,7 @@ const ChangePassword = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const { showToast } = useToast();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,6 +20,7 @@ const ChangePassword = () => {
 
         if (newPassword !== confirmPassword) {
             setError('New password and confirm password do not match');
+            showToast('Passwords do not match', 'error');
             return;
         }
 
@@ -27,11 +31,14 @@ const ChangePassword = () => {
                 newPassword
             });
             setSuccess('Password updated successfully');
+            showToast('Password updated successfully', 'success');
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to update password');
+            const msg = err.response?.data?.message || 'Failed to update password';
+            setError(msg);
+            showToast(msg, 'error');
         } finally {
             setLoading(false);
         }

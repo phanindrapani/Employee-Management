@@ -5,6 +5,7 @@ import {
     Trash2, Mail, Phone, Building2, X, UserPlus, FileText
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { useConfirmation } from '../context/ConfirmationContext';
 
 const Clients = () => {
     const initialFormData = {
@@ -21,6 +22,7 @@ const Clients = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState(initialFormData);
     const { showToast } = useToast();
+    const confirm = useConfirmation();
 
     const fetchData = useCallback(async () => {
         try {
@@ -68,7 +70,13 @@ const Clients = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this client?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Client',
+            message: 'Are you sure you want to delete this client? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            type: 'danger'
+        });
+        if (!isConfirmed) return;
         try {
             await API.delete(`/admin/clients/${id}`);
             showToast('Client deleted successfully', 'success');

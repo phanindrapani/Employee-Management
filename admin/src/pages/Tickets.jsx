@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useConfirmation } from '../context/ConfirmationContext';
 import API from '../api';
 import {
     Search,
@@ -50,6 +51,7 @@ const Tickets = () => {
     const [assigningTo, setAssigningTo] = useState('');
     const [assignNote, setAssignNote] = useState('');
     const { showToast } = useToast();
+    const confirm = useConfirmation();
 
     const fetchData = async () => {
         try {
@@ -117,7 +119,13 @@ const Tickets = () => {
     };
 
     const handleClose = async (id) => {
-        if (!window.confirm('Are you sure you want to close this ticket?')) return;
+        const isConfirmed = await confirm({
+            title: 'Close Ticket',
+            message: 'Are you sure you want to close this ticket?',
+            confirmLabel: 'Close Ticket',
+            type: 'warning'
+        });
+        if (!isConfirmed) return;
         try {
             await API.patch(`/admin/tickets/${id}/close`);
             showToast('Ticket closed', 'success');

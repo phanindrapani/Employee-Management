@@ -10,6 +10,7 @@ import {
     Filter,
     FileText
 } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 const LeaveRequests = () => {
     const [leaves, setLeaves] = useState(() => {
@@ -21,6 +22,7 @@ const LeaveRequests = () => {
     const [rejectionReason, setRejectionReason] = useState('');
     const [selectedId, setSelectedId] = useState(null);
     const [statusFilter, setStatusFilter] = useState('pending');
+    const { showToast } = useToast();
 
     const fetchRequests = useCallback(async () => {
         try {
@@ -58,7 +60,7 @@ const LeaveRequests = () => {
 
     const handleAction = async (id, status) => {
         if (status === 'rejected' && !rejectionReason) {
-            alert('Please provide a reason for rejection');
+            showToast('Please provide a reason for rejection', 'warning');
             return;
         }
 
@@ -68,7 +70,7 @@ const LeaveRequests = () => {
             setSelectedId(null);
             fetchRequests();
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to update status');
+            showToast(err.response?.data?.message || 'Failed to update status', 'error');
         }
     };
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { ConfirmationProvider } from './context/ConfirmationContext';
 import Login from './pages/Login';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import AdminDashboard from './pages/AdminDashboard';
@@ -45,7 +46,8 @@ function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-        <ToastProvider>
+        <ConfirmationProvider>
+          <ToastProvider>
           <NotificationListener />
           <Router>
             <Routes>
@@ -79,7 +81,8 @@ function App() {
             </Routes>
           </Router>
         </ToastProvider>
-      </SocketProvider>
+      </ConfirmationProvider>
+    </SocketProvider>
     </AuthProvider>
   );
 }

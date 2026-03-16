@@ -234,7 +234,7 @@ const AdminDashboard = () => {
                                                     <p className="text-xs text-red-600 font-medium">Due: {new Date(project.endDate).toLocaleDateString()}</p>
                                                 </div>
                                                 <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2 py-1 rounded text-slate-500 border border-slate-100">
-                                                    {project.assignedTeams?.[0]?.name || 'Unassigned'}
+                                                    {project.managerId?.name || 'No Manager'}
                                                 </span>
                                             </div>
                                         ))
@@ -310,8 +310,11 @@ const AdminDashboard = () => {
                                 {recentActivity.slice(0, showAllActivities ? undefined : 6).map((activity, index) => (
                                     <div key={index} className="flex gap-4">
                                         <div className="flex flex-col items-center">
-                                            <div className={`w-2 h-2 rounded-full mt-2 ring-4 ring-white ${activity.type === 'leave' ? 'bg-amber-500' :
-                                                activity.type === 'project' ? 'bg-blue-500' : 'bg-emerald-500'
+                                            <div className={`w-2 h-2 rounded-full mt-2 ring-4 ring-white ${
+                                                activity.type === 'leave' ? 'bg-amber-500' :
+                                                activity.type === 'project' ? 'bg-blue-500' :
+                                                activity.type === 'ticket' ? 'bg-rose-500' :
+                                                'bg-emerald-500'
                                                 }`}></div>
                                             {index !== recentActivity.length - 1 && <div className="w-0.5 flex-1 bg-slate-100 my-1"></div>}
                                         </div>

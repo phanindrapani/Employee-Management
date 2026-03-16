@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import useSocketListener from '../hooks/useSocketListener';
 import { useAuth } from '../context/AuthContext';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 
 const HolidayManagement = () => {
     const [holidays, setHolidays] = useState(() => {
@@ -27,6 +29,8 @@ const HolidayManagement = () => {
     const [duplicateMessage, setDuplicateMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(holidays.length === 0);
+    const confirm = useConfirmation();
+    const { showToast } = useToast();
 
     const fetchHolidays = useCallback(async () => {
         try {
@@ -59,12 +63,13 @@ const HolidayManagement = () => {
             });
             setFormData({ name: '', type: 'public', description: '' });
             await fetchHolidays();
+            showToast('Holiday added successfully', 'success');
         } catch (err) {
             const message = err.response?.data?.message || err.response?.data?.msg || 'Failed to add holiday';
             if (String(message).toLowerCase().includes('already exists')) {
                 setDuplicateMessage('A holiday already exists on this date.');
             } else {
-                alert(message);
+                showToast(message, 'error');
             }
         } finally {
             setLoading(false);
@@ -72,12 +77,21 @@ const HolidayManagement = () => {
     };
 
     const handleDeleteHoliday = async (id) => {
-        if (!confirm('Are you sure you want to delete this holiday?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Holiday',
+            message: 'Are you sure you want to delete this holiday? This action cannot be undone.',
+            confirmLabel: 'Delete Holiday',
+            type: 'danger'
+        });
+
+        if (!isConfirmed) return;
+
         try {
             await API.delete(`/admin/holidays/${id}`);
+            showToast('Holiday deleted successfully', 'success');
             fetchHolidays();
         } catch (err) {
-            alert('Failed to delete holiday');
+            showToast('Failed to delete holiday', 'error');
         }
     };
 

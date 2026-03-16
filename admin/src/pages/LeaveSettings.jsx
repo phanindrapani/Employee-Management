@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Sliders, Save, RefreshCw } from 'lucide-react';
 import API from '../api';
 import useSocketListener from '../hooks/useSocketListener';
+import { useToast } from '../context/ToastContext';
 
 const LeaveSettings = () => {
     const [settings, setSettings] = useState(() => {
@@ -11,6 +12,7 @@ const LeaveSettings = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
+    const { showToast } = useToast();
 
     useEffect(() => {
         fetchSettings();
@@ -42,7 +44,7 @@ const LeaveSettings = () => {
         setError(null);
         try {
             await API.put('/admin/settings/leave', { value: settings });
-            alert("Settings updated successfully!");
+            showToast("Settings updated successfully!", "success");
         } catch (err) {
             setError("Failed to save settings");
         } finally {

@@ -3,6 +3,8 @@ import useSocketListener from '../hooks/useSocketListener';
 import API from '../api';
 import { useAuth } from '../context/AuthContext';
 import { Building2, Plus, Trash2, X, Search, Pencil } from 'lucide-react';
+import { useConfirmation } from '../context/ConfirmationContext';
+import { useToast } from '../context/ToastContext';
 
 const DepartmentManagement = () => {
     const { user } = useAuth();
@@ -15,6 +17,8 @@ const DepartmentManagement = () => {
     const [formData, setFormData] = useState({ name: '', description: '' });
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const confirm = useConfirmation();
+    const { showToast } = useToast();
 
     const fetchDepartments = async () => {
         try {
@@ -50,7 +54,7 @@ const DepartmentManagement = () => {
             setEditingId(null);
             fetchDepartments();
         } catch (err) {
-            alert(err.response?.data?.message || 'Action failed');
+            showToast(err.response?.data?.message || 'Action failed', 'error');
         }
     };
 
@@ -62,12 +66,21 @@ const DepartmentManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure?')) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Department',
+            message: 'Are you sure you want to delete this department? This action cannot be undone.',
+            confirmLabel: 'Delete Department',
+            type: 'danger'
+        });
+
+        if (!isConfirmed) return;
+
         try {
             await API.delete(`/admin/departments/${id}`);
+            showToast('Department deleted successfully', 'success');
             fetchDepartments();
         } catch (err) {
-            alert('Delete failed');
+            showToast('Delete failed', 'error');
         }
     };
 
