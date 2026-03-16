@@ -28,7 +28,7 @@ const getAnalysisAggregation = (matchQuery) => [
             topProjects: [
                 {
                     $group: {
-                        _id: { $ifNull: ["$project", "Unassigned"] },
+                        _id: { $toUpper: { $trim: { input: { $ifNull: ["$project", "Unassigned"] } } } },
                         minutes: { $sum: "$durationMinutesVal" },
                         tasks: { $sum: 1 }
                     }
@@ -115,7 +115,7 @@ export const computeAnalysis = async (employeeId, fromDate, toDate) => {
         // 2. Top Projects
         WorksheetEntry.aggregate([
             { $match: matchQuery },
-            { $group: { _id: { $ifNull: ["$project", "Unassigned"] }, hours: { $sum: { $divide: ["$durationMinutes", 60] } }, tasks: { $sum: 1 } } },
+            { $group: { _id: { $toUpper: { $trim: { input: { $ifNull: ["$project", "Unassigned"] } } } }, hours: { $sum: { $divide: ["$durationMinutes", 60] } }, tasks: { $sum: 1 } } },
             { $project: { name: "$_id", hours: { $round: ["$hours", 2] }, tasks: 1, _id: 0 } },
             { $sort: { hours: -1 } },
             { $limit: 5 }

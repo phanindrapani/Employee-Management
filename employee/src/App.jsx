@@ -33,6 +33,7 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
 };
 
 import { ToastProvider } from './context/ToastContext';
+import { ConfirmationProvider } from './context/ConfirmationContext';
 import NotificationListener from './components/NotificationListener';
 
 function App() {
@@ -40,8 +41,9 @@ function App() {
     <AuthProvider>
       <SocketProvider>
         <ToastProvider>
-          <NotificationListener />
-          <Router>
+          <ConfirmationProvider>
+            <NotificationListener />
+            <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
@@ -67,6 +69,7 @@ function App() {
               </Route>
             </Routes>
           </Router>
+          </ConfirmationProvider>
         </ToastProvider>
       </SocketProvider>
     </AuthProvider>

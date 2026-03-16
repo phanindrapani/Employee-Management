@@ -70,6 +70,15 @@ export const verifyDocument = async (req, res) => {
 
         if (!doc) return res.status(404).json({ message: "Document not found" });
 
+        try {
+            const io = getIO();
+            const userRoom = `user:${doc.user.toString()}`;
+            io.to(userRoom).emit('document:verified', doc);
+            io.to('role:admin').emit('document:verified', doc);
+        } catch (e) {
+            console.error('Socket emit error (verifyDocument):', e);
+        }
+
         res.json(doc);
     } catch (error) {
         res.status(500).json({ message: "Failed to verify document" });
@@ -95,6 +104,15 @@ export const rejectDocument = async (req, res) => {
         );
 
         if (!doc) return res.status(404).json({ message: "Document not found" });
+
+        try {
+            const io = getIO();
+            const userRoom = `user:${doc.user.toString()}`;
+            io.to(userRoom).emit('document:rejected', doc);
+            io.to('role:admin').emit('document:rejected', doc);
+        } catch (e) {
+            console.error('Socket emit error (rejectDocument):', e);
+        }
 
         res.json(doc);
     } catch (error) {

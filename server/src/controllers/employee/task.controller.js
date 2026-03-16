@@ -16,9 +16,8 @@ export const getMyTasks = async (req, res) => {
 
         const tasks = await Task.find({ assignedTo: req.user._id })
             .populate('project', 'name')
-            .populate('milestoneId', 'name')
+            .populate('milestoneId', 'name milestoneId')
             .populate('assignedBy', 'name')
-            .select('title description status progress priority deadline taskId project milestoneId assignedBy createdAt')
             .sort({ deadline: 1 })
             .skip(skip)
             .limit(limit)
@@ -78,17 +77,17 @@ export const updateTaskContent = async (req, res) => {
         }
 
         const updatedTask = await Task.findOneAndUpdate(query, update, { new: true })
-            .select('progress status updatedAt taskId')
+            .populate('project', 'name')
+            .populate('milestoneId', 'name')
+            .populate('assignedBy', 'name')
             .lean();
 
         if (!updatedTask) {
             return res.status(404).json({ message: "Task not found or Not authorized" });
         }
 
-        // Return immediately with minimal data
         res.json(updatedTask);
 
-        // Heavy Populates for Sockets in Background
         setImmediate(async () => {
             try {
                 const populatedTask = await Task.findById(id)
@@ -135,7 +134,7 @@ export const updateTaskStatus = async (req, res) => {
         }
 
         const query = { _id: id };
-        
+
         if (req.user.role === 'employee') {
             query.assignedTo = req.user._id;
         } else if (req.user.role === 'team-lead') {
@@ -146,6 +145,9 @@ export const updateTaskStatus = async (req, res) => {
         }
 
         const updatedTask = await Task.findOneAndUpdate(query, update, { new: true })
+            .populate('project', 'name')
+            .populate('milestoneId', 'name')
+            .populate('assignedBy', 'name')
             .populate('assignedTo', 'team role reportingManager name')
             .lean();
 
@@ -161,22 +163,22 @@ export const updateTaskStatus = async (req, res) => {
         const backgroundPostProcessing = async () => {
             try {
                 const worker = updatedTask.assignedTo;
-                
-                debounceBackgroundTask(`projectSync:${updatedTask.project}`, () => 
+
+                debounceBackgroundTask(`projectSync:${updatedTask.project}`, () =>
                     syncProjectProgress(updatedTask.project, req.user._id)
-                , 5000);
+                    , 5000);
 
                 if (worker && ['employee', 'team-lead'].includes(worker.role)) {
                     const now = new Date();
                     const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                    debounceBackgroundTask(`perfRecalc:${worker._id}:${period}`, () => 
+                    debounceBackgroundTask(`perfRecalc:${worker._id}:${period}`, () =>
                         recalculatePerformanceForUser(worker._id, period)
-                    , 10000);
+                        , 10000);
                 }
 
                 const io = getIO();
                 const socketPayload = { ...updatedTask };
-                
+
                 if (updatedTask.assignedTo) io.to(`user:${updatedTask.assignedTo._id}`).emit('task:updated', socketPayload);
                 if (worker?.team) io.to(`team:${worker.team}`).emit('task:updated', socketPayload);
                 if (worker?.reportingManager) io.to(`user:${worker.reportingManager}`).emit('task:updated', socketPayload);
@@ -189,7 +191,7 @@ export const updateTaskStatus = async (req, res) => {
                         isRead: false
                     }).then(() => {
                         io.to(`user:${worker.reportingManager}`).emit('notification', { message: `Task submitted for Review` });
-                    }).catch(() => {});
+                    }).catch(() => { });
                 }
             } catch (bgErr) { /* Silent background fail */ }
         };

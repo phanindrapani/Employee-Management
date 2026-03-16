@@ -17,10 +17,12 @@ import {
     MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import API from '../../api';
 
 const Profile = () => {
     const { user: authUser, setUser, refreshProfile } = useAuth();
+    const { showToast } = useToast();
     const [profile, setProfile] = useState(() => {
         const cached = localStorage.getItem('ls_emp_profile');
         return cached ? JSON.parse(cached) : null;
@@ -55,9 +57,10 @@ const Profile = () => {
 
             // Update cache
             localStorage.setItem('ls_emp_profile', JSON.stringify({ ...profile, ...payload, completeness: data.completeness }));
+            showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully`, 'success');
         } catch (error) {
             console.error(`Error updating ${field}:`, error);
-            alert(`Failed to update ${field}.`);
+            showToast(`Failed to update ${field}.`, 'error');
         }
     };
 
@@ -96,9 +99,10 @@ const Profile = () => {
             setProfile(prev => ({ ...prev, profilePicture: data.profilePicture }));
             setUser(data);
             localStorage.setItem('ls_emp_profile', JSON.stringify(data));
+            showToast("Profile picture updated", "success");
         } catch (error) {
             console.error("Error uploading image:", error);
-            alert("Failed to upload image. Please try again.");
+            showToast("Failed to upload image. Please try again.", "error");
         } finally {
             setUploading(false);
         }
@@ -161,7 +165,7 @@ const Profile = () => {
                         <div>
                             <h1 className="text-5xl font-black text-[#0B3C5D] tracking-tight mb-2">{profile?.name}</h1>
                             <p className="text-[#63C132] font-black uppercase tracking-[0.3em] text-xs">
-                                Member ID: {profile?._id?.slice(-8).toUpperCase()}
+                                Employee ID: {profile?.uid || profile?._id?.slice(-8).toUpperCase()}
                             </p>
                         </div>
 

@@ -18,7 +18,9 @@ export const getDashboardStats = async (req, res) => {
             teams,
             recentProjects,
             recentLeaves,
-            recentTickets
+            recentTickets,
+            pendingDocuments,
+            recentDocuments
         ] = await Promise.all([
             Leave.find({ status: 'pending', approver: req.user._id }).populate('user', 'name profilePicture').limit(5).sort({ createdAt: -1 }).lean(),
             Project.find({ status: 'ongoing', endDate: { $gte: today } }).populate('managerId', 'name').sort({ endDate: 1 }).limit(5).lean(),
@@ -26,7 +28,10 @@ export const getDashboardStats = async (req, res) => {
             Team.find().populate('teamLead', 'name').lean(),
             Project.find().sort({ createdAt: -1 }).limit(5).populate('createdBy', 'name').lean(),
             Leave.find().sort({ createdAt: -1 }).limit(5).populate('user', 'name').lean(),
-            Ticket.find().sort({ createdAt: -1 }).limit(5).populate('clientId', 'name').lean()
+            Ticket.find().sort({ createdAt: -1 }).limit(5).populate('clientId', 'name').lean(),
+            // Import EmployeeDocument if not already imported
+            import('../../models/employeeDocument.model.js').then(m => m.default.find({ verificationStatus: 'pending' }).populate('user', 'name').limit(5).sort({ createdAt: -1 }).lean()),
+            import('../../models/employeeDocument.model.js').then(m => m.default.find().sort({ createdAt: -1 }).limit(5).populate('user', 'name').lean())
         ]);
 
         // Aggregate activities
@@ -50,6 +55,11 @@ export const getDashboardStats = async (req, res) => {
                 message: `New support ticket "${ticket.title}" received from ${ticket.clientId?.name || 'a client'}`,
                 time: ticket.createdAt,
                 type: 'ticket'
+            })),
+            ...recentDocuments.map(doc => ({
+                message: `${doc.user?.name || 'An employee'} uploaded a new document: ${doc.documentName}`,
+                time: doc.createdAt,
+                type: 'document'
             }))
         ];
 
@@ -83,8 +93,10 @@ export const getDashboardStats = async (req, res) => {
                     _id: p._id,
                     name: p.name,
                     endDate: p.endDate,
-                    managerId: p.managerId
-                }))
+                    managerId: p.managerId,
+                    projectId: p.projectId
+                })),
+                documents: pendingDocuments
             },
             teamPerformance,
             recentActivity: activityFeed,

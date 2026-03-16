@@ -6,9 +6,13 @@ import {
     FileText, Upload, CheckCircle, XCircle, Clock,
     Trash2, ExternalLink, AlertTriangle
 } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { useConfirmation } from '../context/ConfirmationContext';
 
 const DocumentManager = ({ targetUserId }) => {
     const { user: authUser } = useAuth();
+    const { showToast } = useToast();
+    const confirm = useConfirmation();
     const effectiveUserId = targetUserId || authUser?._id;
     const isOwner = !targetUserId || (authUser && targetUserId === authUser._id);
 
@@ -84,7 +88,7 @@ const DocumentManager = ({ targetUserId }) => {
         if (!file) return;
 
         if (file.size > 5 * 1024 * 1024) {
-            alert("File size must be less than 5MB");
+            showToast("File size must be less than 5MB", "error");
             return;
         }
 
@@ -107,12 +111,20 @@ const DocumentManager = ({ targetUserId }) => {
     };
 
     const handleDelete = async (docId) => {
-        if (!confirm("Are you sure you want to delete this document?")) return;
+        const isConfirmed = await confirm({
+            title: 'Delete Document',
+            message: 'Are you sure you want to delete this document? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            type: 'danger'
+        });
+        if (!isConfirmed) return;
         try {
             await API.delete(`/employee/documents/${docId}`);
             setDocuments(prev => prev.filter(d => d._id !== docId));
+            showToast('Document deleted successfully', 'success');
         } catch (err) {
             console.error("Failed to delete document", err);
+            showToast('Failed to delete document', 'error');
         }
     };
 

@@ -50,6 +50,8 @@ export const uploadDocument = async (req, res) => {
                         documentId: newDoc._id,
                         user: req.user.name
                     });
+
+                    io.to('role:admin').emit('document:uploaded', newDoc);
                 }
             } catch (notifError) {
                 console.error("Notification Error (Async):", notifError);
@@ -96,6 +98,14 @@ export const deleteDocument = async (req, res) => {
         }
 
         await EmployeeDocument.findByIdAndDelete(id);
+
+        try {
+            const io = getIO();
+            io.to('role:admin').emit('document:deleted', { id: id });
+        } catch (e) {
+            console.error('Socket emit error (deleteDocument):', e);
+        }
+
         res.json({ message: "Document deleted successfully both from database and Cloudinary" });
     } catch (error) {
         res.status(500).json({ message: "Failed to delete document" });

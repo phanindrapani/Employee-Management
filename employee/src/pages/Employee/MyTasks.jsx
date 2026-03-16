@@ -101,6 +101,9 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
                                 <span className={`px-3 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${getPriorityColor(task.priority)}`}>
                                     {task.priority} Priority
                                 </span>
+                                <span className="text-slate-400 text-[10px] font-black font-mono ml-auto tracking-tighter">
+                                    {task.taskId || `TSK-${task._id.slice(-6).toUpperCase()}`}
+                                </span>
                             </div>
                             <h2 className="text-2xl font-black text-slate-800 mt-4 leading-tight">{task.title}</h2>
                         </div>
@@ -130,7 +133,11 @@ const TaskDetailsModal = ({ task, onClose, onUpdate }) => {
                         <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1 flex items-center gap-1.5">
                             <Target size={10} /> Milestone Phase
                         </p>
-                        <p className="text-[#0B3C5D] font-black text-xs truncate">{task.milestoneId?.name || 'N/A'}</p>
+                        <p className="text-[#0B3C5D] font-black text-xs truncate">
+                            {typeof task.milestoneId === 'object'
+                                ? (task.milestoneId?.name || task.milestoneId?.milestoneId || 'N/A')
+                                : (task.milestoneId || 'N/A')}
+                        </p>
                     </div>
 
                     {/* Progress Slider */}
@@ -345,7 +352,12 @@ const MyTasks = () => {
                         <div className={`w-1.5 h-12 rounded-full ${getStatusStyles(task.status).split(' ')[1].replace('text-', 'bg-')}`}></div>
 
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-black text-slate-800 truncate group-hover:text-[#63C132] transition-colors">{task.title}</h3>
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-black text-slate-800 truncate group-hover:text-[#63C132] transition-colors">{task.title}</h3>
+                                <span className="text-[10px] font-bold font-mono text-slate-300 group-hover:text-slate-400 transition-colors pt-1">
+                                    #{task.taskId?.split('-').pop() || task._id.slice(-4).toUpperCase()}
+                                </span>
+                            </div>
                             <div className="flex items-center gap-4 mt-1">
                                 <span className="text-[10px] font-black text-slate-400 flex items-center gap-1.5 uppercase tracking-widest">
                                     <FolderKanban size={12} className="text-slate-300" /> {task.project?.name || 'Assigned Project'}

@@ -24,7 +24,7 @@ const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
 
     if (!project) return null;
 
-    const canOverride = user?.role === 'admin' || (user?.role === 'team-lead' && project.assignedTeam?._id === user?.team);
+    const canOverride = user?.role === 'admin' || (user?.role === 'team-lead' && project.assignedTeams?.some(t => (t._id || t) === user?.team));
 
     const handleSaveProgress = async () => {
         setIsUpdating(true);
@@ -65,7 +65,7 @@ const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
                             <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 ${mode === 'auto' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                                 <Settings2 size={10} /> {mode} Mode
                             </div>
-                            <span className="text-slate-400 text-[10px] font-bold font-mono ml-auto tracking-tighter">ID: {project._id.slice(-6).toUpperCase()}</span>
+                            <span className="text-slate-400 text-[10px] font-bold font-mono ml-auto tracking-tighter">ID: {project.projectId || project._id.slice(-6).toUpperCase()}</span>
                         </div>
                         <h2 className="text-3xl font-black text-slate-800 leading-tight">{project.name}</h2>
                     </div>
@@ -96,7 +96,7 @@ const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
                                 <Users2 size={12} className="text-[#0B3C5D]" /> Team
                             </div>
                             <div className="text-[#0B3C5D] font-black text-[11px]">
-                                {project.assignedTeam?.name || 'Project Team'}
+                                {project.assignedTeams?.[0]?.name || 'Department Team'}
                             </div>
                         </div>
                     </div>

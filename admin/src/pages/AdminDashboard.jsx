@@ -19,7 +19,8 @@ import {
     FolderPlus,
     CalendarPlus,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    FileText
 } from 'lucide-react';
 import {
     BarChart,
@@ -74,6 +75,10 @@ const AdminDashboard = () => {
     useSocketListener('leave:updated', fetchStats); // Approved/Rejected count
     useSocketListener('holiday:created', fetchStats);
     useSocketListener('holiday:deleted', fetchStats);
+    useSocketListener('document:uploaded', fetchStats);
+    useSocketListener('document:verified', fetchStats);
+    useSocketListener('document:rejected', fetchStats);
+    useSocketListener('document:deleted', fetchStats);
 
     const summary = data?.summary || { employees: 0, teams: 0, departments: 0, projects: { ongoing: 0, upcoming: 0, completed: 0, onHold: 0 } };
     const pendingActions = data?.pendingActions || [];
@@ -216,6 +221,37 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
+                            {/* Pending Documents */}
+                            <div className="card">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-bold text-[#0B3C5D] flex items-center gap-2">
+                                        <FileText size={18} className="text-[#6366F1]" /> Document Requests
+                                    </h3>
+                                    <button onClick={() => navigate('/employees')} className="text-xs text-blue-600 font-bold hover:underline">View All</button>
+                                </div>
+                                <div className="space-y-3">
+                                    {!pendingActions.documents || pendingActions.documents.length === 0 ? (
+                                        <p className="text-sm text-slate-400 italic">No pending documents.</p>
+                                    ) : (
+                                        pendingActions.documents.map(doc => (
+                                            <div key={doc._id} className="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition-colors"
+                                                onClick={() => navigate(`/employees/${doc.user?._id || doc.user}`)}>
+                                                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+                                                    {doc.user?.name?.charAt(0) || '?'}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-bold text-[#0B3C5D] truncate">{doc.user?.name || 'Unknown User'}</p>
+                                                    <p className="text-xs text-slate-500 truncate">{doc.documentName}</p>
+                                                </div>
+                                                <div className="text-indigo-600">
+                                                    <Activity size={14} />
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
                             {/* Upcoming Deadlines */}
                             <div className="card">
                                 <div className="flex items-center justify-between mb-4">
@@ -243,7 +279,7 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {/* Quick Analytics (Right 2 Columns) */}
+                        {/* Quick Analytics */}
                         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Project Status Chart */}
                             <div className="card h-80 flex flex-col">
@@ -310,11 +346,11 @@ const AdminDashboard = () => {
                                 {recentActivity.slice(0, showAllActivities ? undefined : 6).map((activity, index) => (
                                     <div key={index} className="flex gap-4">
                                         <div className="flex flex-col items-center">
-                                            <div className={`w-2 h-2 rounded-full mt-2 ring-4 ring-white ${
-                                                activity.type === 'leave' ? 'bg-amber-500' :
-                                                activity.type === 'project' ? 'bg-blue-500' :
-                                                activity.type === 'ticket' ? 'bg-rose-500' :
-                                                'bg-emerald-500'
+                                            <div className={`w-2 h-2 rounded-full mt-2 ring-4 ring-white ${activity.type === 'leave' ? 'bg-amber-500' :
+                                                    activity.type === 'project' ? 'bg-blue-500' :
+                                                        activity.type === 'ticket' ? 'bg-rose-500' :
+                                                            activity.type === 'document' ? 'bg-indigo-500' :
+                                                                'bg-emerald-500'
                                                 }`}></div>
                                             {index !== recentActivity.length - 1 && <div className="w-0.5 flex-1 bg-slate-100 my-1"></div>}
                                         </div>
