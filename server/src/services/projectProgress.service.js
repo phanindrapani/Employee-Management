@@ -28,6 +28,42 @@ export const syncProjectProgress = async (projectId, userId, session = null) => 
     }
 };
 
+export const syncMilestoneProgress = async (milestoneId) => {
+    try {
+        const Milestone = mongoose.model('Milestone');
+        const Task = mongoose.model('Task');
+
+        const milestone = await Milestone.findById(milestoneId);
+        if (!milestone) return;
+
+        const tasks = await Task.find({ milestoneId });
+        if (tasks.length === 0) {
+            milestone.progress = 0;
+            await milestone.save();
+            return;
+        }
+
+        const totalWeight = tasks.reduce((sum, task) => sum + (task.weight || 1), 0);
+        const completedWeight = tasks
+            .filter(task => task.status === 'done')
+            .reduce((sum, task) => sum + (task.weight || 1), 0);
+
+        const newProgress = Math.round((completedWeight / totalWeight) * 100);
+
+        if (milestone.progress !== newProgress) {
+            milestone.progress = newProgress;
+            if (newProgress === 100) {
+                milestone.status = 'completed';
+            } else if (newProgress > 0) {
+                milestone.status = 'in-progress';
+            }
+            await milestone.save();
+        }
+    } catch (error) {
+        console.error('Error syncing milestone progress:', error);
+    }
+};
+
 const updateProgress = async (project, newProgress, mode, userId, session) => {
     const oldProgress = project.progress;
 

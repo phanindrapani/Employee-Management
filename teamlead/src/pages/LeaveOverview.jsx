@@ -9,8 +9,10 @@ import {
 } from 'lucide-react';
 import API from '../api';
 import StatCard from '../components/StatCard';
+import { useToast } from '../context/ToastContext';
 
 const LeaveOverview = () => {
+    const { showToast } = useToast();
     const [leaves, setLeaves] = useState(() => {
         const cached = localStorage.getItem('ls_tl_leave_requests');
         return cached ? JSON.parse(cached) : [];
@@ -45,7 +47,7 @@ const LeaveOverview = () => {
             fetchTeamLeaves();
         } catch (error) {
             console.error("Leave action error:", error);
-            alert(error.response?.data?.message || "Failed to process leave request");
+            showToast(error.response?.data?.message || "Failed to process leave request", "error");
         }
     };
 

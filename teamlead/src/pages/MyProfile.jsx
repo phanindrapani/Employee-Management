@@ -166,6 +166,7 @@ const MyProfile = () => {
 
                         <div className="space-y-4">
                             {[
+                                { label: 'Employee ID', val: user.uid || user.employeeId || 'EMP-N/A', ico: CheckCircle2, clr: 'blue' },
                                 { label: 'Email Address', val: user.email, ico: Mail, clr: 'blue' },
                                 { label: 'Phone Number', val: user.phone || 'Not Shared', ico: Phone, clr: '[#63C132]' },
                                 { label: 'Team & Department', val: `${user.department?.name || 'HR'} • ${user.team?.name || 'Core'}`, ico: MapPin, clr: 'amber' },

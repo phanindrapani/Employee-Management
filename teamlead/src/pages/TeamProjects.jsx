@@ -14,8 +14,10 @@ import {
 } from 'lucide-react';
 import API from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
+    const { showToast } = useToast();
     const { user } = useAuth();
     const [isUpdating, setIsUpdating] = useState(false);
     const [tempProgress, setTempProgress] = useState(project.progress);
@@ -60,6 +62,9 @@ const ProjectDetailsModal = ({ project, onClose, onUpdate }) => {
                             <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border ${mode === 'auto' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                                 <Settings2 size={12} /> {mode} Mode
                             </div>
+                        </div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{project.projectId || 'N/A'}</span>
                         </div>
                         <h2 className="text-3xl font-black text-[#0B3C5D] tracking-tight">{project.name}</h2>
                     </div>
@@ -214,9 +219,9 @@ const TeamProjects = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {projects.length > 0 ? projects.map((project) => (
-                    <div key={project._id} className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-10 group hover:shadow-2xl hover:scale-[1.01] transition-all duration-500 cursor-pointer" onClick={() => setSelectedProject(project)}>
+                    <div key={project._id} className="bg-white rounded-[40px] shadow-sm border border-slate-100 p-10 transition-all duration-500 cursor-pointer" onClick={() => setSelectedProject(project)}>
                         <div className="flex justify-between items-start mb-8">
-                            <div className="w-16 h-16 bg-[#0B3C5D]/5 rounded-3xl flex items-center justify-center text-[#0B3C5D] group-hover:bg-[#63C132] group-hover:text-white transition-colors">
+                            <div className="w-16 h-16 bg-[#0B3C5D]/5 rounded-3xl flex items-center justify-center text-[#0B3C5D] transition-colors">
                                 <FolderKanban size={32} />
                             </div>
                             <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(project.status)}`}>
@@ -224,9 +229,12 @@ const TeamProjects = () => {
                             </span>
                         </div>
 
-                        <h3 className="text-2xl font-black text-[#0B3C5D] tracking-tight mb-4 group-hover:text-[#63C132] transition-colors">
-                            {project.name}
-                        </h3>
+                        <div className="flex flex-col gap-1 mb-4">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROJ: {project.projectId || 'N/A'}</span>
+                            <h3 className="text-2xl font-black text-[#0B3C5D] tracking-tight transition-colors">
+                                {project.name}
+                            </h3>
+                        </div>
                         <p className="text-slate-500 font-medium mb-8 leading-relaxed line-clamp-2">
                             {project.description || "No project description provided."}
                         </p>
@@ -242,7 +250,7 @@ const TeamProjects = () => {
                             </div>
                             <div className="h-3 bg-slate-50 rounded-full overflow-hidden p-0.5 shadow-inner">
                                 <div
-                                    className={`h-full rounded-full transition-all duration-1000 ${project.progressMode === 'manual' ? 'bg-amber-500' : 'bg-[#0B3C5D] group-hover:bg-[#63C132]'}`}
+                                    className={`h-full rounded-full transition-all duration-1000 ${project.progressMode === 'manual' ? 'bg-amber-500' : 'bg-[#0B3C5D]'}`}
                                     style={{ width: `${project.progress}%` }}
                                 ></div>
                             </div>
@@ -265,8 +273,8 @@ const TeamProjects = () => {
                             </div>
                         </div>
 
-                        <button className="w-full mt-10 py-4 bg-slate-100 text-[#0B3C5D] font-black text-xs uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:bg-[#0B3C5D] hover:text-white transition-all transform group-hover:translate-y-[-2px]">
-                            Project Intel
+                        <button className="w-full mt-10 py-4 bg-slate-100 text-[#0B3C5D] font-black text-xs uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:bg-[#0B3C5D] hover:text-white transition-all">
+                            Project details
                             <ArrowUpRight size={18} />
                         </button>
                     </div>

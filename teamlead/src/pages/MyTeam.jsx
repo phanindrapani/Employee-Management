@@ -70,121 +70,86 @@ const MyTeam = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {members.map((member, idx) => (
-                    <div key={member._id} className="bg-white rounded-[32px] md:rounded-[40px] shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl hover:scale-[1.01] transition-all duration-500">
-                        {/* Member Header */}
-                        <div className="p-6 md:p-8 pb-4 relative">
-                            <div className="absolute top-6 md:top-8 right-6 md:right-8 z-20">
+                    <div key={member._id} className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
+                        {/* Simple Header */}
+                        <div className="p-6 relative">
+                            <div className="absolute top-4 right-4 text-slate-300">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setActiveMenu(activeMenu === idx ? null : idx);
                                     }}
-                                    className={`p-2 rounded-xl transition-all ${activeMenu === idx ? 'bg-[#0B3C5D] text-white' : 'text-slate-300 hover:text-[#0B3C5D] hover:bg-slate-50'}`}
+                                    className="p-1 hover:text-[#0B3C5D] transition-colors"
                                 >
                                     <MoreHorizontal size={20} />
                                 </button>
-
                                 {activeMenu === idx && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 py-2">
-                                        <button onClick={() => navigate(`/tasks`)} className="w-full px-4 py-3 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-[#0B3C5D] flex items-center gap-3 transition-colors">
-                                            <Briefcase size={14} className="text-blue-500" /> Assign Task
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-20">
+                                        <button onClick={() => navigate(`/tasks`)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2">
+                                            <Briefcase size={14} /> Tasks
                                         </button>
-                                        <button onClick={() => navigate(`/reports`)} className="w-full px-4 py-3 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-[#63C132] flex items-center gap-3 transition-colors">
-                                            <Activity size={14} className="text-[#63C132]" /> View Performance
+                                        <button onClick={() => navigate(`/reports`)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2">
+                                            <Activity size={14} /> Performance
                                         </button>
-                                        <div className="h-px bg-slate-100 my-1 mx-4"></div>
-                                        <button onClick={() => window.open(`mailto:${member.email}`)} className="w-full px-4 py-3 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-rose-500 flex items-center gap-3 transition-colors">
-                                            <Mail size={14} className="text-rose-400" /> Email Member
+                                        <div className="h-px bg-slate-100 my-1 mx-2"></div>
+                                        <button onClick={() => window.open(`mailto:${member.email}`)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 text-rose-500">
+                                            <Mail size={14} /> Contact
                                         </button>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="flex items-center gap-4 md:gap-5">
+                            <div className="flex items-center gap-4">
                                 <div className="relative">
-                                    <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-100 rounded-2xl md:rounded-3xl overflow-hidden border-2 md:border-4 border-white shadow-md md:shadow-lg">
+                                    <div className="w-16 h-16 bg-slate-100 rounded-2xl overflow-hidden border-2 border-slate-50">
                                         {member.profilePicture ? (
                                             <img src={member.profilePicture} alt={member.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-xl md:text-2xl font-black text-[#0B3C5D]/20">
-                                                {member.name.split(' ').map(n => n[0]).join('')}
+                                            <div className="w-full h-full flex items-center justify-center text-xl font-bold text-slate-300">
+                                                {member.name[0]}
                                             </div>
                                         )}
                                     </div>
-                                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 border-2 md:border-4 border-white rounded-full ${member.isActive ? 'bg-[#63C132]' : 'bg-slate-300'}`}></div>
+                                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full ${member.isActive ? 'bg-[#63C132]' : 'bg-slate-300'}`}></div>
                                 </div>
-                                <div className="overflow-hidden">
-                                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                                        <h3 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight truncate">{member.name}</h3>
-                                        {member.isOnLeave && (
-                                            <span className="px-1.5 py-0.5 bg-rose-50 text-rose-500 text-[7px] md:text-[8px] font-black uppercase tracking-widest rounded-md border border-rose-100 whitespace-nowrap">
-                                                On Leave
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest truncate">{member.role}</p>
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full flex-shrink-0"></span>
-                                        <span className="text-[8px] md:text-[10px] font-black text-[#63C132] uppercase tracking-widest bg-[#63C132]/10 px-1.5 md:px-2 py-0.5 rounded-md">
-                                            {member.experienceLevel || 'Junior'}
-                                        </span>
-                                    </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-[#0B3C5D]">{member.name}</h3>
+                                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-md inline-block mr-2">
+                                        {member.employeeId || 'EMP-N/A'}
+                                    </p>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{member.role}</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Member Body */}
-                        <div className="px-6 md:px-8 py-3 md:py-4 space-y-4">
-                            <div className="flex items-center gap-3 text-xs md:text-sm text-slate-500 font-medium bg-slate-50 p-3 rounded-2xl truncate">
-                                <Mail size={14} className="text-blue-500 flex-shrink-0" />
+                        {/* Summary Stats */}
+                        <div className="px-6 py-4 bg-slate-50 border-y border-slate-100 grid grid-cols-2 gap-4">
+                            <div>
+                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Tasks</div>
+                                <div className="text-xl font-black text-[#0B3C5D]">{member.activeTasks || 0}</div>
+                            </div>
+                            <div>
+                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</div>
+                                <div className={`text-xs font-black uppercase tracking-widest ${member.isOnLeave ? 'text-rose-500' : 'text-[#63C132]'}`}>
+                                    {member.isOnLeave ? 'On Leave' : 'Available'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="p-6">
+                            <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
+                                <Mail size={14} className="text-slate-400" />
                                 <span className="truncate">{member.email}</span>
                             </div>
-
-                            {/* Skills Tags */}
-                            <div className="flex flex-wrap gap-2">
-                                {member.skills && member.skills.length > 0 ? (
-                                    member.skills.slice(0, 3).map((skill, i) => (
-                                        <span key={i} className="text-[8px] md:text-[9px] font-bold text-slate-500 px-2.5 py-1 bg-slate-100 rounded-lg uppercase tracking-tight">
-                                            {skill}
-                                        </span>
-                                    ))
-                                ) : (
-                                    <span className="text-[8px] font-bold text-slate-300 px-2 py-1 border border-dashed border-slate-200 rounded-lg uppercase">
-                                        No Skills
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Performance Snippet */}
-                        <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2">
-                            <div className="grid grid-cols-2 gap-3 md:gap-4">
-                                <div className="bg-[#0B3C5D]/5 p-3 md:p-4 rounded-2xl md:rounded-3xl">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <Briefcase size={12} className="text-[#0B3C5D]" />
-                                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[#0B3C5D]/60 whitespace-nowrap">Tasks</span>
-                                    </div>
-                                    <div className="text-lg md:text-xl font-black text-[#0B3C5D]">{member.activeTasks || 0}</div>
-                                </div>
-                                <div className="bg-[#63C132]/5 p-3 md:p-4 rounded-2xl md:rounded-3xl">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <Activity size={12} className="text-[#63C132]" />
-                                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[#63C132]/60 whitespace-nowrap">Load</span>
-                                    </div>
-                                    <div className={`text-xs md:text-sm font-black ${member.activeTasks > 5 ? 'text-rose-500' : 'text-[#63C132]'}`}>
-                                        {member.activeTasks > 5 ? 'High' : member.activeTasks > 2 ? 'Med' : 'Opt'}
-                                    </div>
-                                </div>
-                            </div>
-
                             <button
                                 onClick={() => navigate(`/tasks`, { state: { assigneeId: member._id, assigneeName: member.name } })}
-                                className="w-full mt-4 md:mt-6 py-3 md:py-4 bg-slate-50 text-[#0B3C5D] font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-[#0B3C5D] hover:text-white transition-all flex items-center justify-center gap-2 border border-slate-100"
+                                className="w-full py-3 bg-white text-[#0B3C5D] border-2 border-[#0B3C5D]/10 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0B3C5D] hover:text-white transition-all flex items-center justify-center gap-2"
                             >
-                                <CalendarCheck className="size-3.5 md:size-4" />
-                                View Assigned Tasks
+                                <CalendarCheck size={16} />
+                                View Assignments
                             </button>
                         </div>
                     </div>

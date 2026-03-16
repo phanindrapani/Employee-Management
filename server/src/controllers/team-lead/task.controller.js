@@ -1,6 +1,6 @@
 import Task from '../../models/task.model.js';
 import User from '../../models/user.model.js';
-import { syncProjectProgress } from '../../services/projectProgress.service.js';
+import { syncProjectProgress, syncMilestoneProgress } from '../../services/projectProgress.service.js';
 import { recalculatePerformanceForUser } from '../admin/performance.controller.js';
 import mongoose from 'mongoose';
 import Notification from '../../models/notification.model.js';
@@ -36,6 +36,9 @@ export const createTask = async (req, res) => {
         setImmediate(async () => {
             try {
                 await syncProjectProgress(projectId, req.user._id);
+                if (milestoneId) {
+                    await syncMilestoneProgress(milestoneId);
+                }
 
                 const createdTask = await Task.findById(task._id)
                     .populate('project', 'name')
@@ -173,6 +176,13 @@ export const updateTask = async (req, res) => {
                 if (project && oldProjectId && project.toString() !== oldProjectId) {
                     await syncProjectProgress(oldProjectId, req.user._id);
                 }
+                
+                if (task.milestoneId) {
+                    await syncMilestoneProgress(task.milestoneId);
+                }
+                if (milestoneId && task.milestoneId && milestoneId.toString() !== task.milestoneId.toString()) {
+                    await syncMilestoneProgress(milestoneId);
+                }
 
                 const updatedTask = await Task.findById(id)
                     .populate('project', 'name')
@@ -228,7 +238,7 @@ export const updateTask = async (req, res) => {
 export const deleteTask = async (req, res) => {
     try {
         const { id } = req.params;
-        const task = await Task.findById(id).select('assignedTo project').lean();
+        const task = await Task.findById(id).select('assignedTo project milestoneId').lean();
         if (!task) {
             return res.status(404).json({ message: "Task not found" });
         }
@@ -239,6 +249,7 @@ export const deleteTask = async (req, res) => {
         }
 
         const projectId = task.project;
+        const milestoneId = task.milestoneId;
         await Task.findByIdAndDelete(id);
 
         // Background non-critical tasks
@@ -246,6 +257,9 @@ export const deleteTask = async (req, res) => {
             try {
                 if (projectId) {
                     await syncProjectProgress(projectId, req.user._id);
+                }
+                if (milestoneId) {
+                    await syncMilestoneProgress(milestoneId);
                 }
 
                 const io = getIO();

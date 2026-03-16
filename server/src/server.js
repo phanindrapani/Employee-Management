@@ -140,3 +140,4 @@ server.listen(PORT, HOST, BACKLOG, () => {
   console.log(`- Local:   http://localhost:${PORT}`);
   console.log(`- Network: http://${LAN_IP}:${PORT}`);
 });
+console.log("Server initialized and ready.");

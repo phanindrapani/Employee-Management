@@ -97,6 +97,7 @@ export const loginUser = async (req, res) => {
 
         res.json({
             _id: user._id,
+            uid: user.uid,
             name: user.name,
             email: user.email,
             role: user.role,
@@ -156,6 +157,7 @@ export const updateProfile = async (req, res) => {
 
             res.json({
                 _id: updatedUser._id,
+                uid: updatedUser.uid,
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,
@@ -167,7 +169,7 @@ export const updateProfile = async (req, res) => {
                 qualification: updatedUser.qualification,
                 createdAt: updatedUser.createdAt,
                 completeness: completeness,
-                token: generateToken(updatedUser._id),
+                token: generateToken(updatedUser._id, updatedUser.role),
             });
         } else {
             res.status(404).json({ message: 'User not found' });

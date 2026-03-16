@@ -10,7 +10,7 @@ export const getTeamMembers = async (req, res) => {
 
         // 1. Fetch members with lean
         const members = await User.find({ team: teamId })
-            .select('name email phone role experienceLevel skills profilePicture isActive individualPerformanceScore')
+            .select('name email phone role experienceLevel skills profilePicture isActive individualPerformanceScore uid')
             .lean();
 
         if (!members.length) {
@@ -46,6 +46,7 @@ export const getTeamMembers = async (req, res) => {
 
         const membersEnhanced = members.map(member => ({
             ...member,
+            employeeId: member.uid || 'EMP-UNIT',
             activeTasks: taskCountMap[member._id.toString()] || 0,
             isOnLeave: leaveSet.has(member._id.toString())
         }));

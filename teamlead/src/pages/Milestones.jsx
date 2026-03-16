@@ -15,9 +15,11 @@ import { useNavigate } from 'react-router-dom';
 import StatCard from '../components/StatCard';
 import useSocketListener from '../hooks/useSocketListener';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const Milestones = () => {
     const { user } = useAuth();
+    const { showToast } = useToast();
     const navigate = useNavigate();
     const [milestones, setMilestones] = useState(() => {
         const cached = localStorage.getItem(`tl_milestones_${user?._id}`);
@@ -57,7 +59,7 @@ const Milestones = () => {
             setMilestones(milestones.map(m => m._id === milestoneId ? data : m));
         } catch (error) {
             console.error("Failed to update milestone status:", error);
-            alert("Failed to update milestone status.");
+            showToast("Failed to update milestone status.", "error");
         }
     };
 
@@ -156,8 +158,12 @@ const Milestones = () => {
                                                 <Target size={20} />
                                             </div>
                                             <div>
-                                                <div className="font-bold text-[#0B3C5D] text-lg truncate max-w-[200px]">{milestone.name}</div>
-                                                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">Tracking ID: {milestone.milestoneId || milestone._id.slice(-6)}</div>
+                                                <div className="font-bold text-[#0B3C5D] text-lg truncate max-w-[200px] group-hover:text-blue-600 transition-colors">{milestone.name}</div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded-md border border-blue-100 uppercase tracking-tighter">
+                                                        {milestone.milestoneId || 'GENERATING...'}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -184,10 +190,12 @@ const Milestones = () => {
                                             <option value="completed">Completed</option>
                                         </select>
                                         <div className="flex flex-col gap-2 mt-2">
-                                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex-1 shadow-inner">
-                                                <div className="h-full bg-[#63C132] rounded-full" style={{ width: `${milestone.progress}%` }}></div>
+                                            <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden flex-1 shadow-inner border border-slate-100">
+                                                <div 
+                                                    className="h-full bg-gradient-to-r from-[#63C132] to-[#52a329] rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(99,193,50,0.3)]" 
+                                                    style={{ width: `${milestone.progress}%` }}
+                                                ></div>
                                             </div>
-                                            <div className="text-[9px] font-bold text-slate-400 text-right">{milestone.progress}% Complete</div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">

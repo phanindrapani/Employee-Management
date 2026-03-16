@@ -1,7 +1,14 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
+import fs from 'fs';
+import path from 'path';
 
-// Simple in-memory cache for user lookups to reduce DB load under high concurrency
+const logFile = path.resolve('auth_debug.log');
+const log = (msg) => {
+    const entry = `[${new Date().toISOString()}] ${msg}\n`;
+    fs.appendFileSync(logFile, entry);
+};
+
 const userCache = new Map();
 const CACHE_TTL = 30000; // 30 seconds
 
@@ -17,37 +24,38 @@ export const protect = async (req, res, next) => {
             const cachedUser = userCache.get(decoded.id);
             if (cachedUser && (Date.now() - cachedUser.timestamp < CACHE_TTL)) {
                 req.user = cachedUser.data;
-                req.user.id = req.user._id.toString(); // Ensure ID is present
+                req.user.id = req.user._id.toString();
             } else {
-            // Reverted lean lookup to avoid breaking assumptions throughout the codebase
-            const user = await User.findById(decoded.id);
-            
-            if (user) {
-                user.id = user._id.toString(); // For compatibility with existing controller logic
-                userCache.set(decoded.id, { data: user, timestamp: Date.now() });
-                req.user = user;
-            } else {
+                const user = await User.findById(decoded.id);
+                if (user) {
+                    user.id = user._id.toString();
+                    userCache.set(decoded.id, { data: user, timestamp: Date.now() });
+                    req.user = user;
+                } else {
+                    log(`Authentication failed: User not found for ID ${decoded.id}`);
                     return res.status(401).json({ message: 'User no longer exists' });
                 }
             }
 
             if (!req.user.isActive) {
+                log(`Authentication failed: User account deactivated ${decoded.id}`);
                 return res.status(401).json({ message: 'User account is deactivated' });
             }
 
+            log(`Authentication success: User ${req.user.email} (${req.user.role}) for ${req.method} ${req.originalUrl}`);
             next();
         } catch (error) {
-            console.error('JWT Error:', error.message);
+            log(`JWT Error in protect: ${error.message} (token: ${token ? token.substring(0, 10) : 'none'})`);
             res.status(401).json({ message: 'Not authorized, token invalid or expired' });
         }
     }
 
     if (!token) {
+        log(`Authentication failed: No token provided for ${req.method} ${req.originalUrl}`);
         res.status(401).json({ message: 'Not authorized, no token provided' });
     }
 };
 
-// Centralized Role Authorization
 export const authorizeRole = (allowedRoles) => {
     return (req, res, next) => {
         if (req.user && allowedRoles.includes(req.user.role)) {
@@ -60,5 +68,4 @@ export const authorizeRole = (allowedRoles) => {
     };
 };
 
-// Legacy shorthand for backward compatibility if needed (can be refactored later)
 export const admin = authorizeRole(['admin']);

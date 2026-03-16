@@ -22,6 +22,8 @@ import API from '../api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useSocketListener from '../hooks/useSocketListener';
 import StatCard from '../components/StatCard';
+import { useToast } from '../context/ToastContext';
+import { useConfirmation } from '../context/ConfirmationContext';
 
 const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMilestone, projects, members, taskToEdit }) => {
     const [formData, setFormData] = useState({
@@ -93,9 +95,9 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
                         </div>
                         <div>
                             <h2 className="text-lg md:text-xl font-black text-[#0B3C5D] tracking-tight">
-                                {taskToEdit ? 'Edit Tactical Task' : 'Assign New Task'}
+                                {taskToEdit ? 'Edit Task' : 'Assign New Task'}
                             </h2>
-                            <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Team Deployment Operations</p>
+                            <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Task Management</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-50 text-slate-300 rounded-full transition-all">
@@ -109,7 +111,7 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
                         <input
                             required
                             type="text"
-                            placeholder="Enter task objective..."
+                            placeholder="Enter task title..."
                             className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-50 border-none rounded-xl md:rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none"
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -118,7 +120,7 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Project Context</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Project</label>
                             <select
                                 required
                                 disabled={!!selectedProject && !taskToEdit}
@@ -131,7 +133,7 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Milestone Phase</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Milestone</label>
                             <select
                                 required
                                 disabled={!!selectedMilestone && !taskToEdit}
@@ -159,7 +161,7 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Execution Deadline</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Deadline</label>
                             <input
                                 required
                                 type="date"
@@ -172,7 +174,7 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Priority Matrix</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Priority</label>
                             <select
                                 required
                                 className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-50 border-none rounded-xl md:rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none"
@@ -188,7 +190,7 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
                         <div className="p-4 md:p-6 bg-[#63C132]/5 rounded-[24px] md:rounded-[32px] border border-[#63C132]/10 space-y-3">
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-2 text-[10px] font-black text-[#0B3C5D] uppercase tracking-widest leading-none">
-                                    <Scale size={14} className="text-[#63C132]" /> Task weight
+                                    <Scale size={14} className="text-[#63C132]" /> Task points
                                 </div>
                                 <div className="flex bg-white px-2 py-1 rounded-lg border border-slate-100 items-center">
                                     <input
@@ -207,7 +209,7 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Description</label>
                         <textarea
-                            placeholder="Detail objective and requirements..."
+                            placeholder="Enter task description..."
                             className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-50 border-none rounded-xl md:rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-[#0B3C5D]/10 outline-none min-h-[80px] md:min-h-[100px]"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -230,7 +232,7 @@ const AssignTaskModal = ({ onClose, onSuccess, selectedProject, selectedMileston
                             {isSubmitting ? <RefreshCw className="animate-spin" size={18} /> : (
                                 <>
                                     <CheckCircle2 size={18} />
-                                    <span>Confirm Assignment</span>
+                                    <span>{taskToEdit ? 'Save Changes' : 'Assign Task'}</span>
                                 </>
                             )}
                         </button>
@@ -254,6 +256,7 @@ const TaskDetailsModal = ({ task, onClose, onEdit }) => {
                             <ClipboardList size={20} className="md:size-[24px]" />
                         </div>
                         <div className="overflow-hidden">
+                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{task.taskId || 'TASK-N/A'}</div>
                             <h2 className="text-lg md:text-2xl font-black text-[#0B3C5D] tracking-tight truncate">{task.title}</h2>
                             <div className="flex flex-wrap items-center gap-2 mt-1">
                                 <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest ${task.status === 'done' ? 'bg-[#63C132]/10 text-[#63C132]' :
@@ -282,13 +285,13 @@ const TaskDetailsModal = ({ task, onClose, onEdit }) => {
                         <div className="space-y-4">
                             <div className="bg-slate-50 p-4 md:p-6 rounded-[24px] md:rounded-3xl space-y-2">
                                 <div className="flex items-center gap-2 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                                    <Briefcase size={12} className="text-blue-500" /> Project Context
+                                    <Briefcase size={12} className="text-blue-500" /> Project
                                 </div>
                                 <div className="text-sm font-bold text-[#0B3C5D] truncate">{task.project?.name || 'N/A'}</div>
                             </div>
                             <div className="bg-slate-50 p-4 md:p-6 rounded-[24px] md:rounded-3xl space-y-2">
                                 <div className="flex items-center gap-2 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                                    <Target size={12} className="text-amber-500" /> Milestone Phase
+                                    <Target size={12} className="text-amber-500" /> Milestone
                                 </div>
                                 <div className="text-sm font-bold text-[#0B3C5D] truncate">{task.milestoneId?.name || 'N/A'}</div>
                             </div>
@@ -307,7 +310,7 @@ const TaskDetailsModal = ({ task, onClose, onEdit }) => {
                         <div className="space-y-4">
                             <div className="bg-slate-50 p-4 md:p-6 rounded-[24px] md:rounded-3xl space-y-2">
                                 <div className="flex items-center gap-2 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                                    <Calendar size={12} className="text-rose-500" /> Resolution Deadline
+                                    <Calendar size={12} className="text-rose-500" /> Deadline
                                 </div>
                                 <div className="text-sm font-bold text-[#0B3C5D]">
                                     {new Date(task.deadline).toLocaleDateString(undefined, { dateStyle: 'medium' })}
@@ -315,7 +318,7 @@ const TaskDetailsModal = ({ task, onClose, onEdit }) => {
                             </div>
                             <div className="bg-[#63C132]/5 p-4 md:p-6 rounded-[24px] md:rounded-3xl border border-[#63C132]/10 space-y-2">
                                 <div className="flex items-center gap-2 text-[8px] md:text-[10px] font-black text-[#0B3C5D] uppercase tracking-widest leading-none">
-                                    <Scale size={12} className="text-[#63C132]" /> Impact Points
+                                    <Scale size={12} className="text-[#63C132]" /> Points
                                 </div>
                                 <div className="text-sm font-bold text-[#0B3C5D]">
                                     {task.weight || 1} PTS
@@ -343,7 +346,7 @@ const TaskDetailsModal = ({ task, onClose, onEdit }) => {
                     </div>
 
                     <div className="space-y-3">
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Objectives</div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Description</div>
                         <div className="bg-slate-50 p-6 md:p-8 rounded-[24px] md:rounded-[32px] text-xs md:text-sm text-slate-600 font-medium leading-relaxed min-h-[100px] md:min-h-[120px]">
                             {task.description || "No specific instructions provided."}
                         </div>
@@ -351,7 +354,7 @@ const TaskDetailsModal = ({ task, onClose, onEdit }) => {
 
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                            <MessageSquare size={14} className="text-amber-500" /> Operational Updates
+                            <MessageSquare size={14} className="text-amber-500" /> Updates
                         </div>
                         <div className="bg-slate-50 p-6 rounded-[24px] space-y-4 max-h-[250px] overflow-y-auto custom-scrollbar">
                             {task.comments && task.comments.length > 0 ? (
@@ -393,7 +396,7 @@ const TaskDetailsModal = ({ task, onClose, onEdit }) => {
                         onClick={() => onEdit(task)}
                         className="flex-1 py-4 bg-[#0B3C5D] text-white rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-[#1A4B6D] transition-all shadow-xl shadow-[#0B3C5D]/20 font-bold"
                     >
-                        Modify Task
+                        Edit Task
                     </button>
                 </div>
             </div>
@@ -537,11 +540,11 @@ const TaskManagement = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
                     <div>
                         <h1 className="text-3xl md:text-4xl font-black text-[#0B3C5D] tracking-tight mb-2">
-                            {selectedProject ? selectedProject.name : 'Task Operations'}
+                            {selectedProject ? selectedProject.name : 'Tasks'}
                         </h1>
                         <div className="flex items-center gap-3">
                             <p className="text-sm md:text-base text-slate-500 font-medium italic">
-                                {selectedMilestone ? `Phase: ${selectedMilestone.name}` : selectedProject ? 'Tactical Project Control' : 'Daily Control • Assignment & Review'}
+                                {selectedMilestone ? `Phase: ${selectedMilestone.name}` : selectedProject ? 'Project Tasks' : 'Manage Tasks & Assignments'}
                             </p>
                             {selectedProject && (
                                 <button
@@ -564,7 +567,7 @@ const TaskManagement = () => {
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 md:px-8 py-3.5 md:py-4 bg-[#63C132] text-white rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-[#52A428] transition-all transform md:hover:scale-[1.05] shadow-xl shadow-[#63C132]/20"
                     >
                         <Plus size={18} />
-                        <span>{selectedMilestone ? 'Phase Assignment' : 'Assign New Task'}</span>
+                        <span>{selectedMilestone ? 'Add Phase Task' : 'Assign New Task'}</span>
                     </button>
                 </div>
 
@@ -635,6 +638,7 @@ const TaskManagement = () => {
                                 <tr key={task._id} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="px-6 md:px-8 py-4 md:py-6">
                                         <div className="max-w-[150px] md:max-w-none">
+                                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">{task.taskId || 'TASK-N/A'}</div>
                                             <div className="font-bold text-[#0B3C5D] group-hover:text-[#63C132] transition-colors truncate">{task.title}</div>
                                             <div className="text-[10px] md:text-xs text-slate-400 font-medium flex flex-wrap items-center gap-1.5 mt-0.5">
                                                 <Briefcase size={10} className="flex-shrink-0" /> <span className="truncate">{task.project?.name || 'General'}</span>

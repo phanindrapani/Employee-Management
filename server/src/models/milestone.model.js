@@ -37,6 +37,23 @@ const milestoneSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+milestoneSchema.pre('save', async function (next) {
+    if (this.isNew && !this.milestoneId) {
+        try {
+            const Counter = mongoose.model('Counter');
+            const counter = await Counter.findOneAndUpdate(
+                { model: 'milestone' },
+                { $inc: { count: 1 } },
+                { new: true, upsert: true }
+            );
+            this.milestoneId = `MS-${counter.count.toString().padStart(4, '0')}`;
+        } catch (error) {
+            return next(error);
+        }
+    }
+    next();
+});
+
 const Milestone = mongoose.model('Milestone', milestoneSchema);
 
 export default Milestone;

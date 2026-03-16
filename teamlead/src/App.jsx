@@ -20,6 +20,7 @@ import WorkLogs from './pages/WorkLogs';
 import Tickets from './pages/Tickets';
 
 import { ToastProvider } from './context/ToastContext';
+import { ConfirmationProvider } from './context/ConfirmationContext';
 import NotificationListener from './components/NotificationListener';
 
 function App() {
@@ -27,8 +28,9 @@ function App() {
     <AuthProvider>
       <SocketProvider>
         <ToastProvider>
-          <NotificationListener />
-          <Router>
+          <ConfirmationProvider>
+            <NotificationListener />
+            <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
@@ -54,6 +56,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Router>
+          </ConfirmationProvider>
         </ToastProvider>
       </SocketProvider>
     </AuthProvider>
