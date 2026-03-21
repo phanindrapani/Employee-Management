@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Manager API - Employee Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-lucario.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            color: #24292e;
+            line-height: 1.8;
+        }
+
+        pre[class*="language-"] {
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            background: #2b3e50;
+        }
+
+        code[class*="language-"] {
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 800px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-weight: 800;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-link {
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #3182ce;
+        }
+
+        .output-label {
+            font-style: italic;
+            color: #718096;
+            margin-top: 1rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+    <!-- Header -->
+    <header class="border-b border-gray-200 py-6 mb-8">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-xl m-0">
+                <a href="index.html"
+                    class="no-underline text-black hover:text-blue-600 transition-colors font-bold tracking-tight">EMS
+                    API Docs</a>
+            </h1>
+            <nav>
+                <ul class="flex space-x-6 text-sm font-medium">
+                    <li><a href="index.html" class="nav-link text-gray-600 no-underline">Auth</a></li>
+                    <li><a href="admin.html" class="nav-link text-gray-600 no-underline">Admin</a></li>
+                    <li><a href="manager.html" class="nav-link text-blue-600 no-underline font-bold">Manager</a></li>
+                    <li><a href="employee.html" class="nav-link text-gray-600 no-underline">Employee</a></li>
+                    <li><a href="teamlead.html" class="nav-link text-gray-600 no-underline">Teamlead</a></li>
+                    <li><a href="client.html" class="nav-link text-gray-600 no-underline">Client</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 pb-20">
+        <h2 class="font-bold text-3xl text-gray-900 mb-6">Manager API Guide</h2>
+        <p class="text-lg text-gray-700 mb-8">
+            The Manager APIs allow you to monitor team performance, approve leave requests, and manage project tasks
+            effectively.
+        </p>
+
+        <section id="dashboard" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Dashboard Stats</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Manager Dashboard</h3>
+            <p class="text-gray-600 mb-4">Get a comprehensive overview of team stats, project health, and task summary.
+            </p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/dashboard/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "summaryKPIs": {
+    "teams": 0,
+    "projects": 3,
+    "employees": 0,
+    "tasks": 734,
+    "tickets": 42,
+    "overdue": 2,
+    "performanceScore": 0
+  },
+  "projectHealth": [
+    {
+      "name": "Website Redesign",
+      "team": "Development Team",
+      "progress": 32,
+      "status": "At Risk",
+      "systemStatus": "ongoing"
+    },
+    ...
+  ],
+  "ticketPulse": {
+    "open": 42,
+    "waiting": 0,
+    "inProgress": 15,
+    "resolvedToday": 0
+  },
+  "leaveStats": {
+    "onLeaveToday": 0,
+    "upcomingLeave": 0
+  },
+  "alerts": [
+    {
+      "type": "danger",
+      "message": "2 Tasks are currently overdue across all teams."
+    },
+    ...
+  ],
+  "recentActivity": [
+    {
+      "_id": "69b53235eb12f287fed2d7cf",
+      "title": "Performance Test Task - zo8oj",
+      "assignedTo": {
+        "_id": "6992adfa33543e3dc970002c",
+        "name": "Sarah Jenkins",
+        "role": "employee"
+      },
+      "status": "todo",
+      "updatedAt": "2026-03-14T10:05:48.306Z"
+    },
+    ...
+  ]
+}</code></pre>
+        </section>
+
+        <section id="employees" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Employee Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get employees</h3>
+            <p class="text-gray-600 mb-4">Retrieve a list of all employees that report to you or are within your
+                department.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/employees', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "69b9270106c235c18b14b934",
+    "name": "Alex Smith",
+    "email": "alex@example.com",
+    "role": "employee"
+  },
+  {
+    "_id": "6992adfb33543e3dc970003d",
+    "name": "Jane Smith",
+    "email": "jane.dev@ems.com",
+    "role": "employee"
+  },
+  {
+    "_id": "6992adfb33543e3dc970003c",
+    "name": "John Doe",
+    "email": "john.dev@ems.com",
+    "role": "team-lead"
+  },
+  {
+    "_id": "6992adfa33543e3dc970002e",
+    "name": "Mike Ross",
+    "email": "mike.tl@ems.com",
+    "role": "employee"
+  },
+  ...
+  {
+    "_id": "699438c0c4920891d1d4489c",
+    "name": "Venishetty Shravya",
+    "email": "shravyavenishetty03@gmail.com",
+    "role": "employee"
+  }
+]</code></pre>
+        </section>
+
+        <section id="leaves" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Leave Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Leave Requests</h3>
+            <p class="text-gray-600 mb-4">Retrieve all leave requests where you are the assigned approver.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/leaves', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "69b53cb3d...",
+    "user": {
+      "name": "Mike Ross",
+      "email": "mike.tl@ems.com",
+      "role": "employee"
+    },
+    "leaveType": "EL",
+    "fromDate": "2026-04-14T00:00:00.000Z",
+    "totalDays": 3,
+    "status": "approved",
+    "reason": "Performance Test Leave 11"
+  },
+  {
+    "_id": "69b53cb3d...",
+    "user": {
+      "name": "Sarah Jenkins",
+      "email": "sarah.tl@ems.com",
+      "role": "employee"
+    },
+    "leaveType": "SL",
+    "fromDate": "2026-05-13T00:00:00.000Z",
+    "totalDays": 3,
+    "status": "approved",
+    "reason": "Performance Test Leave 40"
+  },
+  {
+    "_id": "69b2659e67432fbdd953aa08",
+    "user": {
+      "name": "John Doe",
+      "role": "team-lead"
+    },
+    "leaveType": "SL",
+    "totalDays": 1,
+    "status": "approved",
+    "reason": "suffering from fever"
+  }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Status</h3>
+            <p class="text-gray-600 mb-4">Approve or reject a leave request from your team. A rejection reason is
+                required if rejecting.</p>
+            <pre><code class="language-js">// Approve a leave request
+fetch('http://localhost:5000/api/manager/leaves/69b53cb.../status', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ 
+    status: "approved" 
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));
+
+// Reject a leave request
+fetch('http://localhost:5000/api/manager/leaves/69b53cb.../status', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ 
+    status: "rejected",
+    rejectionReason: "Project deadline approaching"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id": "69b53cb...",
+  "status": "approved",
+  "totalDays": 3
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Leave Statistics</h3>
+            <p class="text-gray-600 mb-4">Get the count of approved and pending leaves for your team.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/leaves/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  { "_id": "approved", "count": 23 },
+  { "_id": "pending", "count": 28 }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Calculate Leave Days</h3>
+            <p class="text-gray-600 mb-4">Calculate the total number of working days for a leave period.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/leaves/calculate', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN'
+  },
+  body: JSON.stringify({
+    "fromDate": "2026-03-20",
+    "toDate": "2026-03-25",
+    "session": "full-day"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "totalDays": 4
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Apply Leave (Self-Service)</h3>
+            <p class="text-gray-600 mb-4">Managers can also apply for leave for themselves. This requires
+                `multipart/form-data` if an attachment is included.</p>
+            <pre><code class="language-js">const formData = new FormData();
+formData.append('leaveType', 'CL');
+formData.append('fromDate', '2026-03-25');
+formData.append('toDate', '2026-03-27');
+formData.append('session', 'full-day');
+formData.append('reason', 'Personal work');
+// formData.append('attachment', fileInput.files[0]); // Optional
+
+fetch('http://localhost:5000/api/manager/leaves', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' },
+  body: formData
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "user": "69ae6c6d6090fcd014d235e0",
+  "leaveType": "CL",
+  "fromDate": "2026-03-25T00:00:00.000Z",
+  "toDate": "2026-03-27T00:00:00.000Z",
+  "session": "full-day",
+  "totalDays": 2,
+  "status": "pending",
+  "reason": "Personal reasons",
+  "_id": "69bce77516d6c55c8409f42c",
+  "appliedAt": "2026-03-20T06:21:41.499Z"
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Leaves</h3>
+            <p class="text-gray-600 mb-4">Retrieve all leave requests submitted by you.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/leaves/my-leaves', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "69bce77516d6c55c8409f42c",
+    "leaveType": "CL",
+    "fromDate": "2026-03-25T00:00:00.000Z",
+    "toDate": "2026-03-27T00:00:00.000Z",
+    "totalDays": 2,
+    "status": "pending",
+    "reason": "Personal reasons",
+    "appliedAt": "2026-03-20T06:21:41.499Z"
+  },
+  {
+    "_id": "69b53e96fe4ebf4dedb75006",
+    "leaveType": "CL",
+    "fromDate": "2026-06-24T00:00:00.000Z",
+    "status": "pending",
+    "reason": "Performance baseline testing"
+  },
+  ...
+  {
+    "_id": "69b2694b04927fde47d2a21a",
+    "leaveType": "SL",
+    "status": "rejected",
+    "reason": "need to go to the hospital for checkup",
+    "rejectionReason": "Performance testing rejection"
+  }
+]</code></pre>
+        </section>
+
+        <section id="milestones" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Milestone Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Project Milestones</h3>
+            <p class="text-gray-600 mb-4">Returns all milestones associated with a project managed by you.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/milestones/project/65ab123...', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "65ab123...",
+    "name": "Backend Development",
+    "milestoneId": "MS-001",
+    "status": "in-progress",
+    "progress": 40,
+    "dueDate": "2026-04-10",
+    "assignedTeam": { "name": "Backend Team" }
+  }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Project Tasks</h3>
+            <p class="text-gray-600 mb-4">Fetches all tasks associated with a specific project, including assignment
+                details.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/milestones/project/65bc123/tasks', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "65a001...",
+    "title": "Implement login API",
+    "status": "in-progress",
+    "assignedTo": { "name": "Rahul Sharma", "email": "rahul@example.com" },
+    "teamId": { "name": "Backend Team" },
+    "milestoneId": { "name": "Authentication Module" }
+  }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Create Milestone</h3>
+            <p class="text-gray-600 mb-4">Creates a new milestone for a project you manage.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/milestones', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN'
+  },
+  body: JSON.stringify({
+    "name": "Authentication Module",
+    "milestoneId": "MS-001",
+    "projectId": "65ab123...",
+    "dueDate": "2026-04-10"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id": "65mile123",
+  "name": "Authentication Module",
+  "status": "pending",
+  "progress": 0
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Milestone</h3>
+            <p class="text-gray-600 mb-4">Updates milestone details such as status and progress.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/milestones/65cd123...', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN'
+  },
+  body: JSON.stringify({
+    "status": "in-progress",
+    "progress": 50
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id": "65cd123...",
+  "status": "in-progress",
+  "progress": 50
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Milestone</h3>
+            <p class="text-gray-600 mb-4 text-red-600 font-semibold">Note: A milestone cannot be deleted if tasks are
+                linked to it.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/milestones/65cd123...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "message": "Milestone deleted"
+}</code></pre>
+        </section>
+
+        <section id="projects" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Project Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Projects</h3>
+            <p class="text-gray-600 mb-4">Returns projects managed by you or assigned to your teams.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/projects', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "6992ad...",
+    "name": "Website Redesign",
+    "status": "ongoing",
+    "priority": "high",
+    "progress": 32,
+    "projectId": "PRJ-001",
+    "assignedTeams": [ { "name": "Development Team" } ],
+    "clientId": { "name": "kavya venishetty", "company": "ERP" }
+  },
+  {
+    "_id": "69943a...",
+    "name": "Employee Management",
+    "status": "ongoing",
+    "progress": 63,
+    "projectId": "PRJ-003",
+    "clientId": { "name": "kavya venishetty", "company": "ERP" }
+  }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Create Project</h3>
+            <p class="text-gray-600 mb-4">Creates a new project and assigns it to a client and team.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/projects', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN'
+  },
+  body: JSON.stringify({
+    "name": "CRM System",
+    "description": "Customer Relationship Management",
+    "priority": "high",
+    "status": "upcoming",
+    "startDate": "2026-04-01",
+    "endDate": "2026-06-30",
+    "assignedTeam": "65abc123...",
+    "clientId": "65bcd123..."
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id": "65ef123...",
+  "name": "CRM System",
+  "status": "upcoming",
+  "progress": 0
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project</h3>
+            <p class="text-gray-600 mb-4">Updates project details such as status, priority, or dates.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/projects/6992ad...', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN'
+  },
+  body: JSON.stringify({
+    "status": "ongoing",
+    "priority": "high"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id": "6992ad...",
+  "status": "ongoing"
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Project</h3>
+            <p class="text-gray-600 mb-4 text-red-600 font-semibold">Warning: This will delete all related tasks and
+                milestones.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/projects/65cd123...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{ "message": "Deleted" }</code></pre>
+        </section>
+
+        <section id="tasks" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Task Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Manager Task Dashboard</h3>
+            <p class="text-gray-600 mb-4">Returns a comprehensive task dashboard including summary stats, project
+                progress, and recent activity.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tasks/dashboard', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "summary": {
+    "total": 734,
+    "pending": 725,
+    "completed": 7,
+    "overdue": 2
+  },
+  "projectProgress": [
+    {
+      "projectId": "6992ad...",
+      "projectName": "Website Redesign",
+      "totalTasks": 732,
+      "completed": 6,
+      "progress": 1
+    },
+    {
+      "projectId": "69943a...",
+      "projectName": "Employee Management",
+      "totalTasks": 2,
+      "completed": 1,
+      "progress": 50
+    }
+  ],
+  "recentActivity": [
+    {
+      "title": "Performance Test Task - zo8oj",
+      "assignedTo": { "name": "Sarah Jenkins" },
+      "status": "todo"
+    }
+  ]
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Task Statistics</h3>
+            <p class="text-gray-600 mb-4">Returns task counts grouped by status across all projects.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tasks/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  { "_id": "todo", "count": 725 },
+  { "_id": "done", "count": 7 },
+  { "_id": "review", "count": 2 }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Overdue Tasks</h3>
+            <p class="text-gray-600 mb-4">Returns a list of tasks that have passed their deadline and are not yet
+                completed.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tasks/overdue', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "699441...",
+    "project": { "name": "Website Redesign" },
+    "title": "Update ui of profile page",
+    "assignedTo": { "name": "Sarah Jenkins", "email": "sarah.tl@ems.com" },
+    "status": "review",
+    "deadline": "2026-02-20T00:00:00.000Z",
+    "priority": "high",
+    "taskId": "PRJ-001-TSK-0006"
+  }
+]</code></pre>
+        </section>
+
+        <section id="teams" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Team Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Teams</h3>
+            <p class="text-gray-600 mb-4">Returns a list of teams managed by the logged-in manager.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/teams', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "65tr123...",
+    "name": "Backend Team",
+    "department": { "name": "Engineering" },
+    "teamLead": { "name": "Rahul Sharma", "email": "rahul@example.com" }
+  }
+]</code></pre>
+        </section>
+
+        <section id="tickets" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Ticket Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Ticket Analytics</h3>
+            <p class="text-gray-600 mb-4">Returns comprehensive ticket statistics including counts by status and
+                priority.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tickets/analytics', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "summary": {
+    "total": 102,
+    "open": 17,
+    "inProgress": 15,
+    "resolved": 25,
+    "closed": 22,
+    "slaBreached": 11
+  },
+  "byPriority": {
+    "URGENT": 23,
+    "HIGH": 27,
+    "MEDIUM": 29,
+    "LOW": 23
+  }
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Manager Tickets</h3>
+            <p class="text-gray-600 mb-4">Returns all tickets assigned to the manager with filtering support.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tickets', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "69b53...",
+    "ticketCode": "TKT-1773483326228-22",
+    "title": "Performance Test Ticket 22",
+    "status": "ASSIGNED",
+    "priority": "URGENT",
+    "projectId": { "name": "Website Redesign" },
+    "assignedEmployee": { "name": "Sarah Jenkins" }
+  },
+  {
+    "_id": "69b53...",
+    "ticketCode": "TKT-1773483326228-37",
+    "title": "Performance Test Ticket 37",
+    "status": "CLOSED",
+    "priority": "URGENT",
+    "projectId": { "name": "Website Redesign" },
+    "assignedEmployee": { "name": "Sarah Jenkins" }
+  }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Ticket Statistics</h3>
+            <p class="text-gray-600 mb-4">Returns quick summary statistics for tickets assigned to the manager.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tickets/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "total": 102,
+  "closed": 22,
+  "pending": 55,
+  "breached": 11
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Ticket By ID</h3>
+            <p class="text-gray-600 mb-4">Returns detailed information for a specific ticket, including client and
+                assignment details.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tickets/69b53...', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id": "69b53...",
+  "ticketCode": "TKT-1773483326228-22",
+  "title": "Performance Test Ticket 22",
+  "status": "ASSIGNED",
+  "priority": "URGENT",
+  "assignedTeamLead": { "name": "John Doe", "role": "team-lead" },
+  "projectId": { "name": "Website Redesign" },
+  "assignedEmployee": { "name": "Sarah Jenkins", "role": "employee" },
+  "clientId": { "name": "kavya venishetty", "company": "ERP" }
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Assign Ticket to Team Lead</h3>
+            <p class="text-gray-600 mb-4">Assigns a ticket to a specific team lead. This updates the ticket status to
+                ASSIGNED and notifies the team lead.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tickets/69b53.../assign-teamlead', {
+  method: 'PATCH',
+  headers: {
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    teamLeadId: "65user123",
+    note: "Please investigate this issue"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "message": "Ticket assigned to Rahul Sharma",
+  "ticket": {
+    "_id": "69b53...",
+    "status": "ASSIGNED"
+  }
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Comment to Ticket</h3>
+            <p class="text-gray-600 mb-4">Adds a comment to a ticket. Comments can be internal (visible only to staff)
+                or
+                public (visible to clients).</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tickets/69b53.../comment', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_MANAGER_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    message: "Investigating the issue",
+    isInternal: true
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "message": "Comment added"
+}</code></pre>
+        </section>
+
+        <section id="worklogs" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Work Log Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Manager Work Logs</h3>
+            <p class="text-gray-600 mb-4">Returns the latest work log entries of employees under the manager’s teams.
+            </p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/worklogs', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "65log123",
+    "employee": { "name": "Rahul Sharma", "email": "rahul@example.com" },
+    "date": "2026-03-12",
+    "startTime": "09:00",
+    "endTime": "11:00",
+    "durationMinutes": 120,
+    "taskTitle": "Implement authentication",
+    "project": "CRM System",
+    "category": "development",
+    "status": "completed"
+  }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Work Log Statistics</h3>
+            <p class="text-gray-600 mb-4">Returns aggregated statistics for employee work logs grouped by work category.
+            </p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/worklogs/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  { "_id": "development", "totalMinutes": 12000, "count": 150 },
+  { "_id": "meeting", "totalMinutes": 3200, "count": 50 }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Work Log Analysis</h3>
+            <p class="text-gray-600 mb-4">Returns advanced work log analytics, including productivity trends and time
+                distribution.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/worklogs/analysis?fromDate=2026-02-01&toDate=2026-03-01', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "fromDate": "2026-02-01",
+  "toDate": "2026-03-01",
+  "teamEmployeeDistribution": [
+    {
+      "name": "Backend Team",
+      "Rahul Sharma": 120,
+      "Anita Verma": 95,
+      "totalHours": 215
+    }
+  ]
+}</code></pre>
+        </section>
+
+        <section id="notifications" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Notifications</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Notifications</h3>
+            <p class="text-gray-600 mb-4">Returns all notifications for the logged-in user, sorted by newest first.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/notifications', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">[
+  {
+    "_id": "65abc123...",
+    "message": "New Ticket Assigned: Login Issue",
+    "isRead": false,
+    "createdAt": "2026-03-13T10:22:00.000Z"
+  }
+]</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark Notification as Read</h3>
+            <p class="text-gray-600 mb-4">Marks a specific notification as read using its ID.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/notifications/65notif123/read', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "message": "Notification marked as read"
+}</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark All Read</h3>
+            <p class="text-gray-600 mb-4">Marks all unread notifications for the user as read.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/notifications/read-all', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "message": "All notifications marked as read"
+}</code></pre>
+        </section>
+
+        <section id="performance" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6">Performance Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Manager Performance Dashboard</h3>
+            <p class="text-gray-600 mb-4">Returns a complete performance dashboard for the manager, including team
+                metrics and trends.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/manager/performance/dashboard', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_MANAGER_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "summary": {
+    "totalTeams": 0,
+    "totalEmployees": 0,
+    "activeProjects": 0,
+    "orgAvgScore": 0,
+    "highestTeamAvg": 0,
+    "teamsNeedingAttention": 0
+  },
+  "teams": [],
+  "topPerformers": [],
+  "performanceTrend": [],
+  "topLeads": []
+}</code></pre>
+        </section>
+    </main>
+
+    <footer class="border-t border-gray-200 py-10 text-center text-gray-500 text-sm">
+        <div class="container mx-auto px-4">
+            <p>Made with ❤️ for the Employee Management System</p>
+            <p class="mt-2">&copy; 2026 EMS Documentation Portal</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+</body>
+
+</html>
