@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Admin API - Employee Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-lucario.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      color: #24292e;
+      line-height: 1.8;
+    }
+
+    pre[class*="language-"] {
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      background: #2b3e50;
+    }
+
+    code[class*="language-"] {
+      font-size: 0.9rem;
+    }
+
+    .container {
+      max-width: 800px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 800;
+      margin-top: 3rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+    }
+
+    h2 {
+      font-size: 1.875rem;
+      border-bottom: 2px solid #edf2f7;
+      padding-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+    }
+
+    .nav-link {
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: #3182ce;
+    }
+
+    .output-label {
+      font-style: italic;
+      color: #718096;
+      margin-top: 1rem;
+      display: block;
+    }
+  </style>
+</head>
+
+<body class="bg-white">
+  <!-- Header -->
+  <header class="border-b border-gray-200 py-6 mb-8">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+      <h1 class="text-xl m-0">
+        <a href="index.html"
+          class="no-underline text-black hover:text-blue-600 transition-colors font-bold tracking-tight">EMS
+          API Docs</a>
+      </h1>
+      <nav>
+        <ul class="flex space-x-6 text-sm font-medium">
+          <li><a href="index.html" class="nav-link text-gray-600 no-underline">Auth</a></li>
+          <li><a href="admin.html" class="nav-link text-blue-600 no-underline font-bold">Admin</a></li>
+          <li><a href="manager.html" class="nav-link text-gray-600 no-underline">Manager</a></li>
+          <li><a href="employee.html" class="nav-link text-gray-600 no-underline">Employee</a></li>
+          <li><a href="teamlead.html" class="nav-link text-gray-600 no-underline">Teamlead</a></li>
+          <li><a href="client.html" class="nav-link text-gray-600 no-underline">Client</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 pb-20">
+    <h2 class="font-bold text-3xl text-gray-900 mb-6">Admin API Guide</h2>
+    <p class="text-lg text-gray-700 mb-8">
+      The Admin APIs provide full control over the system, including managing departments, clients, employees, and
+      tracking attendance.
+    </p>
+
+    <!-- Attendance Section -->
+    <section id="attendance" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Attendance Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get Attendance Report</h3>
+      <p class="text-gray-600 mb-4">Fetch the attendance report for a specific date.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/attendance?date=2026-03-16', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "date": "2026-03-16",
+  "summary": { "Present": 0, "Late": 0, "Half-Day": 0, "Absent": 49 },
+  "records": [
+    {
+      "user": {
+        "_id": "6992adfa33543e3dc970002c",
+        "name": "Sarah Jenkins",
+        "email": "sarah.tl@ems.com",
+        "role": "employee",
+        "department":"6992adf933543e3dc970001e",
+        "team":"69b527f8a51569b3e2d64e32"
+      },
+      "date":"2026-03-15T18:30:00.000Z",
+      "status":"Absent",
+      "checkIn":null,
+      "checkOut":null,
+      "workingHours":0
+    }
+    ...
+  ]
+}</code></pre>
+    </section>
+
+    <!-- Client Section -->
+    <section id="client-routes" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Client Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get Clients</h3>
+      <p class="text-gray-600 mb-4">Retrieve a list of all clients registered in the system.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "69aec0...",
+    "name": "kavya venishetty",
+    "email": "kavya@gmail.com",
+    "phone": "6300143143",
+    "isActive": true,
+    "role": "client",
+    "company": "ERP",
+    "uid": "CLI-0001"
+  },
+  ...
+]</code></pre>
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get Client by ID</h3>
+      <p class="text-gray-600 mb-4">Retrieve detailed information for a specific client using their unique ID.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69aec0...",
+  "name": "kavya venishetty",
+  "email": "kavya@gmail.com",
+  "phone": "6300143143",
+  "isActive": true,
+  "profilePicture": "",
+  "bio": "",
+  "qualification": "",
+  "individualPerformanceScore": 0,
+  "role": "client",
+  "company": "ERP",
+  "createdAt": "2026-03-09T12:44:32.832Z",
+  "updatedAt": "2026-03-13T12:04:04.181Z",
+  "__v": 0,
+  "lastLogin": "2026-03-13T12:04:04.175Z",
+  "uid": "CLI-0001"
+}</code></pre>
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Create Client</h3>
+      <p class="text-gray-600 mb-4">Onboard a new client by providing their basic details.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "7890654321",
+    "company": "ABC Pvt Ltd",
+    "role": "client"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "7890654321",
+  "isActive": true,
+  "profilePicture": "",
+  "bio": "",
+  "qualification": "",
+  "individualPerformanceScore": 0,
+  "_id": "69b92f...",
+  "role": "client",
+  "company": "ABC Pvt Ltd",
+  "createdAt": "2026-03-17T10:39:23.191Z",
+  "updatedAt": "2026-03-17T10:39:23.191Z",
+  "uid": "CLI-0087",
+  "__v": 0
+}</code></pre>
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Update Client</h3>
+      <p class="text-gray-600 mb-4">Update existing client information securely.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "phone": "6300143144"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69aec0...",
+  "name": "kavya venishetty",
+  "email": "kavya@gmail.com",
+  "phone": "6300143144",
+  "isActive": true,
+  "role": "client",
+  "company": "ERP",
+  "updatedAt": "2026-03-17T10:42:32.766Z",
+  "uid": "CLI-0001"
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Client</h3>
+      <p class="text-gray-600 mb-4">Remove a client from the system permanently.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "message": "Client deleted successfully"
+}</code></pre>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Dashboard & Stats</h2>
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get Dashboard Stats</h3>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "summary": {
+    "employees": 53,
+    "projects": { "total": 253, "ongoing": 2 },
+    "leaves": { "pending": 4234 },
+    ...
+  }
+}</code></pre>
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Report Statistics</h3>
+      <p class="text-gray-600 mb-4">Retrieve detailed organizational reports, including monthly trends and employee
+        stats.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/reports', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "summary": {
+    "totalLeaves": 71,
+    "avgDuration": "1.6",
+    "mostCommonType": "CL",
+    "utilizationRate": "6.9"
+  },
+  "monthlyData": [
+    { "name": "Jan", "leaves": 0 },
+    ...
+  ],
+  "employeeStats": [
+    {
+      "_id": "6992adfb...",
+      "leaves": 49,
+      "days": 55,
+      "name": "Jane Smith"
+    },
+    ...
+  ],
+  "leaveDistribution": [
+    { "name": "SL", "value": 29 },
+    { "name": "CL", "value": 64 },
+    { "name": "EL", "value": 24 }
+  ]
+}</code></pre>
+    </section>
+
+    <!-- Department Section -->
+    <section id="departments" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Department Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Create Department</h3>
+      <p class="text-gray-600 mb-4">Add a new department to the organization.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "Engineering",
+    "description": "Handles software development"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69b93...",
+  "name": "Engineering",
+  "description": "Handles software development",
+  "deptId": "DEPT-055",
+  "createdAt": "2026-03-17T10:48:46.742Z",
+  "updatedAt":"2026-03-17T10:48:46.742Z"
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Departments</h3>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "6992a...",
+    "name": "Engineering",
+    "deptId": "DEPT-001",
+    ...
+  },
+  ...
+]</code></pre>
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Department</h3>
+      <p class="text-gray-600 mb-4">Securely update department information and descriptions.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments/69b93...', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "Engineering",
+    "description": "Handles software development and backend"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69b93...",
+  "name": "Engineering",
+  "description": "Handles software development and backend",
+  "deptId": "DEPT-055",
+  "updatedAt": "2026-03-17T10:51:29.202Z"
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Department</h3>
+      <p class="text-gray-600 mb-4">Remove a department from the system permanently.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments/6992a...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "msg": "Deleted"
+}</code></pre>
+    </section>
+
+    <!-- Documents Section -->
+    <section id="documents" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Document Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get Documents</h3>
+      <p class="text-gray-600 mb-4">Fetch documents uploaded by a specific user or the authenticated admin.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/documents?userId=65abc...', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "65doc...",
+    "user": "65abc...",
+    "category": "Education",
+    "documentName": "Degree Certificate",
+    "fileUrl": "https://cloudinary.com/document.pdf",
+    "verificationStatus": "pending",
+    ...
+  }
+]</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Upload Document</h3>
+      <p class="text-gray-600 mb-4">Upload a new document for an employee.</p>
+      <pre><code class="language-js">const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+formData.append('category', 'Education');
+formData.append('documentName', 'Bachelor Degree');
+
+fetch('http://localhost:5000/api/admin/documents/upload', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' },
+  body: formData
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65doc...",
+  "category": "Education",
+  "documentName": "Bachelor Degree",
+  "verificationStatus": "pending",
+  ...
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Verify Document</h3>
+      <p class="text-gray-600 mb-4">Approve and verify an uploaded document.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/documents/65doc.../verify', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65doc...",
+  "verificationStatus": "verified",
+  "verifiedBy": "65admin...",
+  "verifiedAt": "2026-03-12T11:00:00.000Z"
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Reject Document</h3>
+      <p class="text-gray-600 mb-4">Reject a document with a reason for the employee to re-upload.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/documents/65doc.../reject', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ reason: 'Document is blurry' })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65doc...",
+  "verificationStatus": "rejected",
+  "rejectionReason": "Document is blurry",
+  ...
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Document</h3>
+      <p class="text-gray-600 mb-4">Permanently remove a document from the system.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/documents/65doc...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "message": "Document deleted successfully" }</code></pre>
+    </section>
+
+    <!-- Employee Section -->
+    <section id="employees" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Employee Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get Employees</h3>
+      <p class="text-gray-600 mb-4">Retrieve a list of all employees or filter them by role.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "6992a...",
+    "name": "Jane Smith",
+    "email": "[EMAIL_ADDRESS]",
+    "role": "employee",
+    "employeeId": "EMP-001",
+    "department": { "_id": "6992a...", "name": "Updated Dept 194923" },
+    "team": { "_id": "6992a...", "name": "Sales & Marketing" },
+    "reportingManager": {
+      "_id": "6992a...",
+      "name": "Robert Code",
+      "profilePicture": "https://res.cloudinary.com/..."
+    },
+    "leaveBalance": { "cl": 10, "sl": 5, "el": 12 },
+    "completeness": { "totalScore": 50, "breakdown": { "essential": 30, ... } },
+    "profilePicture": "https://res.cloudinary.com/...",
+    "createdAt": "2026-02-16T05:41:13.943Z"
+  },
+  ...
+]</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Employee by ID</h3>
+      <p class="text-gray-600 mb-4">Fetch comprehensive details for a specific employee.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/6992a...', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "leaveBalance": { "cl": 6, "sl": 4, "el": 12 },
+  "_id": "6992a...",
+  "name": "Sarah Jenkins",
+  "email": "sarah.tl@ems.com",
+  "phone": "9876543210",
+  "department": null,
+  "team": { "_id": "69b52...", "name": "Development Team" },
+  "reportingManager": null,
+  "isActive": true,
+  "qualification": "B.Tech in Computer Science",
+  "role": "employee",
+  "skills": ["React", "Leadership", "Agile"],
+  "uid": "EMP-0002",
+  "experienceLevel": "Junior",
+  ...
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Employee</h3>
+      <p class="text-gray-600 mb-4">Add a new employee to the system with a default password.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "Rahul Sharma",
+    "email": "rahul@example.com",
+    "phone": "6666666666",
+    "role": "employee"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "message": "Employee added successfully",
+  "employee": {
+    "_id": "69b93...",
+    "name": "Rahul Sharma",
+    "role": "employee",
+    ...
+  },
+  "defaultPassword": "Rahul123"
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Employee</h3>
+      <p class="text-gray-600 mb-4">Update an existing employee's information.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/69b93...', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "phone": "6666666667"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "message": "Employee updated",
+  "employee": {
+    "_id": "69b93...",
+    "name": "Rahul Sharma",
+    "phone": "6666666667",
+    ...
+  }
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Employee</h3>
+      <p class="text-gray-600 mb-4">Permanently remove an employee from the system.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/69b93...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "message": "Employee removed successfully" }</code></pre>
+    </section>
+
+    <!-- Holiday Section -->
+    <section id="holidays" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Holiday Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get All Holidays</h3>
+      <p class="text-gray-600 mb-4">Retrieve the list of all upcoming and past holidays.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/holidays', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "69943...",
+    "name": "Republic day",
+    "date": "2026-01-26T00:00:00.000Z",
+    "type": "public",
+    "description":"",
+    "createdAt":"2026-02-17T10:05:09.841Z",
+    "updatedAt":"2026-02-17T10:05:09.841Z",
+    "__v":0
+  },
+  ...
+]</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Holiday</h3>
+      <p class="text-gray-600 mb-4">Add a new holiday to the organizational calendar.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/holidays', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "Diwali",
+    "date": "2026-11-08",
+    "type": "festival",
+    "description": "Festival of lights"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "name":"Diwali",
+  "date":"2026-11-08T00:00:00.000Z",
+  "type":"festival",
+  "description":"Festival of lights",
+  "_id":"69b935f60a93efc6dea01010",
+  "createdAt":"2026-03-17T11:07:34.429Z",
+  "updatedAt":"2026-03-17T11:07:34.429Z",
+  "__v":0
+}
+      </code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Holiday</h3>
+      <p class="text-gray-600 mb-4">Remove a holiday entry from the system.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/holidays/69943...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "msg": "Deleted" }</code></pre>
+    </section>
+
+    <!-- Leave Section -->
+    <section id="leaves" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Leave Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get All Leaves</h3>
+      <p class="text-gray-600 mb-4">Retrieve all employee leave applications for review.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/leaves', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "69b26...",
+    "user": { 
+    "_id": 69ae6...,
+    "name": "Robert Manager", 
+    "role": "manager", ... },
+    "leaveType": "SL",
+    "totalDays": 1,
+    "status": "rejected",
+    ...
+  },
+  ...
+]</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Status</h3>
+      <p class="text-gray-600 mb-4">Approve or reject a leave application.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/leaves/69b26...', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "status": "approved",
+    "rejectionReason": "Approved"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "message": "Leave status updated",
+  "leave": {
+    "_id": "69b26...",
+    "user": {
+      "_id": "69ae6...",
+      "name": "Robert Manager",
+      "email": "manager@ems.com",
+      "department": "6992a...",
+      "role": "manager"
+    },
+    "leaveType": "SL",
+    "totalDays": 1,
+    "status": "approved",
+    "rejectionReason": "Approved",
+    ...
+  }
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Reconcile Balances</h3>
+      <p class="text-gray-600 mb-4">Manually trigger leave balance reconciliation across the organization.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/leaves/reconcile-balances', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({})
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "message": "Leave balance reconciliation completed",
+  "updatedLeaves": 0,
+  ...
+}</code></pre>
+    </section>
+
+    <!-- Performance Section -->
+    <section id="performance" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Performance Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Calculate Performance</h3>
+      <p class="text-gray-600 mb-4">Trigger performance scoring for all employees for a specific period (YYYY-MM).</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/performance/calculate', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ "period": "2026-02" })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "message": "Performance calculated", "count": 45 }</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Performance Dashboard</h3>
+      <p class="text-gray-600 mb-4">Retrieve organization-wide performance metrics and top performers.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/performance/dashboard?period=2026-02', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "summary": { "orgAvgScore": 72, "highestTeamAvg": 88, ... },
+  "teams": [
+    { "teamName": "Backend Team", "avgScore": 75, ... }
+  ],
+  "topPerformers": [
+    { "name": "Amit Kumar", "totalScore": 92, ... }
+  ]
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Employee Performance Profile</h3>
+      <p class="text-gray-600 mb-4">View detailed performance scoring history and current metrics for a specific
+        employee.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/performance/employee/69b4f...', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "current": {
+    "period": "2026-03",
+    "totalScore": 85,
+    "category": "Excellent",
+    "breakdown": { "milestones": 40, "tasks": 30, "attendance": 15 }
+  },
+  "history": [
+    {
+      "period": "2026-02",
+      "totalScore": 78,
+      "category": "Good"
+    },
+    {
+      "period": "2026-01",
+      "totalScore": 82,
+      "category": "Excellent"
+    }
+  ]
+}</code></pre>
+    </section>
+
+    <!-- Project Section -->
+    <section id="projects" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Project Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Create Project</h3>
+      <p class="text-gray-600 mb-4">Initialize a new project with assigned teams and a project manager.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "EMS Portal",
+    "description": "Employee Management System",
+    "priority": "high",
+    "managerId": "65mgr...",
+    "clientId": "65client...",
+    "startDate": "2026-04-01",
+    "endDate": "2026-06-30",
+    "status": "upcoming"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65proj...",
+  "projectId": "PRJ-001",
+  "name": "EMS Portal",
+  "status": "upcoming",
+  "progress": 0,
+  ...
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Projects</h3>
+      <p class="text-gray-600 mb-4">List all projects with their current status and progress.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "65proj...",
+    "name": "EMS Portal",
+    "status": "ongoing",
+    "progress": 45,
+    ...
+  },
+  ...
+]</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project</h3>
+      <p class="text-gray-600 mb-4">Modify project details like name, description, priority, or assigned manager.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects/65proj...', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "HR Management Platform",
+    "priority": "medium"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65proj...",
+  "name": "HR Management Platform",
+  "priority": "medium",
+  ...
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project Status</h3>
+      <p class="text-gray-600 mb-4">Update the current status and overall progress of a project.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects/65proj.../status', {
+  method: 'PATCH',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "status": "ongoing"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65proj...",
+  "status": "ongoing",
+  ...
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Project</h3>
+      <p class="text-gray-600 mb-4">Remove a project and all its associated tasks from the system.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects/65proj...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "msg": "Deleted" }</code></pre>
+    </section>
+
+    <!-- Settings Section -->
+    <section id="settings" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Global Settings</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get Leave Settings</h3>
+      <p class="text-gray-600 mb-4">Fetch organizational leave quotas (CL, SL, EL).</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/settings/leave', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "6992f...",
+  "key": "leave_quotas",
+  "value": {
+    "cl": 13,
+    "sl": 10,
+    "el": 13
+  },
+  "description": "Global leave quotas",
+  "createdAt": "2026-02-16T10:57:38.005Z",
+  "updatedAt": "2026-03-13T10:46:18.707Z",
+  "__v": 0
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Settings</h3>
+      <p class="text-gray-600 mb-4">Update global leave quotas. This affects new employee balance initialization.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/settings/leave', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "value": { "cl": 14, "sl": 12, "el": 18 }
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "6992f...",
+  "key": "leave_quotas",
+  "value": {
+    "cl": 14,
+    "sl": 12,
+    "el": 18
+  },
+  "description": "Global leave quotas",
+  "createdAt": "2026-02-16T10:57:38.005Z",
+  "updatedAt": "2026-03-18T06:56:18.145Z",
+  "__v": 0
+}</code></pre>
+    </section>
+
+    <!-- Team Section -->
+    <section id="teams" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Team Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Create Team</h3>
+      <p class="text-gray-600 mb-4">Form a new team and assign a team lead and manager.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "Backend Team",
+    "department": "65dep...",
+    "teamLead": "65user...",
+    "manager": "65user...",
+    "members": ["65user...", "65user..."]
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65team...",
+  "teamId": "TEAM-001",
+  "name": "Backend Team",
+  "department": "65dep...",
+  "teamLead": "65user...",
+  "manager": "65user...",
+  "members": ["65user...", "65user..."]
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Teams</h3>
+      <p class="text-gray-600 mb-4">Fetch all teams with their assigned leads, managers, and department info.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "65team...",
+    "teamId": "TEAM-001",
+    "name": "Backend Team",
+    "department": { "name": "Engineering"},
+    "teamLead": { "name": "Rahul Sharma"},
+    "manager": { "name": "Anil Kumar"},
+    "members": ["65user...", "65user..."]
+  },
+  ...
+]</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Team</h3>
+      <p class="text-gray-600 mb-4">Modify team details, change the lead or manager, and update member list.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams/65team...', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "name": "Platform Engineering Team",
+    "teamLead": "65user222",
+    "members": ["65user333", "65user444"]
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65team...",
+  "name": "Platform Engineering Team",
+  "teamLead": { "name": "Amit Kumar"},
+  ...
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Manage Team Members</h3>
+      <p class="text-gray-600 mb-4">Quickly add or remove a single member from a team.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams/members', {
+  method: 'PATCH',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "teamId": "65team...",
+    "memberId": "65user999",
+    "action": "add"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65team...",
+  "members": ["65user333", "65user444", "65user999"]
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Team</h3>
+      <p class="text-gray-600 mb-4">Delete a team. Members will be unassigned and the lead's role may revert.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams/65team...', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "message": "Team deleted" }</code></pre>
+    </section>
+
+    <!-- Ticket Section -->
+    <section id="tickets" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Ticket Management</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Ticket Analytics</h3>
+      <p class="text-gray-600 mb-4">Get a summary of support tickets by status and priority.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/analytics', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "summary": {
+    "total": 105,
+    "open": 17,
+    "assigned": 26,
+    "inProgress": 15,
+    "waitingForClient": 0,
+    "resolved": 25,
+    "closed": 22,
+    "reopened": 0,
+    "slaBreached": 21
+  },
+  "byPriority": {
+    "MEDIUM": 32,
+    "HIGH": 27,
+    "URGENT": 23,
+    "LOW": 23
+  },
+  "byCategory": {
+    "SUPPORT": 3,
+    "OTHER": 1,
+    "null": 101
+  },
+  "avgResolutionHours": 0
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Tickets</h3>
+      <p class="text-gray-600 mb-4">Fetch paginated tickets with filtering by status, priority, and search terms.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets?status=OPEN&page=1&limit=20', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "tickets": [
+    {
+      "_id": "69b5353e...",
+      "ticketCode": "TKT-1773483326228-2",
+      "title": "Performance Test Ticket 2",
+      "description": "Description for ticket 2",
+      "status": "OPEN",
+      "priority": "LOW",
+      "assignedManager": { "name": "Robert Manager", "role": "manager" },
+      "clientId": { "name": "kavya venishetty", "company": "ERP" },
+      "slaBreached": false,
+      "createdAt": "2026-03-14T10:15:26.228Z",
+      ...
+    },
+    ...
+  ],
+  "total": 17,
+  "page": 1,
+  "pages": 6
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Ticket By ID</h3>
+      <p class="text-gray-600 mb-4">Retrieve full details of a specific ticket, including client info and comments.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/69b5353e...', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69b5353e...",
+  "ticketCode": "TKT-1773483326228-2",
+  "title": "Performance Test Ticket 2",
+  "description": "Description for ticket 2",
+  "status": "OPEN",
+  "priority": "LOW",
+  "category": "SUPPORT",
+  "assignedManager": { "name": "Robert Manager", "email": "manager@ems.com" },
+  "assignedTeamLead": { "name": "John Doe", "email": "john.dev@ems.com" },
+  "assignedEmployee": { "name": "Sarah Jenkins", "email": "sarah.tl@ems.com" },
+  "clientId": { "name": "kavya venishetty", "email": "kavya@gmail.com", "company": "ERP" },
+  "slaBreached": false,
+  "createdAt": "2026-03-14T10:15:26.228Z",
+  "comments": [],
+  "attachments": []
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Unassigned Tickets</h3>
+      <p class="text-gray-600 mb-4">List tickets that are open but haven't been assigned to a manager yet.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/unassigned', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "69b5353e...",
+    "ticketCode": "TKT-1024",
+    "title": "Database connection timeout",
+    "status": "OPEN",
+    "priority": "CRITICAL",
+    "category": "BUG",
+    "assignedManager": null,
+    "clientId": { "name": "Acme Corp", "email": "it@acme.com" },
+    "createdAt": "2026-03-18T09:00:00.000Z"
+  }
+]</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get SLA Breached Tickets</h3>
+      <p class="text-gray-600 mb-4">Review tickets where the response or resolution deadline has passed.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/sla-breached', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "69b5353e...",
+    "ticketCode": "TKT-1773483326228-11",
+    "title": "Performance Test Ticket 11",
+    "status": "ASSIGNED",
+    "priority": "LOW",
+    "assignedManager": { "name": "Robert Manager", "role": "manager" },
+    "assignedEmployee": { "name": "Sarah Jenkins", "role": "employee" },
+    "slaBreached": true,
+    "createdAt": "2026-03-14T10:15:26.228Z",
+    ...
+  },
+  ...
+]</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Assign Manager to Ticket</h3>
+      <p class="text-gray-600 mb-4">Assign a support manager to a specific ticket for resolution.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/65abc.../assign-manager', {
+  method: 'PATCH',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "managerId": "65ed2...",
+    "note": "Assigning to backend manager"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "message": "Ticket assigned to manager Rahul",
+  "ticket": { "ticketCode": "TKT-1001", "status": "ASSIGNED" }
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Close Ticket</h3>
+      <p class="text-gray-600 mb-4">Mark a resolved ticket as closed. Note: Ticket must be in RESOLVED state.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/65abc.../close', {
+  method: 'PATCH',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "message": "Ticket closed", "ticket": { "status": "CLOSED" } }</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Comment to Ticket</h3>
+      <p class="text-gray-600 mb-4">Post a public or internal comment on a support ticket.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/65abc.../comment', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "message": "Investigating the issue",
+    "isInternal": false
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "message": "Comment added" }</code></pre>
+    </section>
+    
+    <!-- Notifications Section -->
+    <section id="notifications" class="mb-16">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6">Notifications</h2>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Notifications</h3>
+      <p class="text-gray-600 mb-4">Fetch your notifications with pagination.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/notifications?page=1&limit=20', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "notifications": [
+    {
+      "_id": "69b4fb94...",
+      "message": "New Document Uploaded: Sarah Jenkins uploaded \"Performance Test Doc 4-2\" (other)",
+      "isRead": false,
+      "createdAt": "2026-03-14T06:09:24.365Z"
+    },
+    ...
+  ],
+  "pagination": { "total": 1780, "page": 1, "limit": 20, "pages": 89 }
+}</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark Notification as Read</h3>
+      <p class="text-gray-600 mb-4">Mark a specific notification as seen.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/notifications/69b4fb94.../read', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "message": "Notification marked as read" }</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark All as Read</h3>
+      <p class="text-gray-600 mb-4">Mark all your unread notifications as seen at once.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/notifications/read-all', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{ "message": "All notifications marked as read" }</code></pre>
+    </section>
+    </section>
+
+
+  </main>
+
+  <footer class="border-t border-gray-200 py-10 text-center text-gray-500 text-sm">
+    <div class="container mx-auto px-4">
+      <p>Made with ❤️ for the Employee Management System</p>
+      <p class="mt-2">&copy; 2026 EMS Documentation Portal</p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+</body>
+
+</html>
