@@ -209,7 +209,10 @@ export const addComment = async (req, res) => {
 
 export const getUnassignedTickets = async (req, res) => {
     try {
-        const tickets = await Ticket.find({ status: 'OPEN', assignedManager: null })
+        const tickets = await Ticket.find({ 
+            status: 'OPEN', 
+            assignedManager: null 
+        })
             .populate('clientId', 'name email company')
             .sort({ priority: -1, createdAt: 1 });
         res.json(tickets);
@@ -220,7 +223,10 @@ export const getUnassignedTickets = async (req, res) => {
 
 export const getSLABreachedTickets = async (req, res) => {
     try {
-        const tickets = await Ticket.find({ slaBreached: true, status: { $nin: ['CLOSED'] } })
+        const tickets = await Ticket.find({ 
+            slaBreached: true, 
+            status: { $nin: ['CLOSED', 'RESOLVED'] } 
+        })
             .populate('clientId', 'name email')
             .populate('assignedManager', 'name')
             .populate('assignedEmployee', 'name')

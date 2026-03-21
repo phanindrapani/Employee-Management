@@ -46,75 +46,88 @@ const calculateCompleteness = (user) => {
 };
 
 export const registerUser = async (req, res) => {
-    const { name, email, password, role, phone, company } = req.body;
+    try {
+        const { name, email, password, role, phone, company } = req.body;
 
-    const userExists = await User.findOne({ email });
+        const userExists = await User.findOne({ email });
 
-    if (userExists) {
-        return res.status(400).json({ message: 'User already exists' });
-    }
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
 
-    let clientCode = '';
-    if (role === 'client') {
-        const clientCount = await User.countDocuments({ role: 'client' });
-        clientCode = `CLN-${1001 + clientCount}`;
-    }
+        let clientCode = '';
+        if (role === 'client') {
+            const clientCount = await User.countDocuments({ role: 'client' });
+            clientCode = `CLN-${1001 + clientCount}`;
+        }
 
-    const user = await User.create({
-        name,
-        email,
-        password,
-        role,
-        phone,
-        company,
-        clientCode
-    });
-
-    if (user) {
-        res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            company: user.company,
-            clientCode: user.clientCode,
-            token: generateToken(user._id, user.role),
+        const user = await User.create({
+            name,
+            email,
+            password,
+            role,
+            phone,
+            company,
+            clientCode
         });
-    } else {
-        res.status(400).json({ message: 'Invalid user data' });
+
+        if (user) {
+            res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                company: user.company,
+                clientCode: user.clientCode,
+                token: generateToken(user._id, user.role),
+            });
+        } else {
+            res.status(400).json({ message: 'Invalid user data' });
+        }
+    } catch (error) {
+        console.error("Register User Error:", error);
+        res.status(400).json({ 
+            message: error.message || 'Validation failed',
+            errors: error.errors 
+        });
     }
 };
 
 export const loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-    const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({ email }).select('+password');
 
-    if (user && (await user.comparePassword(password))) {
+        if (user && (await user.comparePassword(password))) {
 
-        user.lastLogin = new Date();
-        const populatedUser = await User.findById(user._id).populate('reportingManager', 'name');
-        
-        // Fallback for managers
-        if (user.role === 'manager' && !populatedUser.reportingManager) {
-            const admin = await User.findOne({ role: 'admin' }).select('name');
-            if (admin) populatedUser.reportingManager = admin;
+            user.lastLogin = new Date();
+            const populatedUser = await User.findById(user._id).populate('reportingManager', 'name');
+            
+            // Fallback for managers
+            if (user.role === 'manager' && !populatedUser.reportingManager) {
+                const admin = await User.findOne({ role: 'admin' }).select('name');
+                if (admin) populatedUser.reportingManager = admin;
+            }
+
+            await user.save();
+
+            res.json({
+                _id: user._id,
+                uid: user.uid,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                createdAt: user.createdAt,
+                reportingManager: populatedUser.reportingManager,
+                token: generateToken(user._id, user.role),
+            });
+        } else {
+            res.status(401).json({ message: 'Invalid email or password' });
         }
-
-        await user.save();
-
-        res.json({
-            _id: user._id,
-            uid: user.uid,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            createdAt: user.createdAt,
-            reportingManager: populatedUser.reportingManager,
-            token: generateToken(user._id, user.role),
-        });
-    } else {
-        res.status(401).json({ message: 'Invalid email or password' });
+    } catch (error) {
+        console.error("Login Error:", error);
+        res.status(500).json({ message: 'Server error during login' });
     }
 };
 
@@ -205,25 +218,30 @@ export const updateProfile = async (req, res) => {
 };
 
 export const changePassword = async (req, res) => {
-    const { currentPassword, newPassword } = req.body;
+    try {
+        const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
-        return res.status(400).json({ message: 'Current and new password are required' });
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Current and new password are required' });
+        }
+
+        const user = await User.findById(req.user._id).select('+password');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const isMatch = await user.comparePassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Current password is incorrect' });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error("Change Password Error:", error);
+        res.status(500).json({ message: 'Server error during password change' });
     }
-
-    const user = await User.findById(req.user._id).select('+password');
-
-    if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-    }
-
-    const isMatch = await user.comparePassword(currentPassword);
-    if (!isMatch) {
-        return res.status(401).json({ message: 'Current password is incorrect' });
-    }
-
-    user.password = newPassword;
-    await user.save();
-
-    res.json({ message: 'Password updated successfully' });
 };

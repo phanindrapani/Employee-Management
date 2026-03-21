@@ -7,7 +7,7 @@ export const checkSLABreaches = async () => {
         const now = new Date();
         const result = await Ticket.updateMany(
             {
-                dueDate: { $lt: now },
+                dueDate: { $ne: null, $lt: now },
                 slaBreached: false,
                 status: { $nin: ['CLOSED', 'RESOLVED'] }
             },
