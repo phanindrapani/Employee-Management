@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Employee Management - API Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-lucario.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            color: #24292e;
+            line-height: 1.8;
+        }
+
+        pre[class*="language-"] {
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            background: #2b3e50;
+        }
+
+        code[class*="language-"] {
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 800px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-weight: 800;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-link {
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #3182ce;
+        }
+
+        .output-label {
+            font-style: italic;
+            color: #718096;
+            margin-top: 1rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+    <!-- Header -->
+    <header class="border-b border-gray-200 py-6 mb-8">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-xl m-0">
+                <a href="index.html"
+                    class="no-underline text-black hover:text-blue-600 transition-colors font-bold tracking-tight">EMS
+                    API Docs</a>
+            </h1>
+            <nav>
+                <ul class="flex space-x-6 text-sm font-medium">
+                    <li><a href="index.html" class="nav-link text-blue-600 no-underline font-bold">Auth</a></li>
+                    <li><a href="admin.html" class="nav-link text-gray-600 no-underline">Admin</a></li>
+                    <li><a href="manager.html" class="nav-link text-gray-600 no-underline">Manager</a></li>
+                    <li><a href="employee.html" class="nav-link text-gray-600 no-underline">Employee</a></li>
+                    <li><a href="teamlead.html" class="nav-link text-gray-600 no-underline">Teamlead</a></li>
+                    <li><a href="client.html" class="nav-link text-gray-600 no-underline">Client</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 pb-20">
+        <h2 class="font-bold text-3xl text-gray-900 mb-6">Authentication Guide</h2>
+        <p class="text-lg text-gray-700 mb-8">
+            The Authentication API allows you to register new users, log in to the system, and manage your user profile.
+        </p>
+
+        <section id="register" class="mb-16">
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Register User</h3>
+            <p class="text-gray-600 mb-4">Create a new user account in the system.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/auth/register', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    name: "Alex Smith",
+    email: "alex@example.com",
+    password: "securepassword123",
+    role: "employee",
+    phone: "9876543210",
+    company: "ABC Technologies"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id": "69b9270...",
+  "name": "Alex Smith",
+  "email": "alex@example.com",
+  "role": "employee",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+        </section>
+
+        <section id="login" class="mb-16">
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Login User</h3>
+            <p class="text-gray-600 mb-4">Authenticate and receive a JWT token.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: "alex@example.com",
+    password: "securepassword123"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id": "69b9270...",
+  "name": "Alex Smith",
+  "email":"alex@example.com",
+  "role":"employee",
+  "createdAt":"2026-03-17T10:03:45.020Z",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+        </section>
+
+        <section id="profile" class="mb-16">
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get User Profile</h3>
+            <p class="text-gray-600 mb-4">Retrieve details of the authenticated user.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/auth/profile', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id":"69b9270...",
+  "name":"Alex Smith",
+  "email":"alex@example.com",
+  "phone":"8876543211",
+  "isActive":true,
+  "profilePicture":"",
+  "bio":"","qualification":"",
+  "individualPerformanceScore":0,
+  "role":"employee",
+  "skills":[],
+  "experienceLevel":"Junior",
+  "createdAt":"2026-03-17T10:03:45.020Z",
+  "updatedAt":"2026-03-17T10:08:40.135Z",
+  "__v":0,
+  "lastLogin":"2026-03-17T10:08:40.129Z",
+  "completeness":{"totalScore":50,"breakdown":{"essential":30,"professional":0,"security":20}}
+}
+</code></pre>
+        </section>
+
+        <section id="change-password" class="mb-16">
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Update Profile</h3>
+            <p class="text-gray-600 mb-4">Update your profile securely.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/auth/profile', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+  "phone": "8776543211"
+})
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "_id":"69b9270...",
+  "name":"Alex Smith",
+  "email":"alex@example.com",
+  "role":"employee",
+  "phone":"8776543211",
+  "leaveBalance":{},
+  "profilePicture":"",
+  "bio":"",
+  "skills":[],
+  "qualification":"",
+  "createdAt":"2026-03-17T10:03:45.020Z",
+  "completeness":{"totalScore":50,"breakdown":{"essential":30,"professional":0,"security":20}},
+  "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+        </section>
+
+        <section id="change-password" class="mb-16">
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Change Password</h3>
+            <p class="text-gray-600 mb-4">Update your password securely.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/auth/change-password', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+  "currentPassword": "securepassword123",
+  "newPassword": "newpassword123"
+})
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-js">{
+  "message": "Password updated successfully"
+}</code></pre>
+        </section>
+    </main>
+
+    <footer class="border-t border-gray-200 py-10 text-center text-gray-500 text-sm">
+        <div class="container mx-auto px-4">
+            <p>Made with ❤️ for the Employee Management System</p>
+            <p class="mt-2">&copy; 2026 EMS Documentation Portal</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+</body>
+
+</html>
