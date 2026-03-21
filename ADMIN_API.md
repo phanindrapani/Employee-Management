@@ -2532,7 +2532,6 @@ Content-Type: application/json
   "startDate": "2026-04-01",
   "endDate": "2026-06-30",
   "managerId": "65mgr123",
-  "assignedTeams": ["65team123"],
   "clientId": "65client123"
 }
 ```

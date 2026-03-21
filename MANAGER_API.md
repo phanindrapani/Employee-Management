@@ -345,11 +345,11 @@ GET /manager/dashboard/stats
 ```
 ---
 
-# Manager Users APIs
+# Manager employees APIs
 
-# Get Users
+# Get employees
 
-**GET** `/manager/users`
+**GET** `/manager/employees`
 
 ### Description
 
@@ -445,18 +445,52 @@ GET /manager/users?role=client
 ```json
 [
   {
-    "_id": "65db123456",
-    "name": "Rahul Sharma",
-    "email": "rahul@example.com",
-    "role": "employee",
-    "company": "Manvya Technologies"
+    "_id": "69b9270106c235c18b14b934",
+    "name": "Alex Smith",
+    "email": "alex@example.com",
+    "role": "employee"
   },
   {
-    "_id": "65db654321",
-    "name": "Anita Verma",
-    "email": "anita@example.com",
-    "role": "team-lead",
-    "company": "Manvya Technologies"
+    "_id": "6992adfb33543e3dc970003d",
+    "name": "Jane Smith",
+    "email": "jane.dev@ems.com",
+    "role": "employee"
+  },
+  {
+    "_id": "6992adfb33543e3dc970003c",
+    "name": "John Doe",
+    "email": "john.dev@ems.com",
+    "role": "team-lead"
+  },
+  {
+    "_id": "6992adfa33543e3dc970002e",
+    "name": "Mike Ross",
+    "email": "mike.tl@ems.com",
+    "role": "employee"
+  },
+  {
+    "_id": "6992adfb33543e3dc970003e",
+    "name": "Robert Code",
+    "email": "robert.be@ems.com",
+    "role": "employee"
+  },
+  {
+    "_id": "69ae6c6d6090fcd014d235e0",
+    "name": "Robert Manager",
+    "email": "manager@ems.com",
+    "role": "manager"
+  },
+  {
+    "_id": "6992adfa33543e3dc970002c",
+    "name": "Sarah Jenkins",
+    "email": "sarah.tl@ems.com",
+    "role": "employee"
+  }
+  {
+    "_id": "699438c0c4920891d1d4489c",
+    "name": "Venishetty Shravya",
+    "email": "shravyavenishetty03@gmail.com",
+    "role": "employee"
   }
 ]
 ```
@@ -537,17 +571,41 @@ GET /manager/leaves
 ```json
 [
   {
-    "_id": "65leave123",
-    "leaveType": "CL",
-    "fromDate": "2026-03-15",
-    "toDate": "2026-03-17",
-    "totalDays": 3,
-    "status": "pending",
+    "_id": "69b53cb3dcc5097afe605cb7",
     "user": {
-      "name": "Rahul Sharma",
-      "email": "rahul@example.com",
-      "department": "Engineering"
-    }
+      "name": "Mike Ross",
+      "email": "mike.tl@ems.com",
+      "role": "employee"
+    },
+    "leaveType": "EL",
+    "fromDate": "2026-04-14T00:00:00.000Z",
+    "totalDays": 3,
+    "status": "approved",
+    "reason": "Performance Test Leave 11"
+  },
+  {
+    "_id": "69b53cb3dcc5097afe605cd4",
+    "user": {
+      "name": "Sarah Jenkins",
+      "email": "sarah.tl@ems.com",
+      "role": "employee"
+    },
+    "leaveType": "SL",
+    "fromDate": "2026-05-13T00:00:00.000Z",
+    "totalDays": 3,
+    "status": "approved",
+    "reason": "Performance Test Leave 40"
+  },
+  {
+    "_id": "69b2659e67432fbdd953aa08",
+    "user": {
+      "name": "John Doe",
+      "role": "team-lead"
+    },
+    "leaveType": "SL",
+    "totalDays": 1,
+    "status": "approved",
+    "reason": "suffering from fever"
   }
 ]
 ```
@@ -594,15 +652,11 @@ GET /manager/leaves/stats
 [
   {
     "_id": "approved",
-    "count": 12
+    "count": 23
   },
   {
     "_id": "pending",
-    "count": 5
-  },
-  {
-    "_id": "rejected",
-    "count": 2
+    "count": 28
   }
 ]
 ```
@@ -781,11 +835,29 @@ GET /manager/leaves/my-leaves
 ```json
 [
   {
-    "_id": "65leave987",
+    "_id": "69bce77516d6c55c8409f42c",
     "leaveType": "CL",
-    "fromDate": "2026-03-18",
-    "toDate": "2026-03-19",
-    "status": "pending"
+    "fromDate": "2026-03-25T00:00:00.000Z",
+    "toDate": "2026-03-27T00:00:00.000Z",
+    "totalDays": 2,
+    "status": "pending",
+    "reason": "Personal reasons",
+    "appliedAt": "2026-03-20T06:21:41.499Z"
+  },
+  {
+    "_id": "69b53e96fe4ebf4dedb75006",
+    "leaveType": "CL",
+    "fromDate": "2026-06-24T00:00:00.000Z",
+    "status": "pending",
+    "reason": "Performance baseline testing"
+  },
+  ...
+  {
+    "_id": "69b2694b04927fde47d2a21a",
+    "leaveType": "SL",
+    "status": "rejected",
+    "reason": "need to go to the hospital for checkup",
+    "rejectionReason": "Performance testing rejection"
   }
 ]
 ```
@@ -1182,60 +1254,17 @@ GET /manager/performance/dashboard
 ```json
 {
   "summary": {
-    "totalTeams": 3,
-    "totalEmployees": 18,
-    "activeProjects": 6,
-    "orgAvgScore": 74,
-    "highestTeamAvg": 88,
-    "teamsNeedingAttention": 1
+    "totalTeams": 0,
+    "totalEmployees": 0,
+    "activeProjects": 0,
+    "orgAvgScore": 0,
+    "highestTeamAvg": 0,
+    "teamsNeedingAttention": 0
   },
-  "teams": [
-    {
-      "teamId": "65team123",
-      "teamName": "Backend Team",
-      "leadName": "Rahul Sharma",
-      "membersCount": 6,
-      "trackedCount": 6,
-      "avgScore": 78,
-      "highestScore": 92,
-      "needsAttention": 1,
-      "members": [
-        {
-          "name": "Rahul Sharma",
-          "score": 85,
-          "isLead": true
-        },
-        {
-          "name": "Anita Verma",
-          "score": 76,
-          "isLead": false
-        }
-      ]
-    }
-  ],
-  "performanceTrend": [
-    { "name": "2025-10", "score": 68 },
-    { "name": "2025-11", "score": 70 },
-    { "name": "2025-12", "score": 72 },
-    { "name": "2026-01", "score": 74 },
-    { "name": "2026-02", "score": 76 },
-    { "name": "2026-03", "score": 78 }
-  ],
-  "topLeads": [
-    {
-      "name": "Rahul Sharma",
-      "score": 88,
-      "team": "Backend Team"
-    }
-  ],
-  "topPerformers": [
-    {
-      "user": {
-        "name": "Anita Verma"
-      },
-      "totalScore": 92
-    }
-  ]
+  "teams": [],
+  "topPerformers": [],
+  "performanceTrend": [],
+  "topLeads": []
 }
 ```
 
@@ -1276,18 +1305,40 @@ GET /manager/projects
 ```json
 [
   {
-    "_id": "65proj123",
-    "name": "CRM System",
+    "_id": "6992adfb33543e3dc9700044",
+    "name": "Website Redesign",
+    "description": "Updated description 993",
     "status": "ongoing",
-    "progress": 45,
+    "priority": "high",
+    "startDate": "2026-01-01T00:00:00.000Z",
+    "endDate": "2026-02-20T00:00:00.000Z",
+    "progress": 32,
+    "projectId": "PRJ-001",
     "assignedTeams": [
       {
-        "name": "Backend Team"
+        "_id": "69b527f8a51569b3e2d64e32",
+        "name": "Development Team"
       }
     ],
     "clientId": {
-      "name": "ABC Corp",
-      "company": "ABC Corporation"
+      "_id": "69aec0b05f4de2d9472e79c3",
+      "name": "kavya venishetty",
+      "role": "client",
+      "company": "ERP"
+    },
+    "managerId": "69ae6c6d6090fcd014d235e0"
+  },
+  {
+    "_id": "69943a0cdbb4263c192cdeb8",
+    "name": "Employee Management",
+    "description": "Create an employee management system...",
+    "status": "ongoing",
+    "priority": "high",
+    "projectId": "PRJ-003",
+    "clientId": {
+      "_id": "69aec0b05f4de2d9472e79c3",
+      "name": "kavya venishetty",
+      "company": "ERP"
     }
   }
 ]
@@ -1665,45 +1716,39 @@ GET /manager/tasks/dashboard
 ```json
 {
   "summary": {
-    "total": 120,
-    "pending": 25,
-    "inProgress": 60,
-    "completed": 30,
-    "overdue": 5,
+    "total": 734,
+    "pending": 725,
+    "inProgress": 0,
+    "completed": 7,
+    "overdue": 2,
     "blocked": 0
   },
-  "teamBreakdown": [
-    {
-      "teamId": "65team123",
-      "teamName": "Backend Team",
-      "total": 50,
-      "completed": 20,
-      "inProgress": 25,
-      "overdue": 5
-    }
-  ],
-  "employeeWorkload": [
-    {
-      "name": "Rahul Sharma",
-      "totalTasks": 12,
-      "inProgress": 5,
-      "overdue": 1
-    }
-  ],
+  "teamBreakdown": [],
+  "employeeWorkload": [],
   "projectProgress": [
     {
-      "projectId": "65proj123",
-      "projectName": "CRM System",
-      "totalTasks": 40,
-      "completed": 20,
+      "projectId": "6992adfb33543e3dc9700044",
+      "projectName": "Website Redesign",
+      "totalTasks": 732,
+      "completed": 6,
+      "progress": 1
+    },
+    {
+      "projectId": "69943a0cdbb4263c192cdeb8",
+      "projectName": "Employee Management",
+      "totalTasks": 2,
+      "completed": 1,
       "progress": 50
     }
   ],
   "recentActivity": [
     {
-      "title": "Fix authentication bug",
-      "status": "in-progress",
-      "assignedTo": { "name": "Anita Verma" }
+      "title": "Performance Test Task - zo8oj",
+      "assignedTo": {
+        "name": "Sarah Jenkins",
+        "role": "employee"
+      },
+      "status": "todo"
     }
   ]
 }
@@ -1743,19 +1788,15 @@ GET /manager/tasks/stats
 [
   {
     "_id": "todo",
-    "count": 25
-  },
-  {
-    "_id": "in-progress",
-    "count": 60
-  },
-  {
-    "_id": "review",
-    "count": 10
+    "count": 725
   },
   {
     "_id": "done",
-    "count": 30
+    "count": 7
+  },
+  {
+    "_id": "review",
+    "count": 2
   }
 ]
 ```
@@ -1805,16 +1846,23 @@ GET /manager/tasks/overdue
 ```json
 [
   {
-    "_id": "65task123",
-    "title": "Implement login feature",
-    "deadline": "2026-03-01T00:00:00.000Z",
-    "assignedTo": {
-      "name": "Rahul Sharma",
-      "email": "rahul@example.com"
-    },
+    "_id": "6994410cbf6959683743fba1",
     "project": {
-      "name": "CRM System"
-    }
+      "_id": "6992adfb33543e3dc9700044",
+      "name": "Website Redesign"
+    },
+    "title": "Update ui of profile page",
+    "description": "Look neat and clean",
+    "assignedTo": {
+      "_id": "6992adfa33543e3dc970002c",
+      "name": "Sarah Jenkins",
+      "email": "sarah.tl@ems.com",
+      "role": "employee"
+    },
+    "status": "review",
+    "deadline": "2026-02-20T00:00:00.000Z",
+    "priority": "high",
+    "taskId": "PRJ-001-TSK-0006"
   }
 ]
 ```
@@ -1950,20 +1998,35 @@ GET /manager/tickets?status=OPEN&priority=HIGH
 ```json
 [
   {
-    "_id": "65ticket123",
-    "title": "Login not working",
-    "priority": "HIGH",
-    "status": "OPEN",
-    "clientId": {
-      "name": "John Doe",
-      "company": "ABC Corp"
-    },
+    "_id": "69b5353e10e5fa675b769e81",
+    "ticketCode": "TKT-1773483326228-22",
+    "title": "Performance Test Ticket 22",
+    "description": "Description for ticket 22",
+    "status": "ASSIGNED",
+    "priority": "URGENT",
     "assignedTeamLead": {
-      "name": "Rahul Sharma"
+      "_id": "6992adfb33543e3dc970003c",
+      "name": "John Doe",
+      "role": "team-lead"
     },
     "projectId": {
-      "name": "CRM System"
-    }
+      "_id": "6992adfb33543e3dc9700044",
+      "name": "Website Redesign"
+    },
+    "assignedEmployee": {
+      "_id": "6992adfa33543e3dc970002c",
+      "name": "Sarah Jenkins",
+      "role": "employee"
+    },
+    "clientId": {
+      "_id": "69aec0b05f4de2d9472e79c3",
+      "name": "kavya venishetty",
+      "email": "kavya@gmail.com",
+      "role": "client",
+      "company": "ERP"
+    },
+    "createdAt": "2026-03-14T10:15:26.228Z",
+    "updatedAt": "2026-03-14T10:15:26.228Z"
   }
 ]
 ```
@@ -2007,25 +2070,41 @@ GET /manager/tickets/65ticket123
 
 ```json
 {
-  "_id": "65ticket123",
-  "title": "Login issue",
-  "description": "User unable to login",
-  "status": "IN_PROGRESS",
-  "priority": "HIGH",
+  "_id": "69b5353e10e5fa675b769e81",
+  "ticketCode": "TKT-1773483326228-22",
+  "title": "Performance Test Ticket 22",
+  "description": "Description for ticket 22",
+  "status": "ASSIGNED",
+  "priority": "URGENT",
   "assignedTeamLead": {
-    "name": "Rahul Sharma",
-    "email": "rahul@example.com"
+    "_id": "6992adfb33543e3dc970003c",
+    "name": "John Doe",
+    "email": "john.dev@ems.com",
+    "role": "team-lead"
+  },
+  "projectId": {
+    "_id": "6992adfb33543e3dc9700044",
+    "name": "Website Redesign"
   },
   "assignedEmployee": {
-    "name": "Anita Verma",
-    "email": "anita@example.com"
+    "_id": "6992adfa33543e3dc970002c",
+    "name": "Sarah Jenkins",
+    "email": "sarah.tl@ems.com",
+    "role": "employee"
   },
-  "comments": [
-    {
-      "message": "Investigating the issue",
-      "role": "manager"
-    }
-  ]
+  "assignedManager": "69ae6c6d6090fcd014d235e0",
+  "clientId": {
+    "_id": "69aec0b05f4de2d9472e79c3",
+    "name": "kavya venishetty",
+    "email": "kavya@gmail.com",
+    "role": "client",
+    "company": "ERP"
+  },
+  "slaBreached": false,
+  "createdAt": "2026-03-14T10:15:26.228Z",
+  "updatedAt": "2026-03-14T10:15:26.228Z",
+  "assignmentHistory": [],
+  "comments": []
 }
 ```
 
@@ -2168,18 +2247,19 @@ GET /manager/tickets/analytics
 ```json
 {
   "summary": {
-    "total": 40,
-    "open": 10,
-    "inProgress": 12,
-    "resolved": 10,
-    "closed": 6,
-    "slaBreached": 2
+    "_id": null,
+    "total": 102,
+    "open": 17,
+    "inProgress": 15,
+    "resolved": 25,
+    "closed": 22,
+    "slaBreached": 11
   },
   "byPriority": {
-    "LOW": 5,
-    "MEDIUM": 20,
-    "HIGH": 10,
-    "CRITICAL": 5
+    "URGENT": 23,
+    "HIGH": 27,
+    "MEDIUM": 29,
+    "LOW": 23
   }
 }
 ```
@@ -2218,10 +2298,11 @@ GET /manager/tickets/stats
 
 ```json
 {
-  "total": 40,
-  "pending": 15,
-  "breached": 2,
-  "closed": 6
+  "_id": null,
+  "total": 102,
+  "closed": 22,
+  "pending": 55,
+  "breached": 11
 }
 ```
 
