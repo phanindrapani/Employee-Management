@@ -137,6 +137,41 @@
     ...
   ]
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch daily attendance" }</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get Daily Attendance</h3>
+      <p class="text-gray-600 mb-4">Fetch attendance records for all employees for a specific date (YYYY-MM-DD).</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/attendance?date=2026-03-23', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "date": "2026-03-23",
+  "summary": { "Present": 45, "Late": 5, "Half-Day": 2, "Absent": 10 },
+  "records": [
+    {
+      "user": { "name": "Sarah Jenkins", "email": "sarah.tl@ems.com", "role": "team-lead" },
+      "date": "2026-03-23T00:00:00.000Z",
+      "status": "Present",
+      "checkIn": "2026-03-23T09:00:00.000Z",
+      "checkOut": "2026-03-23T18:00:00.000Z",
+      "workingHours": 9
+    },
+    ...
+  ]
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-json">// 400: Bad Request
+{ "message": "Invalid date format. Use YYYY-MM-DD." }
+// 500: Server Error
+{ "message": "Failed to fetch daily attendance" }</code></pre>
     </section>
 
     <!-- Client Section -->
@@ -166,6 +201,9 @@
   },
   ...
 ]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Internal server error" }</code></pre>
       <h3 class="font-bold text-xl text-gray-800 mb-4">Get Client by ID</h3>
       <p class="text-gray-600 mb-4">Retrieve detailed information for a specific client using their unique ID.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
@@ -194,6 +232,12 @@
   "lastLogin": "2026-03-13T12:04:04.175Z",
   "uid": "CLI-0001"
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Client not found" }
+// 500: Server Error
+{ "message": "Failed to fetch client" }</code></pre>
       <h3 class="font-bold text-xl text-gray-800 mb-4">Create Client</h3>
       <p class="text-gray-600 mb-4">Onboard a new client by providing their basic details.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients', {
@@ -231,7 +275,13 @@
   "uid": "CLI-0087",
   "__v": 0
 }</code></pre>
-      <h3 class="font-bold text-xl text-gray-800 mb-4">Update Client</h3>
+
+      <span class="output-label">❌ Error Response (400)</span>
+      <pre><code class="language-json">// Email Duplicate
+{ "message": "User already exists for this email" }
+// Validation / Other
+{ "error": "Internal server error" }</code></pre>
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Client</h3>
       <p class="text-gray-600 mb-4">Update existing client information securely.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
   method: 'PUT',
@@ -239,9 +289,7 @@
     'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
     'Content-Type': 'application/json' 
   },
-  body: JSON.stringify({
-    "phone": "6300143144"
-  })
+  body: JSON.stringify({ "phone": "6300143144" })
 })
   .then(res => res.json())
   .then(json => console.log(json));</code></pre>
@@ -259,6 +307,13 @@
   "uid": "CLI-0001"
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">
+// 404: Not Found
+{ "message": "Client not found" }
+// 500: Server Error
+{ "message": "Failed to update client" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Client</h3>
       <p class="text-gray-600 mb-4">Remove a client from the system permanently.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
@@ -269,9 +324,13 @@
   .then(json => console.log(json));</code></pre>
 
       <span class="output-label">👇 Output</span>
-      <pre><code class="language-js">{
-  "message": "Client deleted successfully"
-}</code></pre>
+      <pre><code class="language-js">{ "message": "Client deleted successfully" }</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Client not found" }
+// 500: Server Error
+{ "message": "Failed to delete client" }</code></pre>
     </section>
 
     <!-- Dashboard Section -->
@@ -294,6 +353,9 @@
     ...
   }
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch dashboard stats" }</code></pre>
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Report Statistics</h3>
       <p class="text-gray-600 mb-4">Retrieve detailed organizational reports, including monthly trends and employee
         stats.</p>
@@ -331,6 +393,9 @@
     { "name": "EL", "value": 24 }
   ]
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch report stats" }</code></pre>
     </section>
 
     <!-- Department Section -->
@@ -363,6 +428,12 @@
   "updatedAt":"2026-03-17T10:48:46.742Z"
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-json">// 400: Validation Error
+{ "message": "Department name already exists" }
+// 500: Server Error
+{ "message": "Failed to create department" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Departments</h3>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments', {
   method: 'GET',
@@ -381,6 +452,9 @@
   },
   ...
 ]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed to fetch departments" }</code></pre>
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Department</h3>
       <p class="text-gray-600 mb-4">Securely update department information and descriptions.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments/69b93...', {
@@ -406,6 +480,11 @@
   "updatedAt": "2026-03-17T10:51:29.202Z"
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">
+// 500: Server Error
+{ "msg": "Failed to update department" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Department</h3>
       <p class="text-gray-600 mb-4">Remove a department from the system permanently.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments/6992a...', {
@@ -416,9 +495,13 @@
   .then(json => console.log(json));</code></pre>
 
       <span class="output-label">👇 Output</span>
-      <pre><code class="language-js">{
-  "msg": "Deleted"
-}</code></pre>
+      <pre><code class="language-js">{ "msg": "Deleted" }</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Department not found" }
+// 500: Server Error
+{ "msg": "Failed to delete department" }</code></pre>
     </section>
 
     <!-- Documents Section -->
@@ -447,6 +530,9 @@
   }
 ]</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch documents" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Upload Document</h3>
       <p class="text-gray-600 mb-4">Upload a new document for an employee.</p>
       <pre><code class="language-js">const formData = new FormData();
@@ -471,6 +557,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   ...
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-json">// 400: File Missing
+{ "message": "No file uploaded" }
+// 500: Failed to upload document
+{ "message": "Failed to upload document" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Verify Document</h3>
       <p class="text-gray-600 mb-4">Approve and verify an uploaded document.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/documents/65doc.../verify', {
@@ -487,6 +579,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "verifiedBy": "65admin...",
   "verifiedAt": "2026-03-12T11:00:00.000Z"
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Document not found" }
+// 500: Failed to verify document
+{ "message": "Failed to verify document" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Reject Document</h3>
       <p class="text-gray-600 mb-4">Reject a document with a reason for the employee to re-upload.</p>
@@ -509,6 +607,14 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   ...
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">// 400: Bad Request
+{ "message": "Rejection reason is required" }
+// 404: Not Found
+{ "message": "Document not found" }
+// 500: Failed to reject document
+{ "message": "Failed to reject document" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Document</h3>
       <p class="text-gray-600 mb-4">Permanently remove a document from the system.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/documents/65doc...', {
@@ -520,6 +626,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "Document deleted successfully" }</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Document not found" }
+// 500: Failed to delete document
+{ "message": "Failed to delete document" }</code></pre>
     </section>
 
     <!-- Employee Section -->
@@ -558,6 +670,35 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   ...
 ]</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "error": "Internal server error" }</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Team Leads</h3>
+      <p class="text-gray-600 mb-4">Retrieve a specialized list of all users with the 'team-lead' role, filtered for
+        assignment contexts.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/team-leads', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "6992adfa33543e3dc970002c",
+    "name": "Sarah Jenkins",
+    "email": "sarah.tl@ems.com",
+    "role": "team-lead",
+    "department": { "_id": "6992adf933543e3dc970001e", "name": "Development" }
+  },
+  ...
+]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "error": "Internal server error" }</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Employee by ID</h3>
       <p class="text-gray-600 mb-4">Fetch comprehensive details for a specific employee.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/6992a...', {
@@ -585,6 +726,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "experienceLevel": "Junior",
   ...
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Employee not found" }
+// 500: Failed to fetch employee
+{ "error": "Failed to fetch employee" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Employee</h3>
       <p class="text-gray-600 mb-4">Add a new employee to the system with a default password.</p>
@@ -616,6 +763,48 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "defaultPassword": "Rahul123"
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-json">// 400: Bad Request
+{ "message": "User already exists for this email" }
+// 500: Server Error
+{ "error": "Internal server error" }</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Promote/Update Role</h3>
+      <p class="text-gray-600 mb-4">Promote an employee to a new role (manager, team-lead, or employee). This handles
+        complex transitions like leave quota updates and team membership changes.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/promote/69b93...', {
+  method: 'GET',
+  headers: { 
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    "role": "manager"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "message": "Promoted to manager",
+  "user": {
+    "_id": "69b93...",
+    "name": "Rahul Sharma",
+    "role": "manager",
+    "managementLevel": "Junior",
+    ...
+  }
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">// 400: Role Error or Validation
+{ "message": "Admin role management must be handled separately" }
+// 404: Not Found
+{ "message": "User not found" }
+// 500: Server Error
+{ "error": "Internal server error" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Employee</h3>
       <p class="text-gray-600 mb-4">Update an existing employee's information.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/69b93...', {
@@ -642,6 +831,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   }
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Employee not found" }
+// 500: Server Error
+{ "error": "Failed to update employee" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Employee</h3>
       <p class="text-gray-600 mb-4">Permanently remove an employee from the system.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/69b93...', {
@@ -653,6 +848,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "Employee removed successfully" }</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Employee not found" }
+// 500: Server Error
+{ "error": "Failed to delete employee" }</code></pre>
     </section>
 
     <!-- Holiday Section -->
@@ -682,6 +883,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   },
   ...
 ]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Holiday</h3>
       <p class="text-gray-600 mb-4">Add a new holiday to the organizational calendar.</p>
@@ -714,6 +918,14 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 }
       </code></pre>
 
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-json">// 400: Bad Request
+{ "message": "A holiday already exists on this date" }
+// 400: Bad Request
+{ "message": "Invalid holiday date" }
+// 500: Server Error
+{ "msg": "Failed to add holiday" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Holiday</h3>
       <p class="text-gray-600 mb-4">Remove a holiday entry from the system.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/holidays/69943...', {
@@ -725,6 +937,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "msg": "Deleted" }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
     </section>
 
     <!-- Leave Section -->
@@ -755,6 +970,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   },
   ...
 ]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Status</h3>
       <p class="text-gray-600 mb-4">Approve or reject a leave application.</p>
@@ -792,6 +1010,16 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   }
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">// 400: Bad Request
+{ "message": "Insufficient CL balance" }
+// 404: Not Found
+{ "message": "Leave request not found" }
+// 400:
+{ "message": "User associated with this leave no longer exists"}
+// 500: Server Error
+{ "msg": "Failed", "error": "Internal server error" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Reconcile Balances</h3>
       <p class="text-gray-600 mb-4">Manually trigger leave balance reconciliation across the organization.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/leaves/reconcile-balances', {
@@ -811,6 +1039,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "updatedLeaves": 0,
   ...
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Reconciliation failed", "details": "Internal server error" }</code></pre>
     </section>
 
     <!-- Performance Section -->
@@ -833,6 +1064,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "Performance calculated", "count": 45 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Calculation failed" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Performance Dashboard</h3>
       <p class="text-gray-600 mb-4">Retrieve organization-wide performance metrics and top performers.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/performance/dashboard?period=2026-02', {
@@ -852,6 +1086,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
     { "name": "Amit Kumar", "totalScore": 92, ... }
   ]
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch stats" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Employee Performance Profile</h3>
       <p class="text-gray-600 mb-4">View detailed performance scoring history and current metrics for a specific
@@ -884,6 +1121,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
     }
   ]
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch profile" }</code></pre>
     </section>
 
     <!-- Project Section -->
@@ -922,6 +1162,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   ...
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed to create project" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Projects</h3>
       <p class="text-gray-600 mb-4">List all projects with their current status and progress.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects', {
@@ -942,6 +1185,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   },
   ...
 ]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed to fetch" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project</h3>
       <p class="text-gray-600 mb-4">Modify project details like name, description, priority, or assigned manager.</p>
@@ -967,6 +1213,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   ...
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed to update project" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project Status</h3>
       <p class="text-gray-600 mb-4">Update the current status and overall progress of a project.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects/65proj.../status', {
@@ -989,6 +1238,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   ...
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Project</h3>
       <p class="text-gray-600 mb-4">Remove a project and all its associated tasks from the system.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects/65proj...', {
@@ -1000,6 +1252,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "msg": "Deleted" }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
     </section>
 
     <!-- Settings Section -->
@@ -1030,6 +1285,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "__v": 0
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch leave settings" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Settings</h3>
       <p class="text-gray-600 mb-4">Update global leave quotas. This affects new employee balance initialization.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/settings/leave', {
@@ -1059,6 +1317,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "updatedAt": "2026-03-18T06:56:18.145Z",
   "__v": 0
 }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to update leave settings" }</code></pre>
     </section>
 
     <!-- Team Section -->
@@ -1095,6 +1356,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "members": ["65user...", "65user..."]
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-json">// 400: Bad Request
+{ "message": "Team name already exists in this department" }
+// 500: Server Error
+{ "message": "Failed to create team" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Teams</h3>
       <p class="text-gray-600 mb-4">Fetch all teams with their assigned leads, managers, and department info.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams', {
@@ -1117,6 +1384,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   },
   ...
 ]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "msg": "Failed to fetch" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Team</h3>
       <p class="text-gray-600 mb-4">Modify team details, change the lead or manager, and update member list.</p>
@@ -1143,6 +1413,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   ...
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to update team" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Manage Team Members</h3>
       <p class="text-gray-600 mb-4">Quickly add or remove a single member from a team.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams/members', {
@@ -1166,6 +1439,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "members": ["65user333", "65user444", "65user999"]
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to manage team members" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Team</h3>
       <p class="text-gray-600 mb-4">Delete a team. Members will be unassigned and the lead's role may revert.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams/65team...', {
@@ -1177,6 +1453,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "Team deleted" }</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to delete team" }</code></pre>
     </section>
 
     <!-- Ticket Section -->
@@ -1219,6 +1498,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "avgResolutionHours": 0
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch analytics" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Tickets</h3>
       <p class="text-gray-600 mb-4">Fetch paginated tickets with filtering by status, priority, and search terms.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets?status=OPEN&page=1&limit=20', {
@@ -1251,6 +1533,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "pages": 6
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch tickets" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Ticket By ID</h3>
       <p class="text-gray-600 mb-4">Retrieve full details of a specific ticket, including client info and comments.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/69b5353e...', {
@@ -1279,6 +1564,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "attachments": []
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to fetch ticket" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Unassigned Tickets</h3>
       <p class="text-gray-600 mb-4">List tickets that are open but haven't been assigned to a manager yet.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/unassigned', {
@@ -1303,6 +1594,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   }
 ]</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch unassigned tickets" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get SLA Breached Tickets</h3>
       <p class="text-gray-600 mb-4">Review tickets where the response or resolution deadline has passed.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/sla-breached', {
@@ -1323,11 +1617,12 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
     "assignedManager": { "name": "Robert Manager", "role": "manager" },
     "assignedEmployee": { "name": "Sarah Jenkins", "role": "employee" },
     "slaBreached": true,
-    "createdAt": "2026-03-14T10:15:26.228Z",
-    ...
   },
   ...
 ]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch SLA breached tickets" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Assign Manager to Ticket</h3>
       <p class="text-gray-600 mb-4">Assign a support manager to a specific ticket for resolution.</p>
@@ -1351,6 +1646,14 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "ticket": { "ticketCode": "TKT-1001", "status": "ASSIGNED" }
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">// 400: Bad Request
+{ "message": "Manager ID is required" }
+// 404: Not Found
+{ "message": "Ticket or Manager not found" }
+// 500: Server Error
+{ "message": "Failed to assign manager" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Close Ticket</h3>
       <p class="text-gray-600 mb-4">Mark a resolved ticket as closed. Note: Ticket must be in RESOLVED state.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/65abc.../close', {
@@ -1362,6 +1665,14 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "Ticket closed", "ticket": { "status": "CLOSED" } }</code></pre>
+
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">// 400: Bad Request
+{ "message": "Only RESOLVED tickets can be closed" }
+// 404: Not Found
+{ "message": "Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to close ticket" }</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Comment to Ticket</h3>
       <p class="text-gray-600 mb-4">Post a public or internal comment on a support ticket.</p>
@@ -1381,8 +1692,15 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "Comment added" }</code></pre>
+
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">
+// 404: Not Found
+{ "message": "Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to add comment" }</code></pre>
     </section>
-    
+
     <!-- Notifications Section -->
     <section id="notifications" class="mb-16">
       <h2 class="font-bold text-2xl text-gray-800 mb-6">Notifications</h2>
@@ -1410,6 +1728,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   "pagination": { "total": 1780, "page": 1, "limit": 20, "pages": 89 }
 }</code></pre>
 
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch notifications" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark Notification as Read</h3>
       <p class="text-gray-600 mb-4">Mark a specific notification as seen.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/notifications/69b4fb94.../read', {
@@ -1422,6 +1743,9 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "Notification marked as read" }</code></pre>
 
+      <span class="output-label">❌ Error Response (404)</span>
+      <pre><code class="language-json">{ "message": "Notification not found" }</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark All as Read</h3>
       <p class="text-gray-600 mb-4">Mark all your unread notifications as seen at once.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/notifications/read-all', {
@@ -1432,7 +1756,7 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
   .then(json => console.log(json));</code></pre>
 
       <span class="output-label">👇 Output</span>
-      <pre><code class="language-js">{ "message": "All notifications marked as read" }</code></pre>
+      <pre><code class="language-js">{ "message": "All notifications marked as read" }</code></pre>>
     </section>
     </section>
 
