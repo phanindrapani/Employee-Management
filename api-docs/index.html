@@ -126,6 +126,16 @@
   "role": "employee",
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }</code></pre>
+
+
+            <span class="output-label">❌ Error Response (400)</span>
+            <pre><code class="language-json">// User already exists
+{ "message": "User already exists" }
+// Invalid user data
+{ "message": "Invalid user data" }
+// Validation Error
+{ "message": "Validation failed" }</code></pre>
+
         </section>
 
         <section id="login" class="mb-16">
@@ -151,6 +161,14 @@
   "createdAt":"2026-03-17T10:03:45.020Z",
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }</code></pre>
+
+
+            <span class="output-label">❌ Error Response (401/500)</span>
+            <pre><code class="language-json">// 401: Invalid Credentials
+{ "message": "Invalid email or password" }
+// 500: Server Error
+{ "message": "Server error during login" }</code></pre>
+
         </section>
 
         <section id="profile" class="mb-16">
@@ -181,8 +199,16 @@
   "__v":0,
   "lastLogin":"2026-03-17T10:08:40.129Z",
   "completeness":{"totalScore":50,"breakdown":{"essential":30,"professional":0,"security":20}}
-}
-</code></pre>
+}</code></pre>
+
+
+            <span class="output-label">❌ Error Response (404/500)</span>
+            <pre><code class="language-json">// 404: Not Found
+{ "message": "User not found" }
+// 500: Server Error
+{ "message": "Failed to fetch profile" }</code></pre>
+
+
         </section>
 
         <section id="change-password" class="mb-16">
@@ -217,6 +243,14 @@
   "completeness":{"totalScore":50,"breakdown":{"essential":30,"professional":0,"security":20}},
   "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }</code></pre>
+
+
+            <span class="output-label">❌ Error Response (404/500)</span>
+            <pre><code class="language-json">// 404: Not Found
+{ "message": "User not found" }
+// 500: Server Error
+{ "message": "Failed to update profile" }</code></pre>
+
         </section>
 
         <section id="change-password" class="mb-16">
@@ -240,6 +274,18 @@
             <pre><code class="language-js">{
   "message": "Password updated successfully"
 }</code></pre>
+
+
+            <span class="output-label">❌ Error Response (400/401/404/500)</span>
+            <pre><code class="language-json">// 400: Missing Password
+{ "message": "Current and new password are required" }
+// 401: Incorrect Password
+{ "message": "Current password is incorrect" }
+// 404: Not Found
+{ "message": "User not found" }
+// 500: Server Error
+{ "message": "Server error during password change" }</code></pre>
+
         </section>
     </main>
 
