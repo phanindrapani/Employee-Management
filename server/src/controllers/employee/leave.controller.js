@@ -7,12 +7,17 @@ import { getIO } from '../../socket.js';
 import { sendEmail } from '../../utils/mailHelper.js';
 
 export const applyLeave = async (req, res) => {
-    const { leaveType, fromDate, toDate, session, reason } = req.body;
-    const userId = req.user._id;
+    try {
+        const { leaveType, fromDate, toDate, session, reason } = req.body;
+        const userId = req.user._id;
 
-    if (new Date(toDate) < new Date(fromDate)) {
-        return res.status(400).json({ message: 'To date cannot be before From date' });
-    }
+        if (!leaveType || !fromDate || !toDate || !reason) {
+            return res.status(400).json({ message: 'All fields are required (leaveType, fromDate, toDate, reason)' });
+        }
+
+        if (new Date(toDate) < new Date(fromDate)) {
+            return res.status(400).json({ message: 'To date cannot be before From date' });
+        }
 
     if (new Date(fromDate) < new Date().setHours(0, 0, 0, 0)) {
         return res.status(400).json({ message: 'Cannot apply leave for past dates' });
@@ -124,6 +129,13 @@ export const applyLeave = async (req, res) => {
     });
 
     res.status(201).json(leave);
+    } catch (error) {
+        console.error('Error in applyLeave:', error);
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: error.message, errors: error.errors });
+        }
+        res.status(500).json({ message: 'Internal server error' });
+    }
 };
 
 export const getMyLeaves = async (req, res) => {
@@ -156,7 +168,8 @@ export const getMyLeaves = async (req, res) => {
 };
 
 export const calculateLeave = async (req, res) => {
-    const { fromDate, toDate, session } = req.body;
+    try {
+        const { fromDate, toDate, session } = req.body;
 
     if (!fromDate || !toDate) {
         return res.status(400).json({ message: 'From date and To date are required' });
@@ -168,4 +181,8 @@ export const calculateLeave = async (req, res) => {
 
     const totalDays = await calculateWorkingDays(fromDate, toDate, session);
     res.json({ totalDays });
+    } catch (error) {
+        console.error('Error in calculateLeave:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 };
