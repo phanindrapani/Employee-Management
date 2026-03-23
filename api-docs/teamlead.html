@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Teamlead API - Employee Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-lucario.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            color: #24292e;
+            line-height: 1.8;
+        }
+
+        pre[class*="language-"] {
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            background: #2b3e50;
+        }
+
+        code[class*="language-"] {
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 800px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-weight: 800;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-link {
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #3182ce;
+        }
+
+        .output-label {
+            font-style: italic;
+            color: #718096;
+            margin-top: 1rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+    <!-- Header -->
+    <header class="border-b border-gray-200 py-6 mb-8">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-xl m-0">
+                <a href="index.html"
+                    class="no-underline text-black hover:text-blue-600 transition-colors font-bold tracking-tight">EMS
+                    API Docs</a>
+            </h1>
+            <nav>
+                <ul class="flex space-x-6 text-sm font-medium">
+                    <li><a href="index.html" class="nav-link text-gray-600 no-underline">Auth</a></li>
+                    <li><a href="admin.html" class="nav-link text-gray-600 no-underline">Admin</a></li>
+                    <li><a href="manager.html" class="nav-link text-gray-600 no-underline">Manager</a></li>
+                    <li><a href="employee.html" class="nav-link text-gray-600 no-underline">Employee</a></li>
+                    <li><a href="teamlead.html" class="nav-link text-blue-600 no-underline font-bold">Teamlead</a></li>
+                    <li><a href="client.html" class="nav-link text-gray-600 no-underline">Client</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 pb-20">
+        <h2 class="font-bold text-3xl text-gray-900 mb-6">Teamlead API Guide</h2>
+        <p class="text-lg text-gray-700 mb-8">
+            The Teamlead APIs provide tools for monitoring team productivity, managing project milestones, and
+            processing leave requests for your team members.
+        </p>
+
+        <section id="dashboard" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Team Dashboard</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Team Dashboard Stats</h3>
+            <p class="text-gray-600 mb-4">View real-time statistics, productivity trends, and critical alerts for your
+                assigned team.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "teamSize": 2,
+  "activeProjects": 1,
+  "pendingTasks": 746,
+  "onLeaveToday": 0,
+  "pendingApprovals": 746,
+  "weeklyProductivity": 0,
+  "productivityTrend": [
+    { "day": "Tue", "value": 0 },
+    { "day": "Wed", "value": 0 },
+    { "day": "Thu", "value": 0 },
+    { "day": "Fri", "value": 0 },
+    { "day": "Sat", "value": 0 },
+    { "day": "Sun", "value": 0 },
+    { "day": "Mon", "value": 0 }
+  ],
+  "alerts": [
+    { "type": "Task", "message": "746 tasks require status review", "severity": "success" }
+  ]
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (400/500)</span>
+            <pre><code class="language-json">// 400: No team assigned
+{ "message": "No team assigned to this profile" }
+// 500: Server Error
+{ "message": "Failed to fetch team stats" }</code></pre>
+        </section>
+
+        <section id="leaves" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Team Leaves</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Team Leave Requests</h3>
+            <p class="text-gray-600 mb-4">Review all leave requests submitted by your team members that require your
+                approval.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/leaves', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">[
+  {
+    "_id": "69b52a82fb2e944dff320186",
+    "user": {
+      "_id": "6992adfb33543e3dc970003d",
+      "name": "Jane Smith",
+      "department": "6992adf933543e3dc970001e",
+      "profilePicture": "",
+      "role": "employee"
+    },
+    "leaveType": "CL",
+    "fromDate": "2026-03-14T09:29:38.895Z",
+    "toDate": "2026-03-14T09:29:38.895Z",
+    "session": "full-day",
+    "totalDays": 1,
+    "approver": "6992adfb33543e3dc970003c",
+    "status": "approved",
+    "reason": "Test Leave Request 10",
+    "balanceApplied": true,
+    "createdAt": "2026-03-14T09:29:38.895Z",
+    "updatedAt": "2026-03-14T09:31:14.692Z",
+    "appliedAt": "2026-03-14T09:31:14.631Z"
+  },
+  {
+    "_id": "69b52a82fb2e944dff3201de",
+    "user": {
+      "_id": "6992adfb33543e3dc970003d",
+      "name": "Jane Smith",
+      "role": "employee"
+    },
+    "leaveType": "CL",
+    "status": "rejected",
+    "reason": "Test Leave Request 98",
+    "rejectionReason": "there is work"
+  },
+  {
+    "_id": "69b52a82fb2e944dff32017c",
+    "user": {
+      "_id": "6992adfb33543e3dc970003d",
+      "name": "Jane Smith",
+      "role": "employee"
+    },
+    "leaveType": "CL",
+    "status": "pending",
+    "reason": "Test Leave Request 0"
+  }
+]</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">{ "message": "Failed to fetch team leaves" }</code></pre>
+
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Status</h3>
+            <p class="text-gray-600 mb-4">Approve or reject a team member's leave request. <br>
+                <strong>Note:</strong> On approval, the leave balance will be automatically debited. Rejection reason is
+                mandatory.
+            </p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/leaves/69b52a82fb2e944dff32017c/status', {
+  method: 'PATCH',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ 
+    status: "approved", 
+    rejectionReason: "" 
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "_id": "69b52a82fb2e944dff32017c",
+  "status": "approved",
+  "totalDays": 1,
+  "balanceApplied": true
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (400/404/500)</span>
+            <pre><code class="language-json">// 400: Rejection Reason Mandatory
+{ "message": "Rejection reason is mandatory" }
+// 400: Request already processed
+{ "message": "Leave request already processed" }
+// 400: Insufficient Balance
+{ "message": "Insufficient CL balance" }
+// 404: Not Found
+{ "message": "Leave request not found" }
+// 400: User associated with this leave no longer exists
+{ "message": "User associated with this leave no longer exists" }
+// 500: Server Error
+{ "message": "Failed to update leave status" }</code></pre>
+        </section>
+
+        <!-- Milestones -->
+        <section id="milestones" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Project Milestones</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Team Milestones</h3>
+            <p class="text-gray-600 mb-4">Track and update the status of milestones for projects assigned to your team.
+            </p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/milestones', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">[
+  {
+    "_id": "69b52d7fc201d112e42c5eb2",
+    "name": "Updated Milestone 946",
+    "projectId": {
+      "_id": "6992adfb33543e3dc9700044",
+      "name": "Website Redesign"
+    },
+    "dueDate": "2026-04-28T11:05:04.256Z",
+    "status": "in-progress",
+    "progress": 0,
+    "assignedTeam": "69b527f8a51569b3e2d64e32",
+    "createdAt": "2026-03-14T09:42:23.486Z",
+    "updatedAt": "2026-03-14T11:05:04.263Z"
+  },
+  {
+    "_id": "69b54083bdf157a248accbb5",
+    "name": "Milestone 9c1a42c4",
+    "milestoneId": "MS-9fa0f65d",
+    "projectId": {
+      "_id": "6992adfb33543e3dc9700044",
+      "name": "Website Redesign"
+    },
+    "status": "pending",
+    "progress": 0,
+    "dueDate": "2026-04-13T11:03:31.813Z",
+    "createdAt": "2026-03-14T11:03:31.847Z",
+    "updatedAt": "2026-03-14T11:03:31.847Z"
+  }
+]</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">
+// 500: Server Error
+{ "message": "Failed to fetch milestones" }</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Project Milestones</h3>
+            <p class="text-gray-600 mb-4">Retrieve all milestones for a specific project assigned to your team.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/milestones/project/6992adfb33543e3dc9700044', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">[
+  {
+    "_id": "69b52d7fc201d112e42c5eb2",
+    "name": "Updated Milestone 946",
+    "projectId": "6992adfb33543e3dc9700044",
+    "dueDate": "2026-04-28T11:05:04.256Z",
+    "status": "in-progress",
+    "progress": 0,
+    "assignedTeam": {
+      "_id": "69b527f8a51569b3e2d64e32",
+      "name": "Development Team"
+    },
+    "createdAt": "2026-03-14T09:42:23.486Z",
+    "updatedAt": "2026-03-14T11:05:04.263Z"
+  },
+  {
+    "_id": "69b54083bdf157a248accbb5",
+    "name": "Milestone 9c1a42c4",
+    "milestoneId": "MS-9fa0f65d",
+    "projectId": "6992adfb33543e3dc9700044",
+    "status": "pending",
+    "progress": 0,
+    "dueDate": "2026-04-13T11:03:31.813Z",
+    "createdAt": "2026-03-14T11:03:31.847Z",
+    "updatedAt": "2026-03-14T11:03:31.847Z",
+    "__v": 0
+  }
+]</code></pre>
+
+            <span class="output-label">❌ Error Response (403/500)</span>
+            <pre><code class="language-json">
+// 403: Access Denied
+{ "message": "Access denied: Project not assigned to your team" }
+// 500: Server Error
+{ "message": "Internal server error" }</code></pre>
+
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Milestone Status</h3>
+            <p class="text-gray-600 mb-4">Update the status of a project milestone.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/milestones/69b52d7fc201d112e42c5eb2/status', {
+  method: 'PATCH',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ status: "completed" })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "_id": "69b52d7fc201d112e42c5eb2",
+  "name": "Updated Milestone 946",
+  "projectId": {
+    "_id": "6992adfb33543e3dc9700044",
+    "name": "Website Redesign",
+    "assignedTeams": [
+      "69b527f8a51569b3e2d64e32"
+    ]
+  },
+  "dueDate": "2026-04-28T11:05:04.256Z",
+  "status": "completed",
+  "progress": 100,
+  "assignedTeam": "69b527f8a51569b3e2d64e32",
+  "createdAt": "2026-03-14T09:42:23.486Z",
+  "updatedAt": "2026-03-23T07:31:59.684Z"
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (400/403/404/500)</span>
+            <pre><code class="language-json">// 400: Invalid Status
+{ "message": "Invalid status value" }
+// 403: Access Denied
+{ "message": "Access denied: Milestone belongs to a project not assigned to your team" }
+// 404: Not Found
+{ "message": "Milestone not found" }
+// 500: Server Error
+{ "message": "Failed to update milestone status" }</code></pre>
+        </section>
+
+        <section id="projects" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Team Projects</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Team Projects</h3>
+            <p class="text-gray-600 mb-4">Retrieve details of all projects assigned to your team.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/projects', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">[
+  {
+    "_id": "6992adfb33543e3dc9700044",
+    "name": "Website Redesign",
+    "description": "Updated description 993",
+    "status": "ongoing",
+    "priority": "high",
+    "startDate": "2026-01-01T00:00:00.000Z",
+    "endDate": "2026-02-20T00:00:00.000Z",
+    "assignedTeam": "6992adfa33543e3dc9700026",
+    "progress": 32,
+    "createdBy": "6992adf933543e3dc9700024",
+    "createdAt": "2026-02-16T05:41:15.455Z",
+    "updatedAt": "2026-03-14T11:17:25.832Z",
+    "__v": 0,
+    "lastCalculatedAt": "2026-03-14T09:51:55.792Z",
+    "lastUpdatedBy": "6992adfb33543e3dc970003c",
+    "progressMode": "manual",
+    "clientId": "69aec0b05f4de2d9472e79c3",
+    "projectId": "PRJ-001",
+    "assignedTeams": [
+      {
+        "_id": "69b527f8a51569b3e2d64e32",
+        "name": "Development Team"
+      }
+    ],
+    "managerId": "69ae6c6d6090fcd014d235e0"
+  }
+]</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">{ "message": "Failed to fetch team projects" }</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project Progress</h3>
+            <p class="text-gray-600 mb-4">Override project progress manually or set it back to automatic calculation.
+                <br>
+                <strong>Note:</strong> The request body uses <code>mode</code>, while the output/model uses
+                <code>progressMode</code>.
+            </p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/projects/6992adfb33543e3dc9700044/progress', {
+  method: 'PUT',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ 
+    mode: "auto" 
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "_id": "6992adfb33543e3dc9700044",
+  "name": "Website Redesign",
+  "description": "Updated description 993",
+  "status": "ongoing",
+  "priority": "high",
+  "startDate": "2026-01-01T00:00:00.000Z",
+  "endDate": "2026-02-20T00:00:00.000Z",
+  "assignedTeam": "6992adfa33543e3dc9700026",
+  "progress": 32,
+  "createdBy": "6992adf933543e3dc9700024",
+  "createdAt": "2026-02-16T05:41:15.455Z",
+  "updatedAt": "2026-03-23T07:58:23.057Z",
+  "__v": 0,
+  "lastCalculatedAt": "2026-03-14T09:51:55.792Z",
+  "lastUpdatedBy": "6992adfb33543e3dc970003c",
+  "progressMode": "auto",
+  "clientId": "69aec0b05f4de2d9472e79c3",
+  "projectId": "PRJ-001",
+  "assignedTeams": [
+    {
+      "_id": "69b527f8a51569b3e2d64e32",
+      "name": "Development Team"
+    }
+  ],
+  "managerId": "69ae6c6d6090fcd014d235e0"
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (400/403/404/500)</span>
+            <pre><code class="language-json">// 400: Invalid Parameters
+{ "message": "Invalid progress override parameters" }
+// 403: Not Authorized
+{ "message": "Not authorized to override progress for this project" }
+// 404: Not Found
+{ "message": "Project not found" }
+// 500: Server Error
+{ "message": "Failed to update project progress" }</code></pre>
+        </section>
+
+        <section id="reports" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Report Generation</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Team Reports</h3>
+            <p class="text-gray-600 mb-4">Generate comprehensive productivity and contribution reports for your team.
+            </p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/reports', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "productivityTrend": [
+    { "name": "Tue", "date": "2026-03-17", "tasks": 0, "efficiency": 0 },
+    { "name": "Wed", "date": "2026-03-18", "tasks": 0, "efficiency": 0 },
+    { "name": "Thu", "date": "2026-03-19", "tasks": 0, "efficiency": 0 },
+    { "name": "Fri", "date": "2026-03-20", "tasks": 0, "efficiency": 0 },
+    { "name": "Sat", "date": "2026-03-21", "tasks": 0, "efficiency": 0 },
+    { "name": "Sun", "date": "2026-03-22", "tasks": 0, "efficiency": 0 },
+    { "name": "Mon", "date": "2026-03-23", "tasks": 0, "efficiency": 0 }
+  ],
+  "contributionData": [
+    { "name": "John Doe", "value": 4 }
+  ],
+  "summary": {
+    "achievementRate": 1,
+    "totalCompleted": 4,
+    "teamSize": 2
+  }
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">{ "message": "Failed to generate team reports" }</code></pre>
+        </section>
+
+        <section id="tasks" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Task Management</h2>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Create Task</h3>
+            <p class="text-gray-600 mb-4">Create a new task for a team member within a specific project and milestone.
+            </p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tasks', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    "project": "6992adfb33543e3dc9700044",
+    "title": "Fix bug in login flow",
+    "description": "Investigate why login fails on Safari",
+    "assignedTo": "6992adfa33543e3dc970002c",
+    "milestoneId": "69b52d7fc201d112e42c5eb2",
+    "teamId": "69b527f8a51569b3e2d64e32",
+    "priority": "high",
+    "deadline": "2026-03-31T23:59:59.000Z",
+    "weight": 2
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "project": "6992adfb33543e3dc9700044",
+  "title": "Fix bug in login flow",
+  "description": "Investigate why login fails on Safari",
+  "assignedTo": "6992adfa33543e3dc970002c",
+  "assignedBy": "6992adfb33543e3dc970003c",
+  "milestoneId": "69b52d7fc201d112e42c5eb2",
+  "teamId": "69b527f8a51569b3e2d64e32",
+  "status": "todo",
+  "progress": 0,
+  "priority": "high",
+  "deadline": "2026-03-31T23:59:59.000Z",
+  "weight": 2,
+  "_id": "69c0f495f963e5025defa297",
+  "taskId": "PRJ-001-TSK-1463",
+  "createdAt": "2026-03-23T08:06:45.487Z",
+  "updatedAt": "2026-03-23T08:06:45.487Z",
+  "__v": 0
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (400/403/404)</span>
+            <pre><code class="language-json">// 400: Missing Fields
+{ "message": "Required fields are missing" }
+// 403: Team Mismatch
+{ "message": "Project not found or team mismatch" }
+// 404: Resource Not Found
+{ "message": "Project, milestone, team or employee not found" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Team Tasks</h3>
+            <p class="text-gray-600 mb-4">Retrieve all tasks assigned to your team members, including project and
+                milestone details.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tasks', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">[
+  {
+    "_id": "69b53252eb12f287fed2f68d",
+    "project": {
+      "_id": "6992adfb33543e3dc9700044",
+      "name": "Website Redesign"
+    },
+    "title": "Performance Test Task - 2q3ku3",
+    "description": "Auto-generated task for load testing",
+    "assignedTo": {
+      "_id": "6992adfa33543e3dc970002c",
+      "name": "Sarah Jenkins",
+      "email": "sarah.tl@ems.com",
+      "role": "employee"
+    },
+    "assignedBy": {
+      "_id": "6992adfb33543e3dc970003c",
+      "name": "John Doe",
+      "role": "team-lead"
+    },
+    "milestoneId": {
+      "_id": "69b52d7fc201d112e42c5eb2",
+      "name": "Updated Milestone 946"
+    },
+    "status": "todo",
+    "priority": "low",
+    "deadline": "2026-03-21T10:02:58.387Z",
+    "taskId": "PRJ-001-TSK-0732",
+    "createdAt": "2026-03-14T10:02:58.404Z"
+  },
+  "..."
+]</code></pre>
+
+            <span class="output-label">❌ Error Response (400/500)</span>
+            <pre><code class="language-json">// 400: Not Assigned
+{ "message": "You are not assigned to any team" }
+// 500: Server Error
+{ "message": "Failed to fetch team tasks" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Update Task</h3>
+            <p class="text-gray-600 mb-4">Update task details, priority, deadline, or transition its status (requires
+                current status to be 'review' to mark as 'done').</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tasks/69c0f495f963e5025defa297', {
+  method: 'PUT',
+  headers: {
+    'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    "title": "Update: Fix bug in login flow",
+    "description": "Added more details about Safari 15+ issues",
+    "status": "in-progress",
+    "priority": "urgent",
+    "deadline": "2026-04-05T18:00:00.000Z",
+    "assignedTo": "6992adfa33543e3dc970002c",
+    "weight": 3,
+    "milestoneId": "69b52d7fc201d112e42c5eb2"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "_id": "69c0f495f963e5025defa297",
+  "project": "6992adfb33543e3dc9700044",
+  "title": "Update: Fix bug in login flow",
+  "description": "Added more details about Safari 15+ issues",
+  "assignedTo": "6992adfa33543e3dc970002c",
+  "assignedBy": "6992adfb33543e3dc970003c",
+  "milestoneId": "69b52d7fc201d112e42c5eb2",
+  "teamId": "69b527f8a51569b3e2d64e32",
+  "status": "in-progress",
+  "progress": 0,
+  "priority": "urgent",
+  "deadline": "2026-04-05T18:00:00.000Z",
+  "weight": 3,
+  "taskId": "PRJ-001-TSK-1463",
+  "updatedAt": "2026-03-23T08:13:02.990Z",
+  "__v": 0
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (400/403/404)</span>
+            <pre><code class="language-json">// 400: Invalid Status Transition
+{ "message": "Task must be in review before it can be marked done" }
+// 403: Assignment Permission
+{ "message": "You can only assign tasks to your own team members" }
+// 404: Task/User Not Found
+{ "message": "Task not found" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Delete Task</h3>
+            <p class="text-gray-600 mb-4">Remove a task from the system. This will also update the project and milestone
+                progress calculations in the background.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tasks/69c0f495f963e5025defa297', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{ "message": "Task deleted successfully" }</code></pre>
+
+            <span class="output-label">❌ Error Response (403/404)</span>
+            <pre><code class="language-json">// 403: Permission
+{ "message": "You can only delete tasks for your team members" }
+// 404: Not Found
+{ "message": "Task not found" }</code></pre>
+        </section>
+
+        <section id="team" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Team Management</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Team Members</h3>
+            <p class="text-gray-600 mb-4">Retrieve details for all members assigned to your team, including performance
+                scores and active task counts.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/team', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "members": [
+    {
+      "_id": "6992adfa33543e3dc970002c",
+      "name": "Sarah Jenkins",
+      "email": "sarah.tl@ems.com",
+      "role": "employee",
+      "skills": ["React", "Leadership", "Agile"],
+      "individualPerformanceScore": 19,
+      "employeeId": "EMP-0002",
+      "activeTasks": 736,
+      "isOnLeave": false
+    },
+    {
+      "_id": "6992adfb33543e3dc970003c",
+      "name": "John Doe",
+      "email": "john.dev@ems.com",
+      "role": "team-lead",
+      "skills": ["HTML", "CSS", "React", "MongoDB"],
+      "individualPerformanceScore": 64,
+      "employeeId": "EMP-0004",
+      "activeTasks": 0,
+      "isOnLeave": false
+    }
+  ],
+  "metadata": {
+    "teamName": "Development Team",
+    "departmentName": "Human Resources"
+  }
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">
+// 500: Server Error
+{ "message": "Failed to fetch team members" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Team Performance</h3>
+            <p class="text-gray-600 mb-4">Retrieve performance scores and scoring breakdowns for all team members for
+                the current period.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/team/performance', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "members": [
+    {
+      "_id": "6992adfa33543e3dc970002c",
+      "name": "Sarah Jenkins",
+      "email": "sarah.tl@ems.com",
+      "individualPerformanceScore": 19,
+      "taskCompletionScore": 0,
+      "attendanceScore": 0,
+      "totalScore": 19,
+      "period": "2026-03"
+    },
+    {
+      "_id": "6992adfb33543e3dc970003c",
+      "name": "John Doe",
+      "email": "john.dev@ems.com",
+      "individualPerformanceScore": 64,
+      "taskCompletionScore": 25,
+      "attendanceScore": 0,
+      "totalScore": 27,
+      "period": "2026-03"
+    }
+  ],
+  "avgScore": 23,
+  "period": "2026-03"
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">
+// 500: Server Error
+{ "message": "Failed to fetch team performance" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Calculate Team Score</h3>
+            <p class="text-gray-600 mb-4">Trigger a recalculation of the team's average performance score based on the
+                latest member data.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/team/calculate-score', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "teamAverage": 42,
+  "membersCount": 2,
+  "activeMembersCount": 2,
+  "message": "Team performance score calculated"
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">// 500: Server Error
+{ "message": "Failed to calculate team performance score" }</code></pre>
+        </section>
+
+        <section id="tickets" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Ticket Management</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Ticket Stats</h3>
+            <p class="text-gray-600 mb-4">Retrieve real-time statistics for team tickets, including pending assignments,
+                in-progress counts, and SLA breaches.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tickets/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "total": 102,
+  "pendingAssignment": 22,
+  "inProgress": 16,
+  "resolved": 25,
+  "slaBreached": 18
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">
+// 500: Server Error
+{ "message": "Failed to fetch stats" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Tickets</h3>
+            <p class="text-gray-600 mb-4">Retrieve all tickets assigned to you or your team members, including project
+                associations and SLA breach status.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tickets', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">[
+  {
+    "_id": "69aec58258dc426520b03c2a",
+    "title": "Detailed Analytics Request",
+    "description": "Show total working hours, project details, tasks completed, in progress",
+    "clientId": {
+      "_id": "69aec0b05f4de2d9472e79c3",
+      "name": "kavya venishetty",
+      "email": "kavya@gmail.com",
+      "role": "client",
+      "company": "ERP"
+    },
+    "projectId": null,
+    "category": "OTHER",
+    "priority": "HIGH",
+    "status": "IN_PROGRESS",
+    "assignedManager": {
+      "_id": "69ae6c6d6090fcd014d235e0",
+      "name": "Robert Manager",
+      "role": "manager"
+    },
+    "assignedTeamLead": "6992adfb33543e3dc970003c",
+    "assignedEmployee": {
+      "_id": "6992adfb33543e3dc970003d",
+      "name": "Jane Smith",
+      "role": "employee"
+    },
+    "slaBreached": true,
+    "createdAt": "2026-03-14T10:14:12.963Z",
+    "updatedAt": "2026-03-14T10:15:26.228Z",
+    "resolutionNote": "Added very detailed analytics for the worklogs",
+    "assignmentHistory": [],
+    "comments": [
+      {
+        "userId": "6992adfb33543e3dc970003d",
+        "role": "employee",
+        "message": "❓ Doubt Raised: I have already done the changes please check",
+        "isInternal": true,
+        "createdAt": "2026-03-10T05:55:22.229Z"
+      }
+    ]
+  }
+]</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">// 500: Server Error
+{ "message": "Failed to fetch tickets" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Ticket By ID</h3>
+            <p class="text-gray-600 mb-4">Retrieve details for a specific ticket by its ID, including assignment history
+                and associated project/client information.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tickets/69b5353e10e5fa675b769e81', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "_id": "69b5353e10e5fa675b769e81",
+  "ticketCode": "TKT-1773483326228-22",
+  "title": "Performance Test Ticket 22",
+  "description": "Description for ticket 22",
+  "status": "ASSIGNED",
+  "priority": "URGENT",
+  "assignedTeamLead": "6992adfb33543e3dc970003c",
+  "projectId": {
+    "_id": "6992adfb33543e3dc9700044",
+    "name": "Website Redesign"
+  },
+  "assignedEmployee": {
+    "_id": "6992adfa33543e3dc970002c",
+    "name": "Sarah Jenkins",
+    "role": "employee"
+  },
+  "assignedManager": {
+    "_id": "69ae6c6d6090fcd014d235e0",
+    "name": "Robert Manager",
+    "role": "manager"
+  },
+  "clientId": {
+    "_id": "69aec0b05f4de2d9472e79c3",
+    "name": "kavya venishetty",
+    "role": "client",
+    "company": "ERP"
+  },
+  "slaBreached": false,
+  "createdAt": "2026-03-14T10:15:26.228Z",
+  "updatedAt": "2026-03-14T10:15:26.228Z",
+  "assignmentHistory": [],
+  "comments": []
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (404/500)</span>
+            <pre><code class="language-json">// 404: Not Found
+{ "message": "Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to fetch ticket" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Assign Employee to Ticket</h3>
+            <p class="text-gray-600 mb-4">Assign a developer to a ticket and record a note in the assignment history.
+                Automatically notifies the employee.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tickets/69b5353e10e5fa675b769e81/assign-employee', {
+  method: 'PATCH',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN'
+  },
+  body: JSON.stringify({ 
+    employeeId: '6992adfa33543e3dc970002c',
+    note: 'Assigning to Sarah for UI review.'
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Request Body</span>
+            <pre><code class="language-json">{
+  "employeeId": "6992adfa33543e3dc970002c",
+  "note": "Assigning to Sarah for UI review."
+}</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "message": "Ticket assigned to Sarah Jenkins",
+  "ticket": {
+    "_id": "69b5353e10e5fa675b769e81",
+    "ticketCode": "TKT-1773483326228-22",
+    "title": "Performance Test Ticket 22",
+    "description": "Description for ticket 22",
+    "status": "ASSIGNED",
+    "priority": "URGENT",
+    "assignedTeamLead": "6992adfb33543e3dc970003c",
+    "projectId": "6992adfb33543e3dc9700044",
+    "assignedEmployee": "6992adfa33543e3dc970002c",
+    "assignedManager": "69ae6c6d6090fcd014d235e0",
+    "clientId": "69aec0b05f4de2d9472e79c3",
+    "slaBreached": false,
+    "createdAt": "2026-03-14T10:15:26.228Z",
+    "updatedAt": "2026-03-23T10:14:50.541Z",
+    "assignmentHistory": [
+      {
+        "assignedBy": "6992adfb33543e3dc970003c",
+        "assignedTo": "6992adfa33543e3dc970002c",
+        "role": "employee",
+        "note": "Assigning to Sarah for UI review.",
+        "_id": "69c1129a2d1329189fa329b6",
+        "assignedAt": "2026-03-23T10:14:50.543Z"
+      }
+    ],
+    "comments": []
+  }
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (404/500)</span>
+            <pre><code class="language-json">// 404: Employee/Ticket Not Found
+{ "message": "Employee/Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to assign employee" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Add Ticket Comment</h3>
+            <p class="text-gray-600 mb-4">Post a new comment. `isInternal` controls visibility (true for team-only,
+                false for client-facing).</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/tickets/69b5353e10e5fa675b769e81/comment', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN'
+  },
+  body: JSON.stringify({
+    message: "Working on this, should be done by EOD.",
+    isInternal: true
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Request Body</span>
+            <pre><code class="language-json">{
+  "message": "Working on this, should be done by EOD.", // Comment text
+  "isInternal": true // true: team-only, false: visible to client
+}</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{ "message": "Comment added" }</code></pre>
+
+            <span class="output-label">❌ Error Response (404/500)</span>
+            <pre><code class="language-json">// 404: Not Found
+{ "message": "Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to add comment" }</code></pre>
+        </section>
+
+        <section id="worklogs" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Worklog Management</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Team Lead Worklogs</h3>
+            <p class="text-gray-600 mb-4">Retrieve recent worklogs for yourself and your team members. This includes
+                development tasks, testing, and other activities.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/worklogs', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">[
+  {
+    "_id": "69ae95dc5625e9a0069c4bd5",
+    "date": "2026-03-09",
+    "startTime": "09:00",
+    "endTime": "10:30",
+    "durationMinutes": 90,
+    "employee": {
+      "name": "John Doe",
+      "email": "john.dev@ems.com",
+      "role": "team-lead"
+    },
+    "taskTitle": "Working on worksheet management system",
+    "project": "Website Redesign",
+    "category": "development",
+    "priority": "medium",
+    "status": "in-progress"
+  },
+  {
+    "_id": "6996a3c61f255de11f097a75",
+    "date": "2026-02-19",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "durationMinutes": 60,
+    "taskTitle": "Debugging the docx parser",
+    "project": "Employee management",
+    "category": "testing",
+    "status": "in-progress"
+  }
+]</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">// 500: Server Error
+{ "message": "Failed to fetch work logs" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Worklog Stats</h3>
+            <p class="text-gray-600 mb-4">Get duration summaries grouped by category (e.g., development, testing) for
+                all team members.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/worklogs/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">[
+  { "_id": "development", "totalMinutes": 249, "count": 4 },
+  { "_id": "testing", "totalMinutes": 60, "count": 1 }
+]</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">// 500: Server Error
+{ "message": "Failed to fetch work log stats" }</code></pre>
+
+            <div class="border-t border-gray-200 my-8"></div>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get Worklog Analysis</h3>
+            <p class="text-gray-600 mb-4">Advanced productivity analysis for the team, including hours trend, top
+                projects, and completion ratios.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/worklogs/analysis?fromDate=2026-03-01&toDate=2026-03-31', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "fromDate": "2026-02-21",
+  "toDate": "2026-03-23",
+  "totalHours": 1.5,
+  "productiveHours": 1.5,
+  "nonProductiveHours": 0,
+  "tasksCompleted": 0,
+  "completionRatio": 0,
+  "avgTaskDuration": 90,
+  "topProjects": [
+    { "tasks": 1, "name": "WEBSITE REDESIGN", "hours": 1.5 }
+  ],
+  "topCategories": [
+    { "tasks": 1, "name": "development", "hours": 1.5 }
+  ],
+  "trend": [
+    { "tasks": 1, "date": "2026-03-09", "hours": 1.5 }
+  ]
+}</code></pre>
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">// 500: Server Error
+{ "message": "Failed to fetch work log analysis" }</code></pre>
+        </section>
+
+        <section id="notifications" class="mb-16">
+            <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Notifications</h2>
+            <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Notifications</h3>
+            <p class="text-gray-600 mb-4">Fetch recent notifications and alerts related to your team and projects.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/notifications', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "notifications": [
+    {
+      "_id": "69b54a4388f35045d954788f",
+      "user": "6992adfb33543e3dc970003c",
+      "message": "Internal Note from Manager on \"I want detailed analytics of work log in manager\"",
+      "isRead": false,
+      "createdAt": "2026-03-14T11:45:07.858Z",
+      "updatedAt": "2026-03-14T11:45:07.858Z",
+      "__v": 0
+    },
+    {
+      "_id": "69b54a4388f35045d9547883",
+      "user": "6992adfb33543e3dc970003c",
+      "message": "Internal Note from Manager on \"I want detailed analytics of work log in manager\"",
+      "isRead": false,
+      "createdAt": "2026-03-14T11:45:07.813Z",
+      "updatedAt": "2026-03-14T11:45:07.813Z",
+      "__v": 0
+    }
+  ],
+  "pagination": {
+    "total": 4206,
+    "page": 1,
+    "limit": 20,
+    "pages": 211
+  }
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">{ "message": "Failed to fetch notifications" }</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark as Read</h3>
+            <p class="text-gray-600 mb-4">Mark a specific notification as read using its ID.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/notifications/69b54a4388f35045d954788f/read', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "message": "Notification marked as read"
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (404/500)</span>
+            <pre><code class="language-json">// 404: Not Found
+{ "message": "Notification not found" }
+// 500: Server Error
+{ "message": "Internal server error" }</code></pre>
+
+            <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark All as Read</h3>
+            <p class="text-gray-600 mb-4">Mark all your unread notifications as read at once.</p>
+            <pre><code class="language-js">fetch('http://localhost:5000/api/team-lead/notifications/read-all', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_TEAMLEAD_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+            <span class="output-label">👇 Output</span>
+            <pre><code class="language-json">{
+  "message": "All notifications marked as read"
+}</code></pre>
+
+            <span class="output-label">❌ Error Response (500)</span>
+            <pre><code class="language-json">{ "message": "Internal server error" }</code></pre>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-gray-200 py-10 text-center text-gray-500 text-sm">
+        <div class="container mx-auto px-4">
+            <p>Made with ❤️ for the Employee Management System</p>
+            <p class="mt-2">&copy; 2026 EMS Documentation Portal</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+</body>
+
+</html>
