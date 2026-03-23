@@ -4,13 +4,17 @@ import ProjectProgressHistory from '../models/projectProgressHistory.model.js';
 import mongoose from 'mongoose';
 
 
-export const syncProjectProgress = async (projectId, userId, session = null) => {
-    const project = await Project.findById(projectId).session(session);
+export const syncProjectProgress = async (projectOrId, userId, session = null) => {
+    let project = projectOrId;
+    if (typeof projectOrId === 'string' || mongoose.isValidObjectId(projectOrId)) {
+        project = await Project.findById(projectOrId).session(session);
+    }
+
     if (!project) return;
 
     if (project.progressMode === 'manual') return;
 
-    const tasks = await Task.find({ project: projectId }).session(session);
+    const tasks = await Task.find({ project: project._id }).session(session);
     if (tasks.length === 0) {
         await updateProgress(project, 0, 'auto', userId, session);
         return;
@@ -119,7 +123,11 @@ export const setProgressMode = async (projectId, mode, userId, session = null) =
 
     if (mode === 'auto') {
         project.progressMode = 'auto';
-        await syncProjectProgress(projectId, userId, session);
+        await syncProjectProgress(project, userId, session);
+        // Ensure the mode change is saved if sync didn't already save it
+        if (project.isModified('progressMode')) {
+            await project.save({ session });
+        }
     } else {
         await updateProgress(project, project.progress, 'manual', userId, session);
     }
