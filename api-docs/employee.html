@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Employee API - Employee Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-lucario.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      color: #24292e;
+      line-height: 1.8;
+    }
+
+    pre[class*="language-"] {
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      background: #2b3e50;
+    }
+
+    code[class*="language-"] {
+      font-size: 0.9rem;
+    }
+
+    .container {
+      max-width: 800px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 800;
+      margin-top: 3rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+    }
+
+    h2 {
+      font-size: 1.875rem;
+      border-bottom: 2px solid #edf2f7;
+      padding-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+    }
+
+    .nav-link {
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: #3182ce;
+    }
+
+    .output-label {
+      font-style: italic;
+      color: #718096;
+      margin-top: 1rem;
+      display: block;
+    }
+  </style>
+</head>
+
+<body class="bg-white">
+  <!-- Header -->
+  <header class="border-b border-gray-200 py-6 mb-8">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+      <h1 class="text-xl m-0">
+        <a href="index.html"
+          class="no-underline text-black hover:text-blue-600 transition-colors font-bold tracking-tight">EMS
+          API Docs</a>
+      </h1>
+      <nav>
+        <ul class="flex space-x-6 text-sm font-medium">
+          <li><a href="index.html" class="nav-link text-gray-600 no-underline">Auth</a></li>
+          <li><a href="admin.html" class="nav-link text-gray-600 no-underline">Admin</a></li>
+          <li><a href="manager.html" class="nav-link text-gray-600 no-underline">Manager</a></li>
+          <li><a href="employee.html" class="nav-link text-blue-600 no-underline font-bold">Employee</a></li>
+          <li><a href="teamlead.html" class="nav-link text-gray-600 no-underline">Teamlead</a></li>
+          <li><a href="client.html" class="nav-link text-gray-600 no-underline">Client</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 pb-20">
+    <h2 class="font-bold text-3xl text-gray-900 mb-6 border-none">Employee API Guide</h2>
+    <p class="text-lg text-gray-700 mb-8">
+      Comprehensive documentation for Employee workflows including attendance, tasks, leaves, and daily
+      worksheets.
+    </p>
+
+    <!-- Attendance Section -->
+    <section id="attendance" class="mb-20">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Attendance Management</h2>
+      <p class="text-gray-600 mb-6">Track your daily clock-in/out. Geolocation verification is required within a
+        600m radius of the office coordinates.</p>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Check In</h3>
+      <p class="text-gray-600 mb-4">Mark your daily arrival at the office. This validates your location and
+        records the current timestamp.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/attendance/check-in', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ latitude: 16.3070833, longitude: 80.4281497 })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69be4...",
+  "status": "Present",
+  "checkIn": "2026-03-21T09:30:00.000Z",
+  "date": "2026-03-21T00:00:00.000Z",
+  "checkInLocation": { "latitude": 16.3070833, "longitude": 80.4281497 }
+}</code></pre>
+      <span class="output-label">❌ Error Response (403/400/500)</span>
+      <pre><code class="language-js">// 403: Outside office range
+{ "message": "You are outside office range (850m away, allowed 200m)" }
+// 400: Duplicate Check-in
+{ "message": "Already checked in for today" }
+// 500: Server Error
+{ "message": "Failed to check in" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Check Out</h3>
+      <p class="text-gray-600 mb-4">Mark your departure for the day. This will automatically calculate your total
+        working hours and update your attendance status.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/attendance/check-out', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ latitude: 16.3070833, longitude: 80.4281497 })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69be4...",
+  "status": "Present",
+  "checkIn": "2026-03-21T09:30:00.000Z",
+  "checkOut": "2026-03-21T18:30:00.000Z",
+  "workingHours": 9.0,
+  "checkOutLocation": { "latitude": 16.3070833, "longitude": 80.4281497 }
+}</code></pre>
+      <span class="output-label">❌ Error Response (403/400/500)</span>
+      <pre><code class="language-js">// 403: Location Required
+{ "message": "Location is required for attendance" }
+// 400: Sequence Error
+{ "message": "Check in first before check out" }
+// 400: No Check-in Found
+{ "message": "No check-in found for today" }
+// 500: Server Error
+{ "message": "Failed to check out" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Today's Attendance</h3>
+      <p class="text-gray-600 mb-4">Quickly check if you have already recorded attendance for today.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/attendance/today', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69be4...",
+  "date": "2026-03-21T00:00:00.000Z",
+  "checkIn": "2026-03-21T09:30:00.000Z",
+  "status": "Present",
+  "checkInLocation": { "latitude": 16.307, "longitude": 80.428 }
+}</code></pre>
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-js">{ "message": "Failed to fetch today attendance" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Attendance History</h3>
+      <p class="text-gray-600 mb-4">Fetch your monthly attendance logs. Defaults to the current month if no filter
+        is
+        provided.</p>
+      <pre><code class="language-js">// GET /api/employee/attendance?month=2026-03
+fetch('http://localhost:5000/api/employee/attendance?month=2026-03', {
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "date": "2026-03-21T00:00:00.000Z",
+    "status": "Present",
+    "checkIn": "2026-03-21T09:30:00.000Z",
+    "checkOut": "2026-03-21T18:30:00.000Z",
+    "workingHours": 9
+  }
+]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-js">{ "message": "Failed to fetch attendance history" }</code></pre>
+    </section>
+
+
+    <!-- Document Management -->
+    <section id="documents" class="mb-20">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Document Management</h2>
+      <p class="text-gray-600 mb-6">Upload and manage your professional papers (Resume, ID Proof, Certificates,
+        etc.).</p>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Upload Document</h3>
+      <p class="text-gray-600 mb-4">Submit a document file to your profile. Supports PDF, JPEG, PNG, and DOCX
+        formats.</p>
+      <pre><code class="language-js">const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+formData.append('category', 'identity');
+formData.append('documentName', 'Passport');
+
+fetch('http://localhost:5000/api/employee/documents/upload', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' },
+  body: formData
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "69be4ac419ae1702dfc11907",
+  "user": "6992adfb33543e3dc970003d",
+  "category": "identity",
+  "documentName": "passport",
+  "fileUrl": "https://res.cloudinary.com/dlneasw6d/image/upload/v1774078660/employee-documents/documents/6992adfb33543e3dc970003d/hg7zlppeih1y3bsdemwh.png",
+  "publicId": "employee-documents/documents/6992adfb33543e3dc970003d/hg7zlppeih1y3bsdemwh",
+  "originalName": "Logo.png",
+  "verificationStatus": "pending",
+  "uploadedAt": "2026-03-21T07:37:40.093Z",
+  "createdAt": "2026-03-21T07:37:40.094Z",
+  "updatedAt": "2026-03-21T07:37:40.094Z",
+  "__v": 0
+}</code></pre>
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-js">// 400: Missing file
+{ "message": "Please upload a file" }
+// 400: No file uploaded
+{ "message": "No file uploaded"}
+// 500: Server Error
+{ "message": "Failed to upload document" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Documents</h3>
+      <p class="text-gray-600 mb-4">Retrieve a collection of all documents you have uploaded for verification.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/documents', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">[
+  {
+    "_id": "69be4ac419ae1702dfc11907",
+    "user": "6992adfb33543e3dc970003d",
+    "category": "identity",
+    "documentName": "passport",
+    "fileUrl": "https://res.cloudinary.com/dlneasw6d/image/upload/v1774078660/employee-documents/documents/6992adfb33543e3dc970003d/hg7zlppeih1y3bsdemwh.png",
+    "publicId": "employee-documents/documents/6992adfb33543e3dc970003d/hg7zlppeih1y3bsdemwh",
+    "originalName": "Logo.png",
+    "verificationStatus": "pending",
+    "uploadedAt": "2026-03-21T07:37:40.093Z",
+    "createdAt": "2026-03-21T07:37:40.094Z",
+    "updatedAt": "2026-03-21T07:37:40.094Z",
+    "__v": 0
+  }
+]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-js">{ "message": "Failed to fetch documents" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Document</h3>
+      <p class="text-gray-600 mb-4">Remove a document from your profile. Note: Verified documents cannot be
+        deleted.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/documents/69be4ac419ae1702dfc11907', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "message": "Document deleted successfully both from database and Cloudinary"
+}</code></pre>
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-js">// 404: Not Found
+{ "message": "Document not found" }
+// 403: Not Authorized
+{ "message": "Not authorized to delete this document" }
+// 400: Verified Document
+{ "message": "Cannot delete verified documents" }
+// 500: Server Error
+{ "message": "Failed to delete document" }</code></pre>
+
+    </section>
+    <!-- Task Management -->
+    <section id="tasks" class="mb-20">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Task Management</h2>
+      <p class="text-gray-600 mb-6">Manage your daily tasks, provide progress updates, and submit work for review.</p>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Tasks</h3>
+      <p class="text-gray-600 mb-4">Retrieve a paginated list of all tasks assigned to you across various projects.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/tasks', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "tasks": [
+    {
+      "_id": "6992c1c58a7f1a16228d3182",
+      "project": {
+        "_id": "6992adfb33543e3dc9700044",
+        "name": "Website Redesign"
+      },
+      "title": "Hero Section Refactor",
+      "description": "Refactor the hero section using the new design tokens and interactive animations.",
+      "assignedTo": "6992adfb33543e3dc970003d",
+      "status": "done",
+      "deadline": "2026-02-18T00:00:00.000Z",
+      "priority": "high",
+      "weight": 3,
+      "createdAt": "2026-02-16T07:05:41.437Z",
+      "updatedAt": "2026-03-11T11:24:21.366Z",
+      "completedAt": "2026-03-11T11:24:21.365Z",
+      "taskId": "PRJ-001-TSK-0003",
+      "progress": 100
+    },
+    ...
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "pages": 1
+  }
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch your tasks" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Task Status</h3>
+      <p class="text-gray-600 mb-4">Move a task through its lifecycle (todo, in-progress, review, done). <br>
+        <strong>Note:</strong> When an employee sets status to <code>done</code>, it is automatically moved to
+        <code>review</code> for Team Lead approval.
+      </p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/tasks/6992c1c58a7f1a16228d3182/status', {
+  method: 'PATCH',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ status: "done" })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "_id": "6992c1c58a7f1a16228d3182",
+  "project": {
+    "_id": "6992adfb33543e3dc9700044",
+    "name": "Website Redesign"
+  },
+  "title": "Hero Section Refactor",
+  "description": "Refactor the hero section using the new design tokens and interactive animations.",
+  "assignedTo": {
+    "_id": "6992adfb33543e3dc970003d",
+    "name": "Jane Smith",
+    "team": null,
+    "reportingManager": null,
+    "role": "employee"
+  },
+  "status": "review",
+  "deadline": "2026-02-18T00:00:00.000Z",
+  "priority": "high",
+  "weight": 3,
+  "createdAt": "2026-02-16T07:05:41.437Z",
+  "updatedAt": "2026-03-23T05:42:15.177Z",
+  "__v": 1,
+  "completedAt": null,
+  "taskId": "PRJ-001-TSK-0003",
+  "attachments": [],
+  "comments": [],
+  "progress": 100
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (400/403/404/500)</span>
+      <pre><code class="language-json">// 400: Invalid Status
+{ "message": "Invalid status value" }
+// 403: Review Required
+{ "message": "Team lead review is required" }
+// 404: Not Found
+{ "message": "Task not found or Not authorized" }
+// 500: Server Error
+{ "message": "Failed to update task" }</code></pre>
+
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Task Content</h3>
+      <p class="text-gray-600 mb-4">Update progress percentage and add comments or attachments to a task.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/tasks/6992c1c58a7f1a16228d3182/content', {
+  method: 'PATCH',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ 
+    progress: 85,
+    comment: "Finished the API integration part." 
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "_id": "6992c1c58a7f1a16228d3182",
+  "project": {
+    "_id": "6992adfb33543e3dc9700044",
+    "name": "Website Redesign"
+  },
+  "title": "Hero Section Refactor",
+  "description": "Refactor the hero section using the new design tokens and interactive animations.",
+  "assignedTo": "6992adfb33543e3dc970003d",
+  "status": "review",
+  "deadline": "2026-02-18T00:00:00.000Z",
+  "priority": "high",
+  "weight": 3,
+  "createdAt": "2026-02-16T07:05:41.437Z",
+  "updatedAt": "2026-03-23T05:47:12.315Z",
+  "__v": 1,
+  "completedAt": null,
+  "taskId": "PRJ-001-TSK-0003",
+  "attachments": [],
+  "comments": [
+    {
+      "user": "6992adfb33543e3dc970003d",
+      "text": "Finished the API integration part.",
+      "createdAt": "2026-03-23T05:47:12.314Z",
+      "_id": "69c0d3e063024d4878fed9c9"
+    }
+  ],
+  "progress": 85
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Task not found or Not authorized" }
+// 500: Server Error
+{ "message": "Internal server error" }</code></pre>
+
+
+    </section>
+
+    <!-- Leave Management -->
+    <section id="leaves" class="mb-20">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Leave Management</h2>
+      <p class="text-gray-600 mb-6">Manage your leave requests, check status, and calculate working days for potential
+        leaves.</p>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Calculate Leave Days</h3>
+      <p class="text-gray-600 mb-4">Calculate the total working days (excluding weekends and holidays) for a specific
+        date range.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/leaves/calculate', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    fromDate: "2026-04-10",
+    toDate: "2026-04-15",
+    session: "full-day"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "totalDays": 5
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-js">// 400: Missing Dates
+{ "message": "From date and To date are required" }
+// 400: Invalid Range
+{ "message": "To date cannot be before From date" }
+// 500: Server Error
+{ "message": "Internal server error" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Apply Leave</h3>
+      <p class="text-gray-600 mb-4">Submit a new leave request. Note: If an attachment is required, use <code
+          class="text-blue-600">multipart/form-data</code> instead of JSON.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/leaves', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    leaveType: "CL", // CL, SL, EL, LOP
+    fromDate: "2026-04-10",
+    toDate: "2026-04-15",
+    session: "full-day", // full-day, half-morning, half-afternoon
+    reason: "Going to hometown",
+    attachment: "null" // Send as string "null" or omit if no file
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-js">{
+  "_id": "65ab...",
+  "leaveType": "CL",
+  "fromDate": "2026-04-10T00:00:00.000Z",
+  "toDate": "2026-04-15T00:00:00.000Z",
+  "totalDays": 5,
+  "status": "pending",
+  "reason": "Going to hometown",
+  "attachment": "https://res.cloudinary.com/..."
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (400/500)</span>
+      <pre><code class="language-js">// 400: Missing Fields
+{ "message": "All fields are required (leaveType, fromDate, toDate, reason)" }
+// 400: Invalid Range
+{ "message": "To date cannot be before From date" }
+// 400: No Working Days
+{ "message": "Selected duration has no working days (Sundays/Holidays)" }
+// 400: Overlap/Validation
+{ "message": "Insufficient CL balance" }
+// 400: Past Date
+{ "message": "Cannot apply leave for past dates" }
+// 500: Server Error
+{ "message": "Internal server error" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Leaves</h3>
+      <p class="text-gray-600 mb-4">Retrieve your personal leave history with pagination.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/leaves?page=1&limit=10', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "leaves": [
+    {
+      "_id": "69c0cc394e09a284522ed977",
+      "leaveType": "LOP",
+      "fromDate": "2026-04-10T00:00:00.000Z",
+      "toDate": "2026-04-15T00:00:00.000Z",
+      "session": "full-day",
+      "totalDays": 5,
+      "status": "pending",
+      "reason": "Personal work",
+      "appliedAt": "2026-03-23T05:14:33.595Z"
+    },
+    {
+      "_id": "69b53cb3dcc5097afe605cae",
+      "leaveType": "EL",
+      "fromDate": "2026-04-05T00:00:00.000Z",
+      "toDate": "2026-04-07T00:00:00.000Z",
+      "session": "full-day",
+      "totalDays": 3,
+      "status": "approved",
+      "reason": "Performance Test Leave 2",
+      "appliedAt": "2026-03-14T10:47:15.966Z"
+    },
+    ...
+  ],
+  "pagination": {
+    "total": 109,
+    "page": 1,
+    "limit": 20,
+    "pages": 6
+  }
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch leaves" }</code></pre>
+
+    </section>
+
+    <!-- Notifications -->
+    <section id="notifications" class="mb-20">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Notifications</h2>
+      <p class="text-gray-600 mb-6">Stay updated with system alerts, manager notes, and task assignments.</p>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Notifications</h3>
+      <p class="text-gray-600 mb-4">Retrieve a paginated list of your recent notifications.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/notifications?page=1&limit=10', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "notifications": [
+    {
+      "_id": "69b54a4388f35045d954788d",
+      "user": "6992adfb33543e3dc970003d",
+      "message": "Internal Note from Manager on \"I want detailed analytics...\"",
+      "isRead": false,
+      "createdAt": "2026-03-14T11:45:07.857Z"
+    },
+    ...
+  ],
+  "pagination": {
+    "total": 318,
+    "page": 1,
+    "limit": 20,
+    "pages": 16
+  }
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch notifications" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark as Read</h3>
+      <p class="text-gray-600 mb-4">Mark a single notification as read using its unique ID.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/notifications/69b54a4388f35045d954788d/read', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "message": "Notification marked as read"
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (404)</span>
+      <pre><code class="language-json">{ "message": "Notification not found" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark All as Read</h3>
+      <p class="text-gray-600 mb-4">Quickly mark all your unread notifications as read.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/notifications/read-all', {
+  method: 'PUT',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "message": "All notifications marked as read"
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Internal server error" }</code></pre>
+
+    </section>
+    <!-- Team Projects -->
+    <section id="projects" class="mb-20">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Team Projects</h2>
+      <p class="text-gray-600 mb-6">Monitor the projects assigned to your team and track overall completion status.</p>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Get My Team Projects</h3>
+      <p class="text-gray-600 mb-4">Retrieve details about all projects your team is actively contributing to.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/projects', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">[
+  {
+    "_id": "65b123ac970003d6992adfb3",
+    "projectId": "PRJ-001",
+    "name": "E-Commerce App",
+    "description": "Building a full-stack e-commerce solution with React and Node.js.",
+    "status": "ongoing",
+    "priority": "high",
+    "startDate": "2026-03-01T00:00:00.000Z",
+    "endDate": "2026-06-30T00:00:00.000Z",
+    "progress": 35,
+    "progressMode": "auto",
+    "assignedTeams": [
+      { "_id": "65b789adfb33543e3dc97000", "name": "Frontend Team" }
+    ]
+  }
+]</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch projects" }</code></pre>
+
+    </section>
+
+    <!-- Support Tickets -->
+    <section id="tickets" class="mb-20">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Support Tickets</h2>
+      <p class="text-gray-600 mb-6">Track and resolve client-raised issues assigned to you. Provide updates and raise
+        doubts if more information is needed.</p>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4">Ticket Statistics</h3>
+      <p class="text-gray-600 mb-4">Get a quick overview of your ticket distribution by status.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/tickets/stats', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "total": 1,
+  "pending": 0,
+  "inProgress": 0,
+  "waitingForClient": 0,
+  "doubtRaised": 0,
+  "resolved": 0
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch stats" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Tickets</h3>
+      <p class="text-gray-600 mb-4">Retrieve a paginated list of tickets currently assigned to you.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/tickets?page=1&limit=10', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "tickets": [
+    {
+      "_id": "69aec58258dc426520b03c2a",
+      "title": "I want detailed analytics of work log in manager",
+      "clientId": {
+        "_id": "69aec0b05f4de2d9472e79c3",
+        "name": "kavya venishetty",
+        "email": "kavya@gmail.com",
+        "role": "client",
+        "company": "ERP"
+      },
+      "projectId": null,
+      "priority": "HIGH",
+      "status": "ASSIGNED",
+      "assignedManager": {
+        "_id": "69ae6c6d6090fcd014d235e0",
+        "name": "Robert Manager",
+        "role": "manager"
+      },
+      "assignedTeamLead": {
+        "_id": "6992adfb33543e3dc970003c",
+        "name": "John Doe",
+        "role": "team-lead"
+      },
+      "createdAt": "2026-03-09T13:05:06.575Z",
+      "ticketCode": "TKT-1001"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "pages": 1
+  }
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-js">{ "message": "Failed to fetch tickets" }</code></pre>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Ticket by ID</h3>
+      <p class="text-gray-600 mb-4">Fetch detailed information about a specific ticket, including the full conversation
+        history (comments) and client details.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/tickets/69aec58258dc426520b03c2a', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "_id": "69aec58258dc426520b03c2a",
+  "title": "I want detailed analytics of work log in manager",
+  "description": "show total working hours,project details,tasks completed,inprogress",
+  "clientId": {
+    "_id": "69aec0b05f4de2d9472e79c3",
+    "name": "kavya venishetty",
+    "email": "kavya@gmail.com",
+    "role": "client",
+    "company": "ERP"
+  },
+  "projectId": null,
+  "category": "OTHER",
+  "priority": "HIGH",
+  "status": "ASSIGNED",
+  "assignedManager": {
+    "_id": "69ae6c6d6090fcd014d235e0",
+    "name": "Robert Manager",
+    "role": "manager"
+  },
+  "assignedTeamLead": {
+    "_id": "6992adfb33543e3dc970003c",
+    "name": "John Doe",
+    "email": "john.dev@ems.com",
+    "role": "team-lead"
+  },
+  "assignedEmployee": "6992adfb33543e3dc970003d",
+  "attachments": [],
+  "resolutionNote": "added very detailed analytics for the worklogs",
+  "dueDate": "2026-03-10T13:05:06.625Z",
+  "slaBreached": true,
+  "resolvedAt": "2026-03-10T06:09:28.638Z",
+  "closedAt": null,
+  "comments": [
+    {
+      "userId": {
+        "_id": "6992adfb33543e3dc970003d",
+        "name": "Jane Smith",
+        "role": "employee"
+      },
+      "role": "employee",
+      "message": "❓ Doubt Raised: I have already done the changes please check",
+      "isInternal": true,
+      "_id": "69afb24a1178682a65eb4c01",
+      "createdAt": "2026-03-10T05:55:22.229Z"
+    },
+    {
+      "userId": {
+        "_id": "69aec0b05f4de2d9472e79c3",
+        "name": "kavya venishetty",
+        "role": "client"
+      },
+      "role": "client",
+      "message": "need more detail analytics",
+      "isInternal": false,
+      "_id": "69afb5600f2d7143c387d0c0",
+      "createdAt": "2026-03-10T06:08:32.124Z"
+    },
+    {
+      "userId": {
+        "_id": "6992adfb33543e3dc970003d",
+        "name": "Jane Smith",
+        "role": "employee"
+      },
+      "role": "employee",
+      "message": "✅ Resolved: added very detailed analytics for the worklogs",
+      "isInternal": true,
+      "_id": "69afb5980f2d7143c387d140",
+      "createdAt": "2026-03-10T06:09:28.640Z"
+    },
+    "..."
+  ]
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to fetch ticket" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Ticket Status</h3>
+      <p class="text-gray-600 mb-4">Update the lifecycle of a ticket. Allowed statuses: <code>IN_PROGRESS</code>,
+        <code>WAITING_FOR_CLIENT</code>, <code>DOUBT_RAISED</code>, <code>RESOLVED</code>.
+      </p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/tickets/69aec58258dc426520b03c2a/status', {
+  method: 'PATCH',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ 
+    status: "IN_PROGRESS"
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "message": "Ticket status updated to IN_PROGRESS",
+  "ticket": {
+    "_id": "69aec58258dc426520b03c2a",
+    "title": "I want detailed analytics of work log in manager",
+    "description": "show total working hours,project details,tasks completed,inprogress",
+    "clientId": "69aec0b05f4de2d9472e79c3",
+    "projectId": null,
+    "category": "OTHER",
+    "priority": "HIGH",
+    "status": "IN_PROGRESS",
+    "assignedManager": "69ae6c6d6090fcd014d235e0",
+    "assignedTeamLead": "6992adfb33543e3dc970003c",
+    "assignedEmployee": "6992adfb33543e3dc970003d",
+    "attachments": [],
+    "resolutionNote": "added very detailed analytics for the worklogs",
+    "dueDate": "2026-03-10T13:05:06.625Z",
+    "slaBreached": true,
+    "resolvedAt": "2026-03-10T06:09:28.638Z",
+    "closedAt": null,
+    "comments": [
+      {
+        "userId": "6992adfb33543e3dc970003d",
+        "role": "employee",
+        "message": "❓ Doubt Raised: I have already done the changes please check",
+        "isInternal": true,
+        "_id": "69afb24a1178682a65eb4c01",
+        "createdAt": "2026-03-10T05:55:22.229Z"
+      },
+      "..."
+    ]
+  }
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">// 400: Invalid Status
+{ "message": "Status must be one of: IN_PROGRESS, WAITING_FOR_CLIENT, DOUBT_RAISED, RESOLVED" }
+// 404: Not Found
+{ "message": "Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to update status" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Comment</h3>
+      <p class="text-gray-600 mb-4">Post a new message on a ticket. Comments can be <code>internal</code> (only visible
+        to team) or public.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/tickets/69aec58258dc426520b03c2a/comment', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ 
+    message: "I need more details about the browser version.",
+    isInternal: false 
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "message": "Comment added",
+  "ticketId": "69aec58258dc426520b03c2a"
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (404/500)</span>
+      <pre><code class="language-json">// 404: Not Found
+{ "message": "Ticket not found" }
+// 500: Server Error
+{ "message": "Failed to add comment" }</code></pre>
+
+    </section>
+
+    <!-- Daily Worksheet -->
+    <section id="worksheet" class="mb-20">
+      <h2 class="font-bold text-2xl text-gray-800 mb-6 font-primary">Daily Worksheet</h2>
+      <p class="text-gray-600 mb-6">Log and manage your daily activities, track time spent on projects, and analyze your
+        productivity.</p>
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Save Entries</h3>
+      <p class="text-gray-600 mb-4">Save one or more daily activity entries. Overlapping time entries are not allowed.
+      </p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/worksheet/save', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({
+    entries: [
+      {
+        date: "2026-03-23",
+        startTime: "09:00",
+        endTime: "11:00",
+        taskTitle: "Documentation Update",
+        project: "EMS Documentation",
+        category: "documentation",
+        status: "completed",
+        priority: "high",
+        notes: "Added Support Tickets section",
+        tags: ["docs", "api"]
+      }
+    ]
+  })
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "message": "1 entries saved, 0 duplicates skipped.",
+  "savedRows": 1,
+  "skippedRows": 0
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (400/413/422/500)</span>
+      <pre><code class="language-json">// 400: No Entries
+{ "message": "No entries provided" }
+// 413: Row Limit Exceeded
+{ "message": "Maximum row limit is 5000. Got 6000 rows." }
+// 422: Validation Failed
+{ "message": "Validation failed for some rows", "errors": [...] }
+// 422: Overlaps Detected
+{ "message": "Overlapping time entries detected", "errors": [...] }
+// 500: Server Error
+{ "message": "Failed to save entries" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Worksheet Template</h3>
+      <p class="text-gray-600 mb-4">Download an empty worksheet template to use for bulk importing. Supported formats:
+        <code>csv</code>, <code>json</code>, <code>xlsx</code>, <code>docx</code>.
+      </p>
+      <pre><code class="language-js">// Default is CSV
+window.open('http://localhost:5000/api/employee/worksheet/template?format=csv');</code></pre>
+
+      <span class="output-label">👇 Output (csv)</span>
+      <pre><code class="language-csv">2026-02-18,11:00,12:00,60,Design review meeting,UI Project,meeting,completed,medium,Reviewed Figma designs,design;meeting</code></pre>
+
+      <span class="output-label">❌ Error Response (400)</span>
+      <pre><code class="language-json">{ "message": "Unsupported template format. Use: csv, json, xlsx, docx" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Import Worksheet</h3>
+      <p class="text-gray-600 mb-4">Upload a file (.csv, .xlsx, .json, .docx, or .pdf) to bulk-import activity entries.
+        Duplicate entries (same date, start time, and task) are automatically skipped.</p>
+      <pre><code class="language-js">const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+
+fetch('http://localhost:5000/api/employee/worksheet/import', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' },
+  body: formData
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "message": "Import complete. 10 new entries saved, 2 already existed and were skipped.",
+  "totalRows": 15,
+  "validRows": 12,
+  "savedRows": 10,
+  "skippedRows": 2,
+  "invalidRows": 3,
+  "errors": [
+    { "row": 5, "field": "date", "message": "Invalid date format" },
+    { "row": 8, "field": "startTime", "message": "Start time is required" }
+  ],
+  "warning": null,
+  "parseErrors": []
+}</code></pre>
+
+      <span class="output-label">❌ Error Response (400/409/413/422/500)</span>
+      <pre><code class="language-json">// 400: No File/Unsupported Type
+{ "message": "No file uploaded" }
+// 409: Already Imported
+{ "message": "This file has already been imported." }
+// 413: Limit Exceeded
+{ "message": "File exceeds maximum row limit of 5000.Got 200 rows" }
+// 422: No data
+{ "message": "No data rows found in file." }
+// 400:  
+{ "message": "Unsupported file type: .pdf"}
+// 500: Server Error
+{ "message": "Import failed" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Entries</h3>
+      <p class="text-gray-600 mb-4">Fetch your logged worksheet activities with optional filters for date range,
+        project, and status.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/worksheet/entries', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "entries": [
+    {
+      "_id": "69c0d86479491408035d84c4",
+      "taskTitle": "Documentation Update",
+      "employee": "6992adfb33543e3dc970003d",
+      "date": "2026-03-23",
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "durationMinutes": 120,
+      "project": "EMS Documentation",
+      "category": "documentation",
+      "status": "completed",
+      "priority": "high",
+      "notes": "Added Support Tickets section",
+      "tags": ["docs", "api"]
+    },
+    {
+      "_id": "69b5125079491408035d4f9f",
+      "taskTitle": "Perf Task 61-7-4",
+      "employee": "6992adfb33543e3dc970003d",
+      "date": "2026-03-14",
+      "startTime": "16:40",
+      "endTime": "16:49",
+      "durationMinutes": 10,
+      "project": "Perf Testing",
+      "category": "development",
+      "status": "completed",
+      "priority": "medium",
+      "notes": "Load test entry",
+      "tags": ["test"]
+    },
+    "..."
+  ],
+  "pagination": {
+    "total": 17066,
+    "page": 1,
+    "limit": 50,
+    "pages": 342
+  }
+}</code></pre>
+
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to fetch entries" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Worksheet Analysis</h3>
+      <p class="text-gray-600 mb-4">Get productivity analytics, including total hours and project/category breakdowns
+        for a specific period.</p>
+      <pre><code class="language-js">fetch('http://localhost:5000/api/employee/worksheet/analysis?fromDate=2026-03-01&toDate=2026-03-31', {
+  method: 'GET',
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+})
+  .then(res => res.json())
+  .then(json => console.log(json));</code></pre>
+
+      <span class="output-label">👇 Output</span>
+      <pre><code class="language-json">{
+  "fromDate": "2026-02-21",
+  "toDate": "2026-03-23",
+  "totalHours": 4608.67,
+  "productiveHours": 4608.67,
+  "nonProductiveHours": 0,
+  "tasksCompleted": 17066,
+  "completionRatio": 100,
+  "avgTaskDuration": 16.2,
+  "topProjects": [
+    { "tasks": 14950, "name": "PERF TESTING", "hours": 2491.67 },
+    { "tasks": 2115, "name": "PROJECT X", "hours": 2115 },
+    { "tasks": 1, "name": "EMS DOCUMENTATION", "hours": 2 }
+  ],
+  "topCategories": [
+    { "tasks": 17065, "name": "development", "hours": 4606.67 },
+    { "tasks": 1, "name": "documentation", "hours": 2 }
+  ],
+  "trend": [
+    { "tasks": 17065, "date": "2026-03-14", "hours": 4606.67 },
+    { "tasks": 1, "date": "2026-03-23", "hours": 2 }
+  ]
+}</code></pre>
+
+
+
+      <span class="output-label">❌ Error Response (500)</span>
+      <pre><code class="language-json">{ "message": "Failed to compute analysis" }</code></pre>
+
+
+      <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Export Worksheet</h3>
+      <p class="text-gray-600 mb-4">Export your activity logs in various formats. Supported formats: <code>csv</code>,
+        <code>json</code>, <code>xlsx</code>, <code>docx</code>, <code>pdf</code>.
+      </p>
+      <pre><code class="language-js">// Export as CSV for a date range
+window.open('http://localhost:5000/api/employee/worksheet/export?format=csv&fromDate=2026-03-01&toDate=2026-03-14');</code></pre>
+
+      <span class="output-label">👇 Output (CSV Snippet)</span>
+      <pre><code class="language-csv">Date,Start Time,End Time,Duration (min),Task Title,Project,Category,Status,Priority,Notes,Tags
+"2026-03-14","09:00","10:00","60","Import Task 35-21","Project X","development","completed","medium","Notes","tag1"
+"2026-03-14","09:00","10:00","60","Import Task 100-20","Project X","development","completed","medium","Notes","tag1"
+"2026-03-14","09:00","10:00","60","Import Task 92-20","Project X","development","completed","medium","Notes","tag1"
+"2026-03-14","09:00","10:00","60","Import Task 75-21","Project X","development","completed","medium","Notes","tag1"
+"..."</code></pre>
+
+      <span class="output-label">❌ Error Response (400/404/500)</span>
+      <pre><code class="language-json">// 400: Unsupported Format
+{ "message": "Unsupported export format: xml. Use: csv, xlsx, pdf, docx" }
+// 404: No Entries
+{ "message": "No entries found for the given filters." }
+// 500: Server Error
+{ "message": "Export failed" }</code></pre>
+
+    </section>
+
+    <footer class="border-t border-gray-200 py-10 text-center text-gray-500 text-sm">
+      <div class="container mx-auto px-4">
+        <p>Made with ❤️ for the Employee Management System</p>
+        <p class="mt-2">&copy; 2026 EMS Documentation Portal</p>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+</body>
+
+</html>
