@@ -64,10 +64,13 @@
     }
 
     .output-label {
-      font-style: italic;
-      color: #718096;
-      margin-top: 1rem;
       display: block;
+      margin-top: 2rem;
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>
@@ -170,6 +173,16 @@
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Internal server error" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 56.72ms
+Success Rate      : 100%
+P95 Latency       : 197.98ms
+P90 Latency       : 129.68ms
+RPS               : 13.61
+Min               : 18.36ms
+Median            : 38.16ms
+Max               : 254.41ms</code></pre>
     </section>
 
     <section id="employees" class="mb-16">
@@ -228,6 +241,16 @@
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch users" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 22.68ms
+Success Rate      : 100%
+P95 Latency       : 63.96ms
+P90 Latency       : 50.17ms
+RPS               : 14.07
+Min               : 2.64ms
+Median            : 16.93ms
+Max               : 139.81ms</code></pre>
     </section>
 
     <section id="leaves" class="mb-16">
@@ -286,6 +309,16 @@
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch leave requests" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 19.46ms
+Success Rate      : 100%
+P95 Latency       : 62.27ms
+P90 Latency       : 39.02ms
+RPS               : 14.57
+Min               : 6.09ms
+Median            : 13.53ms
+Max               : 108.99ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Status</h3>
       <p class="text-gray-600 mb-4">Approve or reject a leave request from your team. A rejection reason is
         required if rejecting.</p>
@@ -339,6 +372,16 @@ fetch('http://localhost:5000/api/manager/leaves/69b53cb.../status', {
 // 500: Server Error
 { "message": "Failed to update" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 18.67ms
+Success Rate      : 100%
+P95 Latency       : 49.7ms
+P90 Latency       : 40.76ms
+RPS               : 14.56
+Min               : 3.84ms
+Median            : 12.78ms
+Max               : 126.2ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Leave Statistics</h3>
       <p class="text-gray-600 mb-4">Get the count of approved and pending leaves for your team.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/manager/leaves/stats', {
@@ -356,6 +399,16 @@ fetch('http://localhost:5000/api/manager/leaves/69b53cb.../status', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch leave stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 20.85ms
+Success Rate      : 100%
+P95 Latency       : 53.66ms
+P90 Latency       : 31.73ms
+RPS               : 14.58
+Min               : 5.78ms
+Median            : 18.07ms
+Max               : 124.68ms</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Calculate Leave Days</h3>
       <p class="text-gray-600 mb-4">Calculate the total number of working days for a leave period.</p>
@@ -382,6 +435,16 @@ fetch('http://localhost:5000/api/manager/leaves/69b53cb.../status', {
       <span class="output-label">❌ Error Response (400/500)</span>
       <pre><code class="language-json">// 400: Bad Request
 {"message": "Dates are required"}</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 9.25ms
+Success Rate      : 100%
+P95 Latency       : 32.77ms
+P90 Latency       : 20.48ms
+RPS               : 14.73
+Min               : 1.52ms
+Median            : 4.8ms
+Max               : 112.04ms</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Apply Leave (Self-Service)</h3>
       <p class="text-gray-600 mb-4">Managers can also apply for leave for themselves. This requires
@@ -427,6 +490,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 { "message": "Insufficient EL balance"}
 </code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 61.72ms
+Success Rate      : 100%
+P95 Latency       : 230.67ms
+P90 Latency       : 117.72ms
+RPS               : 13.63
+Min               : 8.59ms
+Median            : 36.46ms
+Max               : 333.16ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Leaves</h3>
       <p class="text-gray-600 mb-4">Retrieve all leave requests submitted by you.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/manager/leaves/my-leaves', {
@@ -467,6 +540,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch your leaves" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 38.93ms
+Success Rate      : 100%
+P95 Latency       : 146.72ms
+P90 Latency       : 48.45ms
+RPS               : 14.26
+Min               : 14.34ms
+Median            : 24.69ms
+Max               : 344.89ms</code></pre>
     </section>
 
     <section id="milestones" class="mb-16">
@@ -501,6 +584,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
         // Internal server error
         { "message": "Failed to fetch milestones" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 28.29ms
+Success Rate      : 100%
+P95 Latency       : 133.56ms
+P90 Latency       : 63.7ms
+RPS               : 14.43
+Min               : 7.32ms
+Median            : 13.74ms
+Max               : 216.62ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Project Tasks</h3>
       <p class="text-gray-600 mb-4">Fetches all tasks associated with a specific project, including assignment
         details.</p>
@@ -528,6 +621,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
         { "message": "Not authorized" }
         // 500: Internal server error
         { "message": "Failed to fetch tasks" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 73.19ms
+Success Rate      : 100%
+P95 Latency       : 332.24ms
+P90 Latency       : 94.53ms
+RPS               : 13.76
+Min               : 27.24ms
+Median            : 45.99ms
+Max               : 567.28ms</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Create Milestone</h3>
       <p class="text-gray-600 mb-4">Creates a new milestone for a project you manage.</p>
@@ -560,6 +663,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
         // 500: Internal server error
         { "message": "Failed to create milestone" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 17.87ms
+Success Rate      : 100%
+P95 Latency       : 58.97ms
+P90 Latency       : 44.01ms
+RPS               : 14.59
+Min               : 3.37ms
+Median            : 9.55ms
+Max               : 123.61ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Milestone</h3>
       <p class="text-gray-600 mb-4">Updates milestone details such as status and progress.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/manager/milestones/65cd123...', {
@@ -589,6 +702,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 // 500: Server Error
 { "message": "Failed to update milestone" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 21.79ms
+Success Rate      : 100%
+P95 Latency       : 74.44ms
+P90 Latency       : 34.64ms
+RPS               : 14.57
+Min               : 4.2ms
+Median            : 17.28ms
+Max               : 118.77ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Milestone</h3>
       <p class="text-gray-600 mb-4 text-red-600 font-semibold">Note: A milestone cannot be deleted if tasks are
         linked to it.</p>
@@ -611,6 +734,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 { "message": "Not authorized" }
 // 500: Server Error
 { "message": "Failed to delete milestone" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (10 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 27.7ms
+Success Rate      : 100%
+P95 Latency       : 55.3ms
+P90 Latency       : 49.88ms
+RPS               : 9.18
+Min               : 1.82ms
+Median            : 26.34ms
+Max               : 121.07ms</code></pre>
     </section>
 
     <section id="projects" class="mb-16">
@@ -650,6 +783,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch projects" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 17.28ms
+Success Rate      : 100%
+P95 Latency       : 76.06ms
+P90 Latency       : 36.24ms
+RPS               : 14.61
+Min               : 4.36ms
+Median            : 8.99ms
+Max               : 115.66ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Company Projects</h3>
       <p class="text-gray-600 mb-4">Retrieve a list of all projects across the company. This provides broader visibility
         than 'Get My Projects'.</p>
@@ -685,6 +828,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch all projects" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 22.13ms
+Success Rate      : 100%
+P95 Latency       : 102.37ms
+P90 Latency       : 61.95ms
+RPS               : 14.50
+Min               : 4.41ms
+Median            : 9.87ms
+Max               : 142.32ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Project Statistics</h3>
       <p class="text-gray-600 mb-4">Get aggregated project counts grouped by their current status.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/manager/projects/stats', {
@@ -703,6 +856,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch project stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 17.68ms
+Success Rate      : 100%
+P95 Latency       : 68.96ms
+P90 Latency       : 37.84ms
+RPS               : 14.60
+Min               : 3.1ms
+Median            : 10.33ms
+Max               : 115.22ms</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Team Leads</h3>
       <p class="text-gray-600 mb-4">Retrieve a list of all users with the 'team-lead' role for project assignment.</p>
@@ -727,6 +890,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch team leads" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 9.01ms
+Success Rate      : 100%
+P95 Latency       : 34.83ms
+P90 Latency       : 16.13ms
+RPS               : 14.75
+Min               : 1.59ms
+Median            : 5.46ms
+Max               : 122.59ms</code></pre>
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Create Project</h3>
@@ -762,6 +935,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to create project" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (10 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 11.94ms
+Success Rate      : 100%
+P95 Latency       : 38.57ms
+P90 Latency       : 21.17ms
+RPS               : 9.80
+Min               : 2.18ms
+Median            : 8.82ms
+Max               : 119.7ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project</h3>
       <p class="text-gray-600 mb-4">Updates project details such as status, priority, or dates.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/manager/projects/6992ad...', {
@@ -788,6 +971,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <pre><code class="language-json">
 { "message": "Failed to update project" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 9.59ms
+Success Rate      : 100%
+P95 Latency       : 39.34ms
+P90 Latency       : 23.34ms
+RPS               : 14.71
+Min               : 1.1ms
+Median            : 3.64ms
+Max               : 136.37ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Project</h3>
       <p class="text-gray-600 mb-4 text-red-600 font-semibold">Warning: This will delete all related tasks and
         milestones.</p>
@@ -805,6 +998,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <pre><code class="language-json">
 // 500: Server Error
 { "message": "Failed to delete project" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (10 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 10.7ms
+Success Rate      : 100%
+P95 Latency       : 42.93ms
+P90 Latency       : 29.33ms
+RPS               : 9.69
+Min               : 1.33ms
+Median            : 5.44ms
+Max               : 125.73ms</code></pre>
     </section>
 
     <section id="tasks" class="mb-16">
@@ -856,6 +1059,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch dashboard data" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (12 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 92.9ms
+Success Rate      : 100%
+P95 Latency       : 365.28ms
+P90 Latency       : 149.28ms
+RPS               : 10.71
+Min               : 41.12ms
+Median            : 55.21ms
+Max               : 684.32ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Task Statistics</h3>
       <p class="text-gray-600 mb-4">Returns task counts grouped by status across all projects.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tasks/stats', {
@@ -874,6 +1087,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch task stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 21.86ms
+Success Rate      : 100%
+P95 Latency       : 72.78ms
+P90 Latency       : 37.08ms
+RPS               : 14.57
+Min               : 5.47ms
+Median            : 16.36ms
+Max               : 121.24ms</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Overdue Tasks</h3>
       <p class="text-gray-600 mb-4">Returns a list of tasks that have passed their deadline and are not yet
@@ -900,6 +1123,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 ]</code></pre>
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch overdue tasks" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 134.36ms
+Success Rate      : 100%
+P95 Latency       : 419.6ms
+P90 Latency       : 255.79ms
+RPS               : 12.81
+Min               : 45.24ms
+Median            : 88.68ms
+Max               : 818.55ms</code></pre>
     </section>
 
     <section id="teams" class="mb-16">
@@ -926,6 +1159,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch teams" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 14.51ms
+Success Rate      : 100%
+P95 Latency       : 66.22ms
+P90 Latency       : 30.51ms
+RPS               : 14.64
+Min               : 2.7ms
+Median            : 6.25ms
+Max               : 121.2ms</code></pre>
     </section>
 
     <section id="tickets" class="mb-16">
@@ -962,6 +1205,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch analytics" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 36.18ms
+Success Rate      : 100%
+P95 Latency       : 107.38ms
+P90 Latency       : 75.96ms
+RPS               : 14.34
+Min               : 5.57ms
+Median            : 29.54ms
+Max               : 128.16ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Manager Tickets</h3>
       <p class="text-gray-600 mb-4">Returns all tickets assigned to the manager with filtering support.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tickets', {
@@ -996,6 +1249,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch tickets" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 101.46ms
+Success Rate      : 100%
+P95 Latency       : 511.93ms
+P90 Latency       : 241.94ms
+RPS               : 13.16
+Min               : 30.22ms
+Median            : 49.64ms
+Max               : 756.31ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Ticket Statistics</h3>
       <p class="text-gray-600 mb-4">Returns quick summary statistics for tickets assigned to the manager.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/manager/tickets/stats', {
@@ -1015,6 +1278,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 11.38ms
+Success Rate      : 100%
+P95 Latency       : 34.96ms
+P90 Latency       : 23.04ms
+RPS               : 14.72
+Min               : 1.6ms
+Median            : 7.91ms
+Max               : 118.63ms</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Ticket By ID</h3>
       <p class="text-gray-600 mb-4">Returns detailed information for a specific ticket, including client and
@@ -1070,12 +1343,21 @@ fetch('http://localhost:5000/api/manager/leaves', {
     "status": "ASSIGNED"
   }
 }</code></pre>
-
       <span class="output-label">❌ Error Response (404/500)</span>
       <pre><code class="language-json">// 404: Not Found
 { "message": "Ticket or Team Lead not found" }
 // 500: Server Error
 { "message": "Failed to assign team lead" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (10 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 22.13ms
+Success Rate      : 100%
+P95 Latency       : 83.08ms
+P90 Latency       : 47.85ms
+RPS               : 9.68
+Min               : 6.14ms
+Median            : 13.7ms
+Max               : 137.12ms</code></pre>
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Comment to Ticket</h3>
@@ -1107,6 +1389,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 { "message": "Ticket not found" }
 // 500: Server Error
 { "message": "Failed to add comment" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (10 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 24.42ms
+Success Rate      : 100%
+P95 Latency       : 81.74ms
+P90 Latency       : 49.37ms
+RPS               : 9.64
+Min               : 9.84ms
+Median            : 15.7ms
+Max               : 158.32ms</code></pre>
     </section>
 
     <section id="worklogs" class="mb-16">
@@ -1141,6 +1433,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch work logs" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 12.38ms
+Success Rate      : 100%
+P95 Latency       : 43.42ms
+P90 Latency       : 29.18ms
+RPS               : 14.70
+Min               : 2.41ms
+Median            : 6.88ms
+Max               : 119.33ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Work Log Statistics</h3>
       <p class="text-gray-600 mb-4">Returns aggregated statistics for employee work logs grouped by work category.
       </p>
@@ -1159,6 +1461,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch work log stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 16.78ms
+Success Rate      : 100%
+P95 Latency       : 29.48ms
+P90 Latency       : 18.63ms
+RPS               : 14.41
+Min               : 3.17ms
+Median            : 11.27ms
+Max               : 248.5ms</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Work Log Analysis</h3>
       <p class="text-gray-600 mb-4">Returns advanced work log analytics, including productivity trends and time
@@ -1186,6 +1498,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch work log analysis" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 20.7ms
+Success Rate      : 100%
+P95 Latency       : 48.18ms
+P90 Latency       : 40.39ms
+RPS               : 14.57
+Min               : 5.79ms
+Median            : 14.9ms
+Max               : 122.46ms</code></pre>
     </section>
 
     <section id="notifications" class="mb-16">
@@ -1213,6 +1535,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch notifications" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 21.26ms
+Success Rate      : 100%
+P95 Latency       : 136.21ms
+P90 Latency       : 30.64ms
+RPS               : 14.35
+Min               : 2.08ms
+Median            : 4.96ms
+Max               : 376.59ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark Notification as Read</h3>
       <p class="text-gray-600 mb-4">Marks a specific notification as read using its ID.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/notifications/65notif123/read', {
@@ -1226,6 +1558,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <pre><code class="language-js">{
   "message": "Notification marked as read"
 }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 15.85ms
+Success Rate      : 100%
+P95 Latency       : 118.99ms
+P90 Latency       : 33.89ms
+RPS               : 14.31
+Min               : 0.51ms
+Median            : 3.08ms
+Max               : 243.3ms</code></pre>
 
       <span class="output-label">❌ Error Response (404/500)</span>
       <pre><code class="language-json">// 404: Not Found
@@ -1245,6 +1587,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
       <pre><code class="language-js">{
   "message": "All notifications marked as read"
 }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 13.48ms
+Success Rate      : 100%
+P95 Latency       : 89.47ms
+P90 Latency       : 16.86ms
+RPS               : 14.40
+Min               : 0.52ms
+Median            : 4.11ms
+Max               : 216.79ms</code></pre>
     </section>
 
     <section id="performance" class="mb-16">
@@ -1278,6 +1630,16 @@ fetch('http://localhost:5000/api/manager/leaves', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (15 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 9.9ms
+Success Rate      : 100%
+P95 Latency       : 34.52ms
+P90 Latency       : 17.91ms
+RPS               : 14.74
+Min               : 1.8ms
+Median            : 6.88ms
+Max               : 125.65ms</code></pre>
     </section>
   </main>
 

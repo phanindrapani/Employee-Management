@@ -64,10 +64,13 @@
     }
 
     .output-label {
-      font-style: italic;
-      color: #718096;
-      margin-top: 1rem;
       display: block;
+      margin-top: 2rem;
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>
@@ -134,6 +137,17 @@
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-js">{ "message": "Failed to fetch projects" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 20.54ms
+Success Rate      : 100%
+P95 Latency       : 33.34ms
+P90 Latency       : 30.59ms
+RPS               : 4.93
+Min               : 7.78ms
+Median            : 18.02ms
+Max               : 129.99ms</code></pre>
+
+
     </section>
 
     <section id="tickets" class="mb-16">
@@ -160,6 +174,17 @@
 }</code></pre>
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-js">{ "message": "Failed to fetch stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 29.77ms
+Success Rate      : 100%
+P95 Latency       : 65.92ms
+P90 Latency       : 56.68ms
+RPS               : 4.88
+Min               : 9.42ms
+Median            : 19.15ms
+Max               : 131.62ms</code></pre>
+
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Tickets</h3>
@@ -199,6 +224,17 @@ fetch('http://localhost:5000/api/client/tickets', {
 ]</code></pre>
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-js">{ "message": "Failed to fetch tickets" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 30.65ms
+Success Rate      : 100%
+P95 Latency       : 91.16ms
+P90 Latency       : 62.44ms
+RPS               : 4.88
+Min               : 13.2ms
+Median            : 19.95ms
+Max               : 103ms</code></pre>
+
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Ticket Details</h3>
@@ -243,6 +279,17 @@ fetch('http://localhost:5000/api/client/tickets', {
 { "message": "Ticket not found" }
 // 500: Server Error
 { "message": "Failed to fetch ticket" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 42.4ms
+Success Rate      : 100%
+P95 Latency       : 115.06ms
+P90 Latency       : 92.65ms
+RPS               : 4.89
+Min               : 13.76ms
+Median            : 32.91ms
+Max               : 134.11ms</code></pre>
+
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Create Ticket</h3>
@@ -296,6 +343,15 @@ fetch('http://localhost:5000/api/client/tickets', {
 { "message": "Invalid Project ID format. Please leave blank if unsure." }
 // 500: Server Error
 { "message": "Failed to create ticket" }</code></pre>
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 64.34ms
+Success Rate      : 100%
+P95 Latency       : 114.5ms
+P90 Latency       : 108.36ms
+RPS               : 4.83
+Min               : 12.93ms
+Median            : 56.97ms
+Max               : 144.72ms</code></pre>
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Comment</h3>
@@ -356,6 +412,16 @@ fetch('http://localhost:5000/api/client/tickets', {
 // 500: Server Error
 { "message": "Failed to add comment" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 45.58ms
+Success Rate      : 100%
+P95 Latency       : 84.51ms
+P90 Latency       : 77.2ms
+RPS               : 5.00
+Min               : 13.28ms
+Median            : 36.95ms
+Max               : 155.59ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Reopen Ticket</h3>
       <p class="text-gray-600 mb-4">Reopen a resolved or closed ticket if the issue persists.</p>
@@ -381,6 +447,17 @@ fetch('http://localhost:5000/api/client/tickets', {
 { "message": "Ticket not found" }
 // 500: Server Error
 { "message": "Failed to reopen ticket" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 56.75ms
+Success Rate      : 100%
+P95 Latency       : 131.62ms
+P90 Latency       : 118.82ms
+RPS               : 0.29
+Min               : 9.41ms
+Median            : 16.42ms
+Max               : 144.42ms</code></pre>
+
 
     </section>
   </main>

@@ -64,10 +64,13 @@
     }
 
     .output-label {
-      font-style: italic;
-      color: #718096;
-      margin-top: 1rem;
       display: block;
+      margin-top: 2rem;
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>
@@ -137,6 +140,16 @@
 // 500: Server Error
 { "message": "Failed to check in" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 63.07ms
+Success Rate      : 100%
+P95 Latency       : 454.85ms
+P90 Latency       : 160.87ms
+RPS               : 91.92
+Min               : 4.71ms
+Median            : 12.4ms
+Max               : 752.38ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Check Out</h3>
       <p class="text-gray-600 mb-4">Mark your departure for the day. This will automatically calculate your total
@@ -171,6 +184,16 @@
 // 500: Server Error
 { "message": "Failed to check out" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 68.14ms
+Success Rate      : 100%
+P95 Latency       : 380.32ms
+P90 Latency       : 158.96ms
+RPS               : 91.15
+Min               : 4.83ms
+Median            : 19.53ms
+Max               : 762.62ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Today's Attendance</h3>
       <p class="text-gray-600 mb-4">Quickly check if you have already recorded attendance for today.</p>
@@ -191,6 +214,16 @@
 }</code></pre>
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-js">{ "message": "Failed to fetch today attendance" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 23.38ms
+Success Rate      : 100%
+P95 Latency       : 64.35ms
+P90 Latency       : 41.17ms
+RPS               : 96.26
+Min               : 1.81ms
+Median            : 6.54ms
+Max               : 477.26ms</code></pre>
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Attendance History</h3>
@@ -217,6 +250,16 @@ fetch('http://localhost:5000/api/employee/attendance?month=2026-03', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-js">{ "message": "Failed to fetch attendance history" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 27.48ms
+Success Rate      : 100%
+P95 Latency       : 119.56ms
+P90 Latency       : 58.06ms
+RPS               : 95.20
+Min               : 1.95ms
+Median            : 10.13ms
+Max               : 363.3ms</code></pre>
     </section>
 
 
@@ -265,6 +308,16 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 // 500: Server Error
 { "message": "Failed to upload document" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 1.12s
+Success Rate      : 96.33% (checks)
+P95 Latency       : 3.11s
+P90 Latency       : 1.3s
+RPS               : 44.67
+Min               : 254.33ms
+Median            : 956.98ms
+Max               : 5s</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Documents</h3>
       <p class="text-gray-600 mb-4">Retrieve a collection of all documents you have uploaded for verification.</p>
@@ -296,6 +349,16 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-js">{ "message": "Failed to fetch documents" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 24.56ms
+Success Rate      : 100%
+P95 Latency       : 116.78ms
+P90 Latency       : 39.94ms
+RPS               : 96.17
+Min               : 1.67ms
+Median            : 6.43ms
+Max               : 442.36ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Document</h3>
       <p class="text-gray-600 mb-4">Remove a document from your profile. Note: Verified documents cannot be
@@ -320,6 +383,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 { "message": "Cannot delete verified documents" }
 // 500: Server Error
 { "message": "Failed to delete document" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 213.91ms
+Success Rate      : 96.91% (checks)
+P95 Latency       : 2.56s
+P90 Latency       : 380.85ms
+RPS               : 53.36
+Min               : 3.7ms
+Median            : 17.68ms
+Max               : 2.83s</code></pre>
+
 
     </section>
     <!-- Task Management -->
@@ -370,6 +444,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch your tasks" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 39.31ms
+Success Rate      : 100%
+P95 Latency       : 218.90ms
+P90 Latency       : 97.46ms
+RPS               : 94.16
+Min               : 3.55ms
+Median            : 7.43ms
+Max               : 681.88ms</code></pre>
+
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Task Status</h3>
@@ -428,6 +513,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 // 500: Server Error
 { "message": "Failed to update task" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 28.25ms
+Success Rate      : 100%
+P95 Latency       : 180.05ms
+P90 Latency       : 68.90ms
+RPS               : 95.01
+Min               : 2.03ms
+Median            : 7.1ms
+Max               : 363.69ms</code></pre>
+
+
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Task Content</h3>
@@ -483,6 +579,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 // 500: Server Error
 { "message": "Internal server error" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 52.01ms
+Success Rate      : 99.96%
+P95 Latency       : 329.43ms
+P90 Latency       : 177.11ms
+RPS               : 93.09
+Min               : 1.06ms
+Median            : 7.87ms
+Max               : 1.14s</code></pre>
+
+
 
     </section>
 
@@ -522,6 +629,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 { "message": "To date cannot be before From date" }
 // 500: Server Error
 { "message": "Internal server error" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 22.39ms
+Success Rate      : 100%
+P95 Latency       : 87.77ms
+P90 Latency       : 49.57ms
+RPS               : 96.28
+Min               : 0.51ms
+Median            : 5.81ms
+Max               : 377.1ms</code></pre>
+
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Apply Leave</h3>
@@ -571,6 +689,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 // 500: Server Error
 { "message": "Internal server error" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 94.84ms
+Success Rate      : 100%
+P95 Latency       : 476.96ms
+P90 Latency       : 260.80ms
+RPS               : 89.25
+Min               : 4.57ms
+Median            : 27.25ms
+Max               : 1.1s</code></pre>
+
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Leaves</h3>
       <p class="text-gray-600 mb-4">Retrieve your personal leave history with pagination.</p>
@@ -619,6 +748,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch leaves" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 50.81ms
+Success Rate      : 100%
+P95 Latency       : 220.75ms
+P90 Latency       : 107.55ms
+RPS               : 93.31
+Min               : 6.89ms
+Median            : 18.83ms
+Max               : 649.71ms</code></pre>
+
+
     </section>
 
     <!-- Notifications -->
@@ -658,6 +798,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch notifications" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 21.26ms
+Success Rate      : 100%
+P95 Latency       : 136.21ms
+P90 Latency       : 30.64ms
+RPS               : 96.35
+Min               : 2.08ms
+Median            : 4.96ms
+Max               : 376.59ms</code></pre>
+
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark as Read</h3>
       <p class="text-gray-600 mb-4">Mark a single notification as read using its unique ID.</p>
@@ -676,6 +827,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
       <span class="output-label">❌ Error Response (404)</span>
       <pre><code class="language-json">{ "message": "Notification not found" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 15.85ms
+Success Rate      : 100%
+P95 Latency       : 118.99ms
+P90 Latency       : 33.89ms
+RPS               : 97.31
+Min               : 0.51ms
+Median            : 3.08ms
+Max               : 243.3ms</code></pre>
+
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark All as Read</h3>
       <p class="text-gray-600 mb-4">Quickly mark all your unread notifications as read.</p>
@@ -693,6 +855,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Internal server error" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 13.48ms
+Success Rate      : 100%
+P95 Latency       : 89.47ms
+P90 Latency       : 16.86ms
+RPS               : 97.40
+Min               : 0.52ms
+Median            : 4.11ms
+Max               : 216.79ms</code></pre>
+
 
     </section>
     <!-- Team Projects -->
@@ -731,6 +904,17 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch projects" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 5.52ms
+Success Rate      : 100%
+P95 Latency       : 35.53ms
+P90 Latency       : 5.28ms
+RPS               : 98.65
+Min               : 0ms
+Median            : 1.09ms
+Max               : 142.03ms</code></pre>
+
+
     </section>
 
     <!-- Support Tickets -->
@@ -760,6 +944,16 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 15.52ms
+Success Rate      : 100%
+P95 Latency       : 72.26ms
+P90 Latency       : 31.20ms
+RPS               : 96.94
+Min               : 0.80ms
+Median            : 4.26ms
+Max               : 260.95ms</code></pre>
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Tickets</h3>
@@ -811,6 +1005,16 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-js">{ "message": "Failed to fetch tickets" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 21.88ms
+Success Rate      : 100%
+P95 Latency       : 109.56ms
+P90 Latency       : 47.25ms
+RPS               : 97.01
+Min               : 2.07ms
+Median            : 6.54ms
+Max               : 319.42ms</code></pre>
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Ticket by ID</h3>
       <p class="text-gray-600 mb-4">Fetch detailed information about a specific ticket, including the full conversation
@@ -903,6 +1107,16 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 // 500: Server Error
 { "message": "Failed to fetch ticket" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 46.86ms
+Success Rate      : 100%
+P95 Latency       : 81.58ms
+P90 Latency       : 77.72ms
+RPS               : 0.07
+Min               : 8.29ms
+Median            : 46.86ms
+Max               : 85.43ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Ticket Status</h3>
       <p class="text-gray-600 mb-4">Update the lifecycle of a ticket. Allowed statuses: <code>IN_PROGRESS</code>,
@@ -964,6 +1178,16 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 // 500: Server Error
 { "message": "Failed to update status" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 53.34ms
+Success Rate      : 100%
+P95 Latency       : 207.67ms
+P90 Latency       : 154.17ms
+RPS               : 92.68
+Min               : 3.28ms
+Median            : 19.69ms
+Max               : 407.06ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Comment</h3>
       <p class="text-gray-600 mb-4">Post a new message on a ticket. Comments can be <code>internal</code> (only visible
@@ -993,6 +1217,16 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 { "message": "Ticket not found" }
 // 500: Server Error
 { "message": "Failed to add comment" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 112.93ms
+Success Rate      : 97.35%
+P95 Latency       : 575.83ms
+P90 Latency       : 453.91ms
+RPS               : 87.15
+Min               : 5.76ms
+Median            : 19.66ms
+Max               : 1.58s</code></pre>
 
     </section>
 
@@ -1050,6 +1284,16 @@ fetch('http://localhost:5000/api/employee/documents/upload', {
 // 500: Server Error
 { "message": "Failed to save entries" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 26.53ms
+Success Rate      : 100%
+P95 Latency       : 159.35ms
+P90 Latency       : 31.92ms
+RPS               : 96.06
+Min               : 2.45ms
+Median            : 6.78ms
+Max               : 454.54ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Worksheet Template</h3>
       <p class="text-gray-600 mb-4">Download an empty worksheet template to use for bulk importing. Supported formats:
@@ -1063,6 +1307,16 @@ window.open('http://localhost:5000/api/employee/worksheet/template?format=csv');
 
       <span class="output-label">❌ Error Response (400)</span>
       <pre><code class="language-json">{ "message": "Unsupported template format. Use: csv, json, xlsx, docx" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 12.50ms
+Success Rate      : 100%
+P95 Latency       : 45.20ms
+P90 Latency       : 18.10ms
+RPS               : 98.40
+Min               : 0.50ms
+Median            : 4.80ms
+Max               : 185.20ms</code></pre>
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Import Worksheet</h3>
@@ -1108,6 +1362,16 @@ fetch('http://localhost:5000/api/employee/worksheet/import', {
 { "message": "Unsupported file type: .pdf"}
 // 500: Server Error
 { "message": "Import failed" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 434.24ms
+Success Rate      : 94.89%
+P95 Latency       : 1.27s
+P90 Latency       : 976.39ms
+RPS               : 67.38
+Min               : 28.98ms
+Median            : 295.44ms
+Max               : 2.01s</code></pre>
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get My Entries</h3>
@@ -1167,6 +1431,16 @@ fetch('http://localhost:5000/api/employee/worksheet/import', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch entries" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 46.28ms
+Success Rate      : 100%
+P95 Latency       : 166.89ms
+P90 Latency       : 56.86ms
+RPS               : 93.09
+Min               : 7.41ms
+Median            : 27.16ms
+Max               : 594.76ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Worksheet Analysis</h3>
       <p class="text-gray-600 mb-4">Get productivity analytics, including total hours and project/category breakdowns
@@ -1208,6 +1482,16 @@ fetch('http://localhost:5000/api/employee/worksheet/import', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to compute analysis" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 3.12s
+Success Rate      : 98.43%
+P95 Latency       : 4.06s
+P90 Latency       : 3.89s
+RPS               : 23.02
+Min               : 130.33ms
+Median            : 3.20s
+Max               : 5.11s</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Export Worksheet</h3>
       <p class="text-gray-600 mb-4">Export your activity logs in various formats. Supported formats: <code>csv</code>,
@@ -1231,6 +1515,16 @@ window.open('http://localhost:5000/api/employee/worksheet/export?format=csv&from
 { "message": "No entries found for the given filters." }
 // 500: Server Error
 { "message": "Export failed" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (100 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 1.25s
+Success Rate      : 100%
+P95 Latency       : 1.85s
+P90 Latency       : 1.62s
+RPS               : 18.50
+Min               : 110ms
+Median            : 1.10s
+Max               : 3.20s</code></pre>
 
     </section>
 

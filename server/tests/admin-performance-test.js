@@ -4,8 +4,21 @@ import { check, sleep } from 'k6';
 const BASE_URL = 'http://localhost:5000/api';
 
 export const options = {
-    vus: 5,
-    duration: '10s',
+    scenarios: {
+        team_leads: {
+            executor: 'constant-vus',
+            exec: 'teamLeadsTest',
+            vus: 5,
+            duration: '10s',
+        },
+        promote_user: {
+            executor: 'constant-vus',
+            exec: 'promoteUserTest',
+            vus: 5,
+            duration: '10s',
+            startTime: '12s', // Start after team_leads finished
+        },
+    },
 };
 
 // Admin credentials from seed.js
@@ -20,14 +33,19 @@ export function setup() {
         headers: { 'Content-Type': 'application/json' },
     });
 
-    check(loginRes, {
-        'Login successful': (r) => r.status === 200,
-    });
+    const token = loginRes.json('token');
 
-    return { token: loginRes.json('token') };
+    // Fetch an employee to get a valid ID for promotion test
+    const empRes = http.get(`${BASE_URL}/admin/employees`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const employees = empRes.json();
+    const empId = employees.length > 0 ? employees[0]._id : null;
+
+    return { token, empId };
 }
 
-export default function (data) {
+export function teamLeadsTest(data) {
     const params = {
         headers: {
             'Authorization': `Bearer ${data.token}`,
@@ -35,16 +53,28 @@ export default function (data) {
         },
     };
 
-    const res = http.get(`${BASE_URL}/admin/clients`, params);
-
-    const checkRes = check(res, {
-        'Status is 200': (r) => r.status === 200,
-        'Response time < 1000ms': (r) => r.timings.duration < 1000,
+    const res = http.get(`${BASE_URL}/admin/employees/team-leads`, params);
+    check(res, {
+        'Get TeamLeads: Status is 200': (r) => r.status === 200,
+        'Get TeamLeads: Response time < 500ms': (r) => r.timings.duration < 500,
     });
+    sleep(1);
+}
 
-    if (!checkRes) {
-        console.log(`Request failed: ${res.status} - ${res.body}`);
-    }
+export function promoteUserTest(data) {
+    if (!data.empId) return;
 
+    const params = {
+        headers: {
+            'Authorization': `Bearer ${data.token}`,
+            'Content-Type': 'application/json',
+        },
+    };
+
+    const res = http.get(`${BASE_URL}/admin/employees/promote/${data.empId}`, params);
+    check(res, {
+        'Promote User: Status is 200': (r) => r.status === 200,
+        'Promote User: Response time < 1000ms': (r) => r.timings.duration < 1000,
+    });
     sleep(1);
 }

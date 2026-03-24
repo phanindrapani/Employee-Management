@@ -64,10 +64,13 @@
         }
 
         .output-label {
-            font-style: italic;
-            color: #718096;
-            margin-top: 1rem;
             display: block;
+            margin-top: 2rem;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
     </style>
 </head>
@@ -136,6 +139,17 @@
 // Validation Error
 { "message": "Validation failed" }</code></pre>
 
+            <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+            <pre><code class="language-yaml">Avg Response Time : 255.62ms
+Success Rate      : 100%
+P95 Latency       : 428.08ms
+P90 Latency       : 421.52ms
+RPS               : 3.82
+Min               : 80.96ms
+Median            : 270.63ms
+Max               : 431.18ms</code></pre>
+
+
         </section>
 
         <section id="login" class="mb-16">
@@ -168,6 +182,17 @@
 { "message": "Invalid email or password" }
 // 500: Server Error
 { "message": "Server error during login" }</code></pre>
+
+            <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+            <pre><code class="language-yaml">Avg Response Time : 243.58ms
+Success Rate      : 100%
+P95 Latency       : 406.18ms
+P90 Latency       : 404.28ms
+RPS               : 3.84
+Min               : 80.77ms
+Median            : 242.82ms
+Max               : 407.78ms</code></pre>
+
 
         </section>
 
@@ -207,6 +232,17 @@
 { "message": "User not found" }
 // 500: Server Error
 { "message": "Failed to fetch profile" }</code></pre>
+
+            <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+            <pre><code class="language-yaml">Avg Response Time : 15.03ms
+Success Rate      : 100%
+P95 Latency       : 34.22ms
+P90 Latency       : 30.22ms
+RPS               : 4.95
+Min               : 3.54ms
+Median            : 8.4ms
+Max               : 136.21ms</code></pre>
+
 
 
         </section>
@@ -251,6 +287,17 @@
 // 500: Server Error
 { "message": "Failed to update profile" }</code></pre>
 
+            <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+            <pre><code class="language-yaml">Avg Response Time : 22.21ms
+Success Rate      : 100%
+P95 Latency       : 50.73ms
+P90 Latency       : 48.89ms
+RPS               : 4.89
+Min               : 6.12ms
+Median            : 12.95ms
+Max               : 146.84ms</code></pre>
+
+
         </section>
 
         <section id="change-password" class="mb-16">
@@ -285,6 +332,17 @@
 { "message": "User not found" }
 // 500: Server Error
 { "message": "Server error during password change" }</code></pre>
+
+            <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+            <pre><code class="language-yaml">Avg Response Time : 511.4ms
+Success Rate      : 100%
+P95 Latency       : 818.51ms
+P90 Latency       : 816.72ms
+RPS               : 3.22
+Min               : 129.21ms
+Median            : 535.54ms
+Max               : 822.88ms</code></pre>
+
 
         </section>
     </main>

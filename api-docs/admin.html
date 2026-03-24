@@ -59,15 +59,14 @@
       transition: color 0.2s;
     }
 
-    .nav-link:hover {
-      color: #3182ce;
-    }
-
     .output-label {
-      font-style: italic;
-      color: #718096;
-      margin-top: 1rem;
       display: block;
+      margin-top: 2rem;
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>
@@ -141,6 +140,17 @@
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch daily attendance" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 29.53ms
+Success Rate      : 100%
+P95 Latency       : 70.33ms
+P90 Latency       : 64.84ms
+RPS               : 4.87
+Min               : 10.45ms
+Median            : 17.96ms
+Max               : 135.16ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4">Get Daily Attendance</h3>
       <p class="text-gray-600 mb-4">Fetch attendance records for all employees for a specific date (YYYY-MM-DD).</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/attendance?date=2026-03-23', {
@@ -172,6 +182,17 @@
 { "message": "Invalid date format. Use YYYY-MM-DD." }
 // 500: Server Error
 { "message": "Failed to fetch daily attendance" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 29.53ms
+Success Rate      : 100%
+P95 Latency       : 70.33ms
+P90 Latency       : 64.84ms
+RPS               : 4.87
+Min               : 10.45ms
+Median            : 17.96ms
+Max               : 135.16ms</code></pre>
+
     </section>
 
     <!-- Client Section -->
@@ -204,6 +225,17 @@
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Internal server error" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 23.14ms
+Success Rate      : 100%
+P95 Latency       : 35.45ms
+P90 Latency       : 31.84ms
+RPS               : 4.91
+Min               : 6.8ms
+Median            : 21.06ms
+Max               : 136.47ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4">Get Client by ID</h3>
       <p class="text-gray-600 mb-4">Retrieve detailed information for a specific client using their unique ID.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
@@ -238,6 +270,17 @@
 { "message": "Client not found" }
 // 500: Server Error
 { "message": "Failed to fetch client" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 19.3ms
+Success Rate      : 100%
+P95 Latency       : 56.28ms
+P90 Latency       : 45.59ms
+RPS               : 4.98
+Min               : 7.19ms
+Median            : 10.71ms
+Max               : 182.65ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4">Create Client</h3>
       <p class="text-gray-600 mb-4">Onboard a new client by providing their basic details.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients', {
@@ -281,6 +324,17 @@
 { "message": "User already exists for this email" }
 // Validation / Other
 { "error": "Internal server error" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 212.08ms
+Success Rate      : 100%
+P95 Latency       : 447.01ms
+P90 Latency       : 443.65ms
+RPS               : 3.92
+Min               : 90.83ms
+Median            : 173.02ms
+Max               : 453.36ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Client</h3>
       <p class="text-gray-600 mb-4">Update existing client information securely.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
@@ -314,6 +368,17 @@
 // 500: Server Error
 { "message": "Failed to update client" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 27.52ms
+Success Rate      : 100%
+P95 Latency       : 41.19ms
+P90 Latency       : 40.43ms
+RPS               : 4.97
+Min               : 8.88ms
+Median            : 21.13ms
+Max               : 143.76ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Client</h3>
       <p class="text-gray-600 mb-4">Remove a client from the system permanently.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/clients/69aec0...', {
@@ -331,6 +396,17 @@
 { "message": "Client not found" }
 // 500: Server Error
 { "message": "Failed to delete client" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 20.58ms
+Success Rate      : 100%
+P95 Latency       : 38.88ms
+P90 Latency       : 33.15ms
+RPS               : 9.71
+Min               : 6.28ms
+Median            : 15.76ms
+Max               : 140.64ms</code></pre>
+
     </section>
 
     <!-- Dashboard Section -->
@@ -356,6 +432,17 @@
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch dashboard stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 43.8ms
+Success Rate      : 100%
+P95 Latency       : 135.64ms
+P90 Latency       : 130.51ms
+RPS               : 4.80
+Min               : 15.62ms
+Median            : 23.42ms
+Max               : 154.08ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Report Statistics</h3>
       <p class="text-gray-600 mb-4">Retrieve detailed organizational reports, including monthly trends and employee
         stats.</p>
@@ -396,6 +483,17 @@
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch report stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 33.49ms
+Success Rate      : 100%
+P95 Latency       : 153.26ms
+P90 Latency       : 132.05ms
+RPS               : 4.87
+Min               : 7ms
+Median            : 15.55ms
+Max               : 164.77ms</code></pre>
+
     </section>
 
     <!-- Department Section -->
@@ -428,11 +526,19 @@
   "updatedAt":"2026-03-17T10:48:46.742Z"
 }</code></pre>
 
-      <span class="output-label">❌ Error Response (400/500)</span>
-      <pre><code class="language-json">// 400: Validation Error
-{ "message": "Department name already exists" }
-// 500: Server Error
-{ "message": "Failed to create department" }</code></pre>
+      // 500: Server Error
+      { "message": "Failed to create department" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 22.89ms
+Success Rate      : 100%
+P95 Latency       : 48.72ms
+P90 Latency       : 45.27ms
+RPS               : 4.91
+Min               : 7.65ms
+Median            : 15ms
+Max               : 134.76ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Departments</h3>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments', {
@@ -455,6 +561,17 @@
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed to fetch departments" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 21.11ms
+Success Rate      : 100%
+P95 Latency       : 69.87ms
+P90 Latency       : 57.08ms
+RPS               : 4.91
+Min               : 6.78ms
+Median            : 11.11ms
+Max               : 140.55ms</code></pre>
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Department</h3>
       <p class="text-gray-600 mb-4">Securely update department information and descriptions.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/departments/69b93...', {
@@ -482,8 +599,19 @@
 
       <span class="output-label">❌ Error Response (400/404/500)</span>
       <pre><code class="language-json">
-// 500: Server Error
-{ "msg": "Failed to update department" }</code></pre>
+      // 500: Server Error
+      { "msg": "Failed to update department" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 28.09ms
+Success Rate      : 100%
+P95 Latency       : 39.68ms
+P90 Latency       : 36.89ms
+RPS               : 4.98
+Min               : 8.96ms
+Median            : 28.23ms
+Max               : 131.9ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Department</h3>
       <p class="text-gray-600 mb-4">Remove a department from the system permanently.</p>
@@ -502,6 +630,17 @@
 { "message": "Department not found" }
 // 500: Server Error
 { "msg": "Failed to delete department" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 16.31ms
+Success Rate      : 100%
+P95 Latency       : 46.61ms
+P90 Latency       : 42.64ms
+RPS               : 9.63
+Min               : 4.8ms
+Median            : 9.76ms
+Max               : 216.94ms</code></pre>
+
     </section>
 
     <!-- Documents Section -->
@@ -533,6 +672,17 @@
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch documents" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 23.47ms
+Success Rate      : 100%
+P95 Latency       : 34.97ms
+P90 Latency       : 31.57ms
+RPS               : 4.91
+Min               : 10.44ms
+Median            : 21.49ms
+Max               : 134.18ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Upload Document</h3>
       <p class="text-gray-600 mb-4">Upload a new document for an employee.</p>
       <pre><code class="language-js">const formData = new FormData();
@@ -563,6 +713,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Failed to upload document
 { "message": "Failed to upload document" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 1.31s
+Success Rate      : 89.79% (Checks)
+P95 Latency       : 2.77s
+P90 Latency       : 2.68s
+RPS               : 2.09
+Min               : 133.54ms
+Median            : 1.01s
+Max               : 2.93s</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Verify Document</h3>
       <p class="text-gray-600 mb-4">Approve and verify an uploaded document.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/documents/65doc.../verify', {
@@ -585,6 +746,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 { "message": "Document not found" }
 // 500: Failed to verify document
 { "message": "Failed to verify document" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 21.77ms
+Success Rate      : 100%
+P95 Latency       : 34.88ms
+P90 Latency       : 32.9ms
+RPS               : 5.01
+Min               : 6.69ms
+Median            : 19.03ms
+Max               : 135.49ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Reject Document</h3>
       <p class="text-gray-600 mb-4">Reject a document with a reason for the employee to re-upload.</p>
@@ -615,6 +787,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Failed to reject document
 { "message": "Failed to reject document" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 29.68ms
+Success Rate      : 100%
+P95 Latency       : 40.36ms
+P90 Latency       : 37.89ms
+RPS               : 4.96
+Min               : 8.61ms
+Median            : 29.5ms
+Max               : 139.43ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Document</h3>
       <p class="text-gray-600 mb-4">Permanently remove a document from the system.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/documents/65doc...', {
@@ -632,6 +815,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 { "message": "Document not found" }
 // 500: Failed to delete document
 { "message": "Failed to delete document" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 29.88ms
+Success Rate      : 100%
+P95 Latency       : 61.4ms
+P90 Latency       : 57.78ms
+RPS               : 9.71
+Min               : 7.92ms
+Median            : 18.84ms
+Max               : 132.87ms</code></pre>
+
     </section>
 
     <!-- Employee Section -->
@@ -673,6 +867,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "error": "Internal server error" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 55.72ms
+Success Rate      : 100%
+P95 Latency       : 193.97ms
+P90 Latency       : 172.72ms
+RPS               : 4.73
+Min               : 21.89ms
+Median            : 27.12ms
+Max               : 212.12ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Team Leads</h3>
       <p class="text-gray-600 mb-4">Retrieve a specialized list of all users with the 'team-lead' role, filtered for
         assignment contexts.</p>
@@ -697,6 +902,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "error": "Internal server error" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 26.87ms
+Success Rate      : 100%
+P95 Latency       : 55.3ms
+P90 Latency       : 47.7ms
+RPS               : 4.51
+Min               : 3.64ms
+Median            : 25.96ms
+Max               : 147.15ms</code></pre>
+
 
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Employee by ID</h3>
@@ -732,6 +948,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 { "message": "Employee not found" }
 // 500: Failed to fetch employee
 { "error": "Failed to fetch employee" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 25.49ms
+Success Rate      : 100%
+P95 Latency       : 53.14ms
+P90 Latency       : 49.74ms
+RPS               : 4.97
+Min               : 7.54ms
+Median            : 18.83ms
+Max               : 131.84ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Employee</h3>
       <p class="text-gray-600 mb-4">Add a new employee to the system with a default password.</p>
@@ -769,6 +996,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Server Error
 { "error": "Internal server error" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 221.41ms
+Success Rate      : 100%
+P95 Latency       : 443.93ms
+P90 Latency       : 442.99ms
+RPS               : 4.13
+Min               : 15.74ms
+Median            : 211.53ms
+Max               : 446.47ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Promote/Update Role</h3>
       <p class="text-gray-600 mb-4">Promote an employee to a new role (manager, team-lead, or employee). This handles
         complex transitions like leave quota updates and team membership changes.</p>
@@ -805,6 +1043,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Server Error
 { "error": "Internal server error" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 26.87ms
+Success Rate      : 100%
+P95 Latency       : 55.3ms
+P90 Latency       : 47.7ms
+RPS               : 4.51
+Min               : 3.64ms
+Median            : 25.96ms
+Max               : 147.15ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Employee</h3>
       <p class="text-gray-600 mb-4">Update an existing employee's information.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/69b93...', {
@@ -837,6 +1086,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Server Error
 { "error": "Failed to update employee" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 28.44ms
+Success Rate      : 100%
+P95 Latency       : 46.16ms
+P90 Latency       : 44.69ms
+RPS               : 4.94
+Min               : 9.4ms
+Median            : 23.28ms
+Max               : 166.46ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Employee</h3>
       <p class="text-gray-600 mb-4">Permanently remove an employee from the system.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/employees/69b93...', {
@@ -854,6 +1114,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 { "message": "Employee not found" }
 // 500: Server Error
 { "error": "Failed to delete employee" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 23.86ms
+Success Rate      : 92.00% (Checks)
+P95 Latency       : 55.05ms
+P90 Latency       : 50.48ms
+RPS               : 4.97
+Min               : 7.87ms
+Median            : 14.31ms
+Max               : 145.54ms</code></pre>
+
     </section>
 
     <!-- Holiday Section -->
@@ -886,6 +1157,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 20.32ms
+Success Rate      : 100%
+P95 Latency       : 42.74ms
+P90 Latency       : 39.99ms
+RPS               : 4.93
+Min               : 6.42ms
+Median            : 14.42ms
+Max               : 139.09ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Holiday</h3>
       <p class="text-gray-600 mb-4">Add a new holiday to the organizational calendar.</p>
@@ -926,6 +1208,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Server Error
 { "msg": "Failed to add holiday" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 25.53ms
+Success Rate      : 94.05% (Checks)
+P95 Latency       : 44.21ms
+P90 Latency       : 40.2ms
+RPS               : 4.90
+Min               : 8.29ms
+Median            : 22.18ms
+Max               : 133.09ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Holiday</h3>
       <p class="text-gray-600 mb-4">Remove a holiday entry from the system.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/holidays/69943...', {
@@ -940,6 +1233,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 20.73ms
+Success Rate      : 100%
+P95 Latency       : 31.65ms
+P90 Latency       : 28.51ms
+RPS               : 5.00
+Min               : 8.69ms
+Median            : 19.29ms
+Max               : 140.44ms</code></pre>
+
     </section>
 
     <!-- Leave Section -->
@@ -973,6 +1277,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 23.26ms
+Success Rate      : 100%
+P95 Latency       : 58.11ms
+P90 Latency       : 53.78ms
+RPS               : 4.91
+Min               : 7.79ms
+Median            : 14.76ms
+Max               : 143.72ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Status</h3>
       <p class="text-gray-600 mb-4">Approve or reject a leave application.</p>
@@ -1020,6 +1335,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Server Error
 { "msg": "Failed", "error": "Internal server error" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 99.55ms
+Success Rate      : 100%
+P95 Latency       : 168.38ms
+P90 Latency       : 160.73ms
+RPS               : 0.20
+Min               : 23.07ms
+Median            : 99.55ms
+Max               : 176.03ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Reconcile Balances</h3>
       <p class="text-gray-600 mb-4">Manually trigger leave balance reconciliation across the organization.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/leaves/reconcile-balances', {
@@ -1042,6 +1368,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Reconciliation failed", "details": "Internal server error" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 25.91ms
+Success Rate      : 100%
+P95 Latency       : 38.21ms
+P90 Latency       : 36.25ms
+RPS               : 4.90
+Min               : 7.73ms
+Median            : 22.43ms
+Max               : 134.43ms</code></pre>
+
     </section>
 
     <!-- Performance Section -->
@@ -1067,6 +1404,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Calculation failed" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 1.86s
+Success Rate      : 100%
+P95 Latency       : 2.41s
+P90 Latency       : 2.41s
+RPS               : 1.75
+Min               : 126.32ms
+Median            : 1.8s
+Max               : 2.41s</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Performance Dashboard</h3>
       <p class="text-gray-600 mb-4">Retrieve organization-wide performance metrics and top performers.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/performance/dashboard?period=2026-02', {
@@ -1089,6 +1437,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch stats" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 49.43ms
+Success Rate      : 100%
+P95 Latency       : 133.41ms
+P90 Latency       : 121.37ms
+RPS               : 4.77
+Min               : 17.61ms
+Median            : 37.05ms
+Max               : 142.05ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Employee Performance Profile</h3>
       <p class="text-gray-600 mb-4">View detailed performance scoring history and current metrics for a specific
@@ -1124,6 +1483,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch profile" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 25.63ms
+Success Rate      : 100%
+P95 Latency       : 54.71ms
+P90 Latency       : 33.17ms
+RPS               : 5.00
+Min               : 9.69ms
+Median            : 23.74ms
+Max               : 81.15ms</code></pre>
+
     </section>
 
     <!-- Project Section -->
@@ -1165,6 +1535,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed to create project" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 45.58ms
+Success Rate      : 100%
+P95 Latency       : 84.51ms
+P90 Latency       : 77.2ms
+RPS               : 5.00
+Min               : 13.28ms
+Median            : 36.95ms
+Max               : 155.59ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Projects</h3>
       <p class="text-gray-600 mb-4">List all projects with their current status and progress.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects', {
@@ -1188,6 +1569,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed to fetch" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 46.2ms
+Success Rate      : 100%
+P95 Latency       : 127.1ms
+P90 Latency       : 110.31ms
+RPS               : 4.80
+Min               : 19.96ms
+Median            : 31.05ms
+Max               : 145.44ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project</h3>
       <p class="text-gray-600 mb-4">Modify project details like name, description, priority, or assigned manager.</p>
@@ -1216,6 +1608,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed to update project" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 42.2ms
+Success Rate      : 100%
+P95 Latency       : 85.03ms
+P90 Latency       : 77.19ms
+RPS               : 4.88
+Min               : 13.72ms
+Median            : 30.54ms
+Max               : 135.16ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Project Status</h3>
       <p class="text-gray-600 mb-4">Update the current status and overall progress of a project.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects/65proj.../status', {
@@ -1241,6 +1644,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 39.29ms
+Success Rate      : 100%
+P95 Latency       : 60.55ms
+P90 Latency       : 59.78ms
+RPS               : 4.85
+Min               : 10.49ms
+Median            : 39.66ms
+Max               : 259.14ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Project</h3>
       <p class="text-gray-600 mb-4">Remove a project and all its associated tasks from the system.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/projects/65proj...', {
@@ -1255,6 +1669,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 34.71ms
+Success Rate      : 100%
+P95 Latency       : 62.74ms
+P90 Latency       : 58.14ms
+RPS               : 4.87
+Min               : 12.13ms
+Median            : 24.05ms
+Max               : 252.01ms</code></pre>
+
     </section>
 
     <!-- Settings Section -->
@@ -1288,6 +1713,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch leave settings" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 19.47ms
+Success Rate      : 100%
+P95 Latency       : 32.02ms
+P90 Latency       : 29.99ms
+RPS               : 4.93
+Min               : 5.5s
+Median            : 15.84ms
+Max               : 141.82ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Leave Settings</h3>
       <p class="text-gray-600 mb-4">Update global leave quotas. This affects new employee balance initialization.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/settings/leave', {
@@ -1320,6 +1756,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to update leave settings" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 27.39ms
+Success Rate      : 100%
+P95 Latency       : 49.32ms
+P90 Latency       : 46.09ms
+RPS               : 4.79
+Min               : 5.91ms
+Median            : 17.63ms
+Max               : 368.14ms</code></pre>
+
     </section>
 
     <!-- Team Section -->
@@ -1362,6 +1809,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Server Error
 { "message": "Failed to create team" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 64.34ms
+Success Rate      : 100%
+P95 Latency       : 114.5ms
+P90 Latency       : 108.36ms
+RPS               : 4.84
+Min               : 12.93ms
+Median            : 56.97ms
+Max               : 144.72ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Teams</h3>
       <p class="text-gray-600 mb-4">Fetch all teams with their assigned leads, managers, and department info.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams', {
@@ -1387,6 +1845,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "msg": "Failed to fetch" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 36.04ms
+Success Rate      : 100%
+P95 Latency       : 112.44ms
+P90 Latency       : 86.02ms
+RPS               : 4.83
+Min               : 15.62ms
+Median            : 20.01ms
+Max               : 137.32ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Update Team</h3>
       <p class="text-gray-600 mb-4">Modify team details, change the lead or manager, and update member list.</p>
@@ -1416,6 +1885,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to update team" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 49.72ms
+Success Rate      : 100%
+P95 Latency       : 82.12ms
+P90 Latency       : 65.28ms
+RPS               : 4.85
+Min               : 19.02ms
+Median            : 45.23ms
+Max               : 134.31ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Manage Team Members</h3>
       <p class="text-gray-600 mb-4">Quickly add or remove a single member from a team.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams/members', {
@@ -1442,6 +1922,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to manage team members" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 37.68ms
+Success Rate      : 100%
+P95 Latency       : 61.36ms
+P90 Latency       : 59.67ms
+RPS               : 4.98
+Min               : 10.56ms
+Median            : 33.8ms
+Max               : 162.17ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Delete Team</h3>
       <p class="text-gray-600 mb-4">Delete a team. Members will be unassigned and the lead's role may revert.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/teams/65team...', {
@@ -1456,6 +1947,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to delete team" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 45.87ms
+Success Rate      : 100%
+P95 Latency       : 76.54ms
+P90 Latency       : 73.66ms
+RPS               : 4.89
+Min               : 19.89ms
+Median            : 44.61ms
+Max               : 108.4ms</code></pre>
+
     </section>
 
     <!-- Ticket Section -->
@@ -1501,6 +2003,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch analytics" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 38.15ms
+Success Rate      : 100%
+P95 Latency       : 83.25ms
+P90 Latency       : 74.93ms
+RPS               : 4.84
+Min               : 9.81ms
+Median            : 31.51ms
+Max               : 130.53ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get All Tickets</h3>
       <p class="text-gray-600 mb-4">Fetch paginated tickets with filtering by status, priority, and search terms.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets?status=OPEN&page=1&limit=20', {
@@ -1536,6 +2049,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch tickets" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 26.21ms
+Success Rate      : 100%
+P95 Latency       : 83.38ms
+P90 Latency       : 66.66ms
+RPS               : 4.88
+Min               : 9.26ms
+Median            : 15.97ms
+Max               : 156.69ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Ticket By ID</h3>
       <p class="text-gray-600 mb-4">Retrieve full details of a specific ticket, including client info and comments.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/69b5353e...', {
@@ -1570,6 +2094,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Server Error
 { "message": "Failed to fetch ticket" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 28.46ms
+Success Rate      : 100%
+P95 Latency       : 82.62ms
+P90 Latency       : 53.11ms
+RPS               : 4.96
+Min               : 11.22ms
+Median            : 19.89ms
+Max               : 135.62ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get Unassigned Tickets</h3>
       <p class="text-gray-600 mb-4">List tickets that are open but haven't been assigned to a manager yet.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/unassigned', {
@@ -1597,6 +2132,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch unassigned tickets" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 14.31ms
+Success Rate      : 100%
+P95 Latency       : 26.33ms
+P90 Latency       : 23.91ms
+RPS               : 4.96
+Min               : 4.21ms
+Median            : 9.25ms
+Max               : 131.15ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Get SLA Breached Tickets</h3>
       <p class="text-gray-600 mb-4">Review tickets where the response or resolution deadline has passed.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/sla-breached', {
@@ -1623,6 +2169,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch SLA breached tickets" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 15.59ms
+Success Rate      : 100%
+P95 Latency       : 24.45ms
+P90 Latency       : 23.47ms
+RPS               : 4.96
+Min               : 4.81ms
+Median            : 11.33ms
+Max               : 125.69ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Assign Manager to Ticket</h3>
       <p class="text-gray-600 mb-4">Assign a support manager to a specific ticket for resolution.</p>
@@ -1654,6 +2211,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 // 500: Server Error
 { "message": "Failed to assign manager" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 85.64ms
+Success Rate      : 3.85%
+P95 Latency       : 127.63ms
+P90 Latency       : 122.97ms
+RPS               : 5.04
+Min               : 38.97ms
+Median            : 85.64ms
+Max               : 132.3ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Close Ticket</h3>
       <p class="text-gray-600 mb-4">Mark a resolved ticket as closed. Note: Ticket must be in RESOLVED state.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/tickets/65abc.../close', {
@@ -1673,6 +2241,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 { "message": "Ticket not found" }
 // 500: Server Error
 { "message": "Failed to close ticket" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 59.37ms
+Success Rate      : 100%
+P95 Latency       : 113.98ms
+P90 Latency       : 106.68ms
+RPS               : 4.80
+Min               : 18.57ms
+Median            : 54.39ms
+Max               : 145.19ms</code></pre>
+
 
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Add Comment to Ticket</h3>
       <p class="text-gray-600 mb-4">Post a public or internal comment on a support ticket.</p>
@@ -1699,6 +2278,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 { "message": "Ticket not found" }
 // 500: Server Error
 { "message": "Failed to add comment" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 86.24ms
+Success Rate      : 100%
+P95 Latency       : 143.04ms
+P90 Latency       : 140.49ms
+RPS               : 4.65
+Min               : 24.43ms
+Median            : 78.2ms
+Max               : 146.34ms</code></pre>
+
     </section>
 
     <!-- Notifications Section -->
@@ -1731,6 +2321,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
       <span class="output-label">❌ Error Response (500)</span>
       <pre><code class="language-json">{ "message": "Failed to fetch notifications" }</code></pre>
 
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 18.5ms
+Success Rate      : 100%
+P95 Latency       : 40.05ms
+P90 Latency       : 35.27ms
+RPS               : 4.94
+Min               : 5.51ms
+Median            : 14.34ms
+Max               : 128.04ms</code></pre>
+
+
       <h3 class="font-bold text-xl text-gray-800 mb-4 mt-12">Mark Notification as Read</h3>
       <p class="text-gray-600 mb-4">Mark a specific notification as seen.</p>
       <pre><code class="language-js">fetch('http://localhost:5000/api/admin/notifications/69b4fb94.../read', {
@@ -1742,6 +2343,16 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "Notification marked as read" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 16.5ms
+Success Rate      : 100%
+P95 Latency       : 35.21ms
+P90 Latency       : 30.64ms
+RPS               : 4.95
+Min               : 5.08ms
+Median            : 14.96ms
+Max               : 126.59ms</code></pre>
 
       <span class="output-label">❌ Error Response (404)</span>
       <pre><code class="language-json">{ "message": "Notification not found" }</code></pre>
@@ -1757,6 +2368,17 @@ fetch('http://localhost:5000/api/admin/documents/upload', {
 
       <span class="output-label">👇 Output</span>
       <pre><code class="language-js">{ "message": "All notifications marked as read" }</code></pre>
+
+      <span class="output-label">🚀 Load Testing Metrics (5 VUs)</span>
+      <pre><code class="language-yaml">Avg Response Time : 20.36ms
+Success Rate      : 100%
+P95 Latency       : 36.75ms
+P90 Latency       : 33.79ms
+RPS               : 4.92
+Min               : 5.51ms
+Median            : 17.22ms
+Max               : 130.37ms</code></pre>
+
     </section>
     </section>
 
